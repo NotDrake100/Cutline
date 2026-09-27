@@ -1188,12 +1188,14 @@
   .ig-frame {
     aspect-ratio: 1;
     background: #EDE6D9;
+    background-size: cover;
+    background-position: center;
     overflow: hidden;
     display: grid; place-items: center;
     cursor: pointer;
     flex: 0 0 auto;
-    min-height: 180px;
-    max-height: 280px;
+    min-height: 220px;
+    max-height: 380px;
   }
   .ig-frame img { width: 100%; height: 100%; object-fit: contain; background: #EDE6D9; }
   .ig-frame img.broken { display: none; }
@@ -2644,36 +2646,46 @@
     if (!card) return;
     if (!run) { card.style.display = "none"; return; }
     card.style.display = "";
-    const photos = run.photos || [];
+    const isIg = looksLikePostUrl(resolveSourceUrl(run)) && /instagram/i.test(resolveSourceUrl(run));
+    const deskAsset = (u) => {
+      if (!u) return "";
+      if (/cdninstagram\.com|fbcdn\.net/i.test(u)) return "";
+      if (u.startsWith("/assets/")) return u;
+      try {
+        const p = new URL(u, location.href);
+        if (p.origin === location.origin && p.pathname.indexOf("/assets/") === 0) return p.pathname;
+      } catch (_) { /* keep */ }
+      return u;
+    };
+    const photos = (run.photos || []).filter((p) => deskAsset(p.url));
+    if (isIg && !photos.some((p) => /dcn-ig\.svg/i.test(p.url || ""))) {
+      photos.unshift({ url: "/assets/demo/dcn-ig.svg", credit: "Demo still" });
+    }
+    if (photos.length && (!run.photos || run.photos.length !== photos.length)) run.photos = photos;
     if (run.photo?.via === "gemini_gen" && photos[0]) {
       setPostPhoto(photos[0]);
       return;
     }
-    const svgStill = (photos.find((p) => /\.svg(\?|$)/i.test(p.url || "")) || {}).url || "";
-    const safeStill = photos.find((p) => p.url && !/cdninstagram\.com|fbcdn\.net/i.test(p.url))?.url || "";
-    const url = svgStill || safeStill || run.photo?.pathOrUrl || run.pack?.stillUrl || (photos[0] && photos[0].url) || "";
-    const fallbacks = photos.map((p) => p.url).filter((u) => u && u !== url && !/cdninstagram\.com|fbcdn\.net/i.test(u));
+    const svgStill = deskAsset((photos.find((p) => /\.svg(\?|$)/i.test(p.url || "")) || {}).url || "");
+    const safeStill = deskAsset((photos.find((p) => p.url) || {}).url || "");
+    const current = deskAsset(run.photo?.pathOrUrl) || deskAsset(run.pack?.stillUrl);
+    let url = current || svgStill || safeStill || (isIg ? "/assets/demo/dcn-ig.svg" : "") || "/assets/demo/dcn-ig.svg";
+    const fallbacks = photos.map((p) => deskAsset(p.url)).filter((u) => u && u !== url);
     if (url && run.photo && run.photo.pathOrUrl !== url) {
       run.photo.pathOrUrl = url;
       if (run.pack) run.pack.stillUrl = url;
     }
     const frame = $("igFrame");
     if (frame) {
-      if (!url) {
-        frame.innerHTML = `<div class="ph">${escapeHtml(run.stillNote || "Open the post in Browser for the still")}</div>`;
-      } else {
-        frame.innerHTML = `<img src="${escapeHtml(url)}" alt=""/>`;
-        const img = frame.querySelector("img");
-        if (img) {
-          img.addEventListener("error", () => {
-            const next = fallbacks.shift();
-            if (next) {
-              img.src = next;
-              return;
-            }
-            frame.innerHTML = `<div class="ph">Still unavailable — open the post in Browser</div>`;
-          });
-        }
+      frame.style.backgroundImage = url ? `url("${url}")` : "";
+      frame.innerHTML = `<img src="${escapeHtml(url)}" alt="Sourced still"/>`;
+      const img = frame.querySelector("img");
+      if (img) {
+        img.addEventListener("error", () => {
+          const next = fallbacks.shift() || "/assets/demo/dcn-ig.svg";
+          img.src = next;
+          frame.style.backgroundImage = `url("${next}")`;
+        });
       }
     }
     const note = $("igStillNote");
@@ -3654,7 +3666,9 @@
   }
 
   function recentKey(title, src) {
-    return ((title || "").toLowerCase().replace(/\s+/g, " ").trim() + "|" + (src || "").replace(/[?#].*$/, "")).slice(0, 180);
+    const cleanSrc = (src || "").replace(/[?#].*$/, "").replace(/\/$/, "").toLowerCase();
+    if (cleanSrc) return cleanSrc;
+    return (title || "").toLowerCase().replace(/\s+/g, " ").trim().slice(0, 80);
   }
 
   function seedRecents() {
@@ -3810,18 +3824,24 @@
   });
   $("toolPhoto")?.addEventListener("click", () => {
     focusPostTemplate();
-    const photos = currentRun?.photos || [];
-    if (photos.length) {
-      const cur = currentRun.photo?.pathOrUrl;
-      const idx = Math.max(0, photos.findIndex((p) => p.url === cur));
-      setPostPhoto(photos[(idx + 1) % photos.length]);
-      const strip = $("photoStrip");
-      const label = $("photoStripLabel");
-      if (strip) strip.hidden = false;
-      if (label) label.hidden = false;
-    } else {
-      $("igFrame")?.focus();
+    if (!currentRun) {
+      setErr("Run or Analyze a story first — Photo cycles sourced stills.");
+      return;
     }
+    let photos = (currentRun.photos || []).filter((p) => p.url && !/cdninstagram\.com|fbcdn\.net/i.test(p.url));
+    if (photos.length < 2) {
+      const extra = { url: "/assets/demo/alt.svg", credit: "Alt still" };
+      if (!photos.some((p) => p.url === extra.url)) photos = photos.concat([extra]);
+      if (!photos.length) photos = [{ url: "/assets/demo/dcn-ig.svg", credit: "Demo still" }, extra];
+      currentRun.photos = photos;
+    }
+    const cur = currentRun.photo?.pathOrUrl;
+    const idx = Math.max(0, photos.findIndex((p) => p.url === cur));
+    setPostPhoto(photos[(idx + 1) % photos.length]);
+    const strip = $("photoStrip");
+    const label = $("photoStripLabel");
+    if (strip) strip.hidden = false;
+    if (label) label.hidden = false;
   });
   $("toolCanva")?.addEventListener("click", () => {
     if (currentRun?.id) {
@@ -3830,6 +3850,7 @@
       else switchView("connect");
     } else {
       switchView("connect");
+      showConnectToast("<strong>Connect Canva</strong> to ship a pack, or Analyze a post first.", "warn");
     }
   });
   $("toolStyle")?.addEventListener("click", () => {

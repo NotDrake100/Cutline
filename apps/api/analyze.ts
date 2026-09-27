@@ -129,11 +129,6 @@ function fixtureFor(kind: SocialKind): SocialFixture {
   return SOCIAL_FIXTURES.instagram;
 }
 
-function abs(base: string, path: string): string {
-  if (/^https?:\/\//i.test(path)) return path;
-  return `${base}${path.startsWith("/") ? path : `/${path}`}`;
-}
-
 function weakTitle(title: string): boolean {
   const t = title.trim().toLowerCase();
   return !t || t === "instagram" || t === "x" || t === "twitter" || t === "youtube" || t === "tiktok" || t === "facebook";
@@ -242,13 +237,16 @@ export async function analyzePostUrl(opts: {
   const caption = extracted || fx.caption || body || title;
   if (handle && /dcn/i.test(handle)) outlet = showcaseIg ? "DCN Pune" : "DCN";
 
-  const fixtureStill = abs(opts.base, fx.still);
+  /* Relative fixture so the Post frame never depends on a public host or signed CDN. */
+  const fixtureStill = fx.still;
+  const altStill = "/assets/demo/alt.svg";
   const upgraded = image ? upgradeSocialImage(image) : "";
+  const cdnStill = /cdninstagram\.com|fbcdn\.net/i.test(upgraded || image || "");
   /* Instagram OG thumbs are often a dark crop or 403 in-panel. Fixture is the readable still. */
   const still =
     kind === "instagram"
       ? fixtureStill
-      : (upgraded && !looksTinyThumb(upgraded) ? upgraded : "") || upgraded || fixtureStill;
+      : (!cdnStill && upgraded && !looksTinyThumb(upgraded) ? upgraded : "") || (!cdnStill ? upgraded : "") || fixtureStill;
   const headline =
     kind === "instagram"
       ? (/on Instagram/i.test(title.split(":")[0] || "") ? title.split(":")[0]!.trim() : `${outlet} on Instagram`)
@@ -288,7 +286,11 @@ export async function analyzePostUrl(opts: {
     { url: still, credit: kind === "instagram" ? "Demo still" : outlet },
     { url: fixtureStill, credit: "Demo still" },
   ].filter((p, i, arr) => p.url && arr.findIndex((x) => x.url === p.url) === i);
-  if (image && image !== still) photos.push({ url: image, credit: outlet });
+  if (kind === "instagram" && altStill !== still) {
+    photos.push({ url: altStill, credit: "Alt still" });
+  } else if (image && image !== still && !/cdninstagram\.com|fbcdn\.net/i.test(image)) {
+    photos.push({ url: image, credit: outlet });
+  }
   const now = new Date().toISOString();
   return {
     id: `post_${Date.now().toString(36)}`,
