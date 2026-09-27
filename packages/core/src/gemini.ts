@@ -1,11 +1,8 @@
 /**
- * Thin Gemini adapter for Mode A wedge.
- * Reads ENV name constants only — never logs key values.
- * Missing key → deterministic stubs so studio still boots.
+ * Gemini adapter — live API only.
+ * Missing key or a failed call throws. Never invents headlines, stills, or pack copy.
  */
 import { ENV } from "./env";
-
-const STUB_STILL = "/assets/demo-still.jpg";
 
 function apiKey(): string | undefined {
   const k = process.env[ENV.GEMINI_API_KEY];
@@ -20,25 +17,23 @@ function imageModel(): string {
   return process.env[ENV.GEMINI_IMAGE_MODEL]?.trim() || "gemini-2.0-flash-preview-image-generation";
 }
 
-function stubText(prompt: string): string {
-  const isPack = /igCaption|ytTitle/i.test(prompt);
-  if (isPack) {
-    const head = prompt.split("for:")[1]?.trim().split("\n")[0] || "Stub headline";
-    return JSON.stringify({
-      igCaption: `${head.slice(0, 80)}\n\n#cutline #stub`,
-      ytTitle: head.slice(0, 100),
-      ytDescription: "Stub pack — set GEMINI_API_KEY for live captions.",
-    });
+export function requireGeminiKey(): string {
+  const key = apiKey();
+  if (!key) throw new Error("gemini_not_configured");
+  return key;
+}
+
+export function parseGeminiJson<T>(raw: string): T {
+  const cleaned = String(raw || "")
+    .replace(/^```(?:json)?\s*/i, "")
+    .replace(/\s*```$/i, "")
+    .trim();
+  if (!cleaned) throw new Error("gemini_invalid_json");
+  try {
+    return JSON.parse(cleaned) as T;
+  } catch {
+    throw new Error("gemini_invalid_json");
   }
-  const m = prompt.match(/headline:\s*(.+)$/i);
-  const h = (m?.[1] || "Stub story").trim().slice(0, 200);
-  return JSON.stringify({
-    headline: h,
-    angle: `Desk angle on: ${h}`,
-    cityLead: "City:",
-    visualPrompt: `Editorial news still, square crop, documentary light: ${h}`,
-    facts: ["stub_mode", "no_gemini_key"],
-  });
 }
 
 async function generateContent(
@@ -46,7 +41,6 @@ async function generateContent(
   key: string,
   body: Record<string, unknown>
 ): Promise<unknown> {
-  // Key in header only — never append to URL (avoids accidental log leaks).
   const url = `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent`;
   const res = await fetch(url, {
     method: "POST",
@@ -88,36 +82,27 @@ function extractImageDataUrl(data: unknown): string | null {
 
 export const gemini = {
   async text(prompt: string): Promise<string> {
-    const key = apiKey();
-    if (!key) return stubText(prompt);
-    try {
-      const data = await generateContent(textModel(), key, {
-        contents: [{ role: "user", parts: [{ text: prompt }] }],
-        generationConfig: { temperature: 0.4 },
-      });
-      const out = extractText(data);
-      return out || stubText(prompt);
-    } catch {
-      return stubText(prompt);
-    }
+    const key = requireGeminiKey();
+    const data = await generateContent(textModel(), key, {
+      contents: [{ role: "user", parts: [{ text: prompt }] }],
+      generationConfig: { temperature: 0.4 },
+    });
+    const out = extractText(data);
+    if (!out) throw new Error("gemini_empty");
+    return out;
   },
 
   async image(prompt: string): Promise<{ url: string } | null> {
-    const key = apiKey();
-    if (!key) return { url: STUB_STILL };
-    try {
-      const data = await generateContent(imageModel(), key, {
-        contents: [{ role: "user", parts: [{ text: prompt }] }],
-        generationConfig: {
-          responseModalities: ["TEXT", "IMAGE"],
-        },
-      });
-      const url = extractImageDataUrl(data);
-      if (url) return { url };
-      return { url: STUB_STILL };
-    } catch {
-      return { url: STUB_STILL };
-    }
+    const key = requireGeminiKey();
+    const data = await generateContent(imageModel(), key, {
+      contents: [{ role: "user", parts: [{ text: prompt }] }],
+      generationConfig: {
+        responseModalities: ["TEXT", "IMAGE"],
+      },
+    });
+    const url = extractImageDataUrl(data);
+    if (!url) throw new Error("gemini_image_empty");
+    return { url };
   },
 
   hasKey(): boolean {

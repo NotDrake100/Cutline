@@ -19,33 +19,33 @@ async function mapPool<T, R>(
   return out;
 }
 
-/** Hard rule: every hit must have sourceUrl you actually opened/fetched. */
+export interface HuntDeps {
+  fetchSection: (url: string) => Promise<{ title: string; link: string; outlet: string; summary?: string }[]>;
+  fetchPageOk: (url: string) => Promise<boolean>;
+}
+
+/** Hard rule: every hit must have a live sourceUrl the desk opened. */
 export async function scoutBeat(
   beat: BeatConfig,
-  deps: {
-    fetchRss: (url: string) => Promise<{ title: string; link: string; outlet: string; summary?: string }[]>;
-    tinyfishSearch?: (q: string) => Promise<SourceHit[]>;
-    fetchPageOk: (url: string) => Promise<boolean>;
-  },
+  deps: HuntDeps,
   limit = 5
 ): Promise<SourceHit[]> {
+  const sources = beat.sources || [];
   const candidates: SourceHit[] = [];
 
-  // Fetch feeds in parallel
-  const feedResults = await Promise.all(
-    beat.rssFeeds.map(async (feed) => {
+  const sectionResults = await Promise.all(
+    sources.map(async (page) => {
       try {
-        return await deps.fetchRss(feed);
+        return await deps.fetchSection(page);
       } catch {
         return [];
       }
     })
   );
 
-  for (const entries of feedResults) {
+  for (const entries of sectionResults) {
     for (const e of entries) {
       const text = `${e.title} ${e.summary ?? ""}`.toLowerCase();
-      // Empty keywords = accept all (e.g. global world feeds already curated).
       if (
         beat.keywords.length > 0 &&
         !beat.keywords.some((k) => text.includes(k.toLowerCase()))
@@ -57,13 +57,11 @@ export async function scoutBeat(
         sourceUrl: e.link,
         outlet: e.outlet,
         snippet: e.summary,
-        via: "rss",
+        via: "fetch",
       });
     }
   }
 
-  // URL-required: validate in parallel batches until we fill limit
-  // (avoid stopping on first publisher that blocks bots, e.g. NYT).
   const hits: SourceHit[] = [];
   const batchSize = 12;
   for (let offset = 0; offset < candidates.length && hits.length < limit; offset += batchSize) {
@@ -76,29 +74,7 @@ export async function scoutBeat(
     }
   }
 
-  if (hits.length < 3 && deps.tinyfishSearch && beat.tinyfishQuery) {
-    const extra = await deps.tinyfishSearch(beat.tinyfishQuery);
-    const tfCands = extra.filter((h) => h.sourceUrl && /^https?:\/\//i.test(h.sourceUrl));
-    const tfOk = await mapPool(tfCands.slice(0, 12), 6, (h) => deps.fetchPageOk(h.sourceUrl));
-    for (let i = 0; i < tfCands.length && i < tfOk.length; i++) {
-      if (!tfOk[i]) continue;
-      hits.push({ ...tfCands[i], via: "tinyfish" });
-      if (hits.length >= limit) break;
-    }
-  }
-
-  // NEVER call gpt_fallback_headlines() — that Hyd weakness is banned in Cutline
   const dedup = new Map<string, SourceHit>();
   for (const h of hits) dedup.set(h.sourceUrl, h);
   return [...dedup.values()].slice(0, limit);
-}
-
-/** TinyFish HTTP — same contract as /root/dcn-mumbai/bin/tinyfish_search.py */
-export function tinyfishUrl(query: string, location = "IN", recencyMinutes = 2880) {
-  const u = new URL("https://api.search.tinyfish.ai");
-  u.searchParams.set("query", query);
-  u.searchParams.set("domain_type", "news");
-  u.searchParams.set("location", location);
-  u.searchParams.set("recency_minutes", String(recencyMinutes));
-  return u.toString();
 }

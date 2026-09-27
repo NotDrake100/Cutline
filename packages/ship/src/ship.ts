@@ -88,7 +88,7 @@ const PLUGINS: Omit<PluginInfo, "configured" | "missing">[] = [
   {
     id: "telegram",
     name: "Telegram",
-    description: "DCN-proven ship lane",
+    description: "Channel message",
     connected: false,
     primary: false,
     local: false,
@@ -214,7 +214,7 @@ function connectStub(
     tiktok: "https://www.tiktok.com/login",
   };
   return {
-    ok: true,
+    ok: false,
     channel,
     status: "connect_required",
     connectUrl: connectUrls[channel],

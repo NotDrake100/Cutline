@@ -1,10 +1,10 @@
 import type { PhotoAsset } from "../../core/src/types";
 
 /**
- * Cost order (Hyderabad auto_post proven):
+ * Cost order:
  * 1. local upload
  * 2. article OG / schema / img from sourceUrl
- * 3. Pexels (social only)
+ * 3. stock photo (social only)
  * 4. Gemini gen — only if caller asks illustrated; bannedForPrint=true
  */
 export async function resolvePhoto(

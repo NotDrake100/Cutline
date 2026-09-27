@@ -1,4 +1,4 @@
-/** Cutline core contracts — source-first newsroom OS */
+/** Cutline core contracts — source-first AI desk */
 
 export type RunStatus =
   | "hunting"
@@ -19,26 +19,28 @@ export type AgentName =
   | "ship"
   | "night";
 
+export type SourceVia = "fetch" | "manual";
+
 export interface SourceHit {
   title: string;
   sourceUrl: string; // REQUIRED — no URL = drop
   outlet: string;
   publishedAt?: string;
   snippet?: string;
-  via: "rss" | "tinyfish" | "outlet_fetch" | "manual";
+  via: SourceVia;
 }
 
 export interface WireBrief {
   headline: string;
   angle: string;
-  cityLead: string; // e.g. "Hyderabad:" / "Pune:"
+  cityLead: string;
   visualPrompt: string;
   facts: string[];
   sourceUrl: string;
 }
 
 export interface Rewrite {
-  headline: string; // sentence-case for print; ALL CAPS ok for social lane
+  headline: string;
   body: string;
   caption?: string;
   houseStyle: string;
@@ -50,7 +52,7 @@ export interface PhotoAsset {
   credit: string;
   md5: string;
   via: "upload" | "article_og" | "pexels" | "gemini_gen";
-  bannedForPrint: boolean; // true if pexels/gemini — social only
+  bannedForPrint: boolean;
 }
 
 export interface Pack {
@@ -64,7 +66,7 @@ export interface Pack {
 
 export interface AgentLogEntry {
   agent: AgentName;
-  at: string; // ISO
+  at: string;
   action: string;
   spendCents?: number;
   ok: boolean;
@@ -73,7 +75,7 @@ export interface AgentLogEntry {
 
 export interface StoryRun {
   id: string;
-  beat: string; // "hyderabad" | "mumbai" | "global:tech" | …
+  beat: string;
   status: RunStatus;
   hits: SourceHit[];
   brief?: WireBrief;
@@ -85,17 +87,13 @@ export interface StoryRun {
   createdAt: string;
 }
 
-
+/** Product desk — section pages to fetch, never a branded feed list. */
 export interface BeatConfig {
   id: string;
+  label: string;
   keywords: string[];
-  rssFeeds: string[];
-  tinyfishQuery?: string;
-  location?: string;
-  /** TinyFish recency window; short for global "latest". Default 2880. */
-  recencyMinutes?: number;
+  sources: string[];
 }
-
 
 export interface WedgeRequest {
   headline: string;
@@ -104,4 +102,45 @@ export interface WedgeRequest {
 
 export interface WedgeResponse {
   run: StoryRun;
+  mode?: "demo";
+}
+
+export interface DeskRequest {
+  sourceUrl?: string;
+  title?: string;
+  beat?: string;
+  beatId?: string;
+  outlet?: string;
+}
+
+export interface DeskResponse {
+  run: StoryRun;
+  mode?: "desk";
+}
+
+export type MediaKind = "clip" | "photo" | "video" | "caption";
+
+export interface DeskItem {
+  id: string;
+  desk: string | null;
+  title: string;
+  sourceUrl: string | null;
+  runId: string | null;
+  createdAt: string;
+}
+
+export interface MediaRecord {
+  id: string;
+  itemId: string | null;
+  kind: MediaKind;
+  title: string | null;
+  body: string | null;
+  url: string | null;
+  mime: string | null;
+  createdAt: string;
+}
+
+export interface LibraryEntry {
+  item: DeskItem;
+  media: MediaRecord[];
 }

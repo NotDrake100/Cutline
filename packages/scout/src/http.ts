@@ -1,13 +1,12 @@
 /**
- * Live Scout HTTP adapters — RSS + TinyFish.
- * Never log or print API key values.
+ * Live hunt HTTP — open section pages, keep live article URLs.
+ * Never invent URLs. Never log secrets.
  */
-import type { SourceHit } from "../../core/src/types";
-import { ENV } from "../../core/src/env";
-import { tinyfishUrl } from "./scout";
+const UA = "CutlineDesk/0.1";
+const TIMEOUT_MS = 8_000;
 
-const UA = "CutlineScout/0.1 (+https://cutline.local)";
-const TIMEOUT_MS = 5_000;
+const SKIP_TITLE =
+  /^(home|news|sport|sports|business|culture|tech|world|video|live|sign in|subscribe|menu|skip|more|account|watch|listen|weather|markets)$/i;
 
 function outletFromUrl(url: string): string {
   try {
@@ -18,9 +17,8 @@ function outletFromUrl(url: string): string {
   }
 }
 
-function decodeXml(s: string): string {
+function decodeHtml(s: string): string {
   return s
-    .replace(/<!\[CDATA\[([\s\S]*?)\]\]>/g, "$1")
     .replace(/&amp;/g, "&")
     .replace(/&lt;/g, "<")
     .replace(/&gt;/g, ">")
@@ -31,61 +29,69 @@ function decodeXml(s: string): string {
     .trim();
 }
 
-function tagText(block: string, names: string[]): string {
-  for (const name of names) {
-    const re = new RegExp(`<${name}[^>]*>([\\s\\S]*?)</${name}>`, "i");
-    const m = block.match(re);
-    if (!m) continue;
-    // Decode CDATA first — stripping tags before CDATA wipe kills titles.
-    const decoded = decodeXml(m[1]);
-    return decoded.replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim();
+function absUrl(base: string, maybe: string): string {
+  try {
+    const href = new URL(maybe, base).href;
+    return /^https?:\/\//i.test(href) ? href.split("#")[0] : "";
+  } catch {
+    return "";
   }
-  return "";
 }
 
-function linkFromBlock(block: string): string {
-  const atom = block.match(/<link[^>]+href=["']([^"']+)["'][^>]*>/i);
-  if (atom?.[1]) return decodeXml(atom[1]);
-  const rss = tagText(block, ["link", "guid"]);
-  if (rss.startsWith("http")) return rss;
-  const bare = block.match(/<link[^>]*>([\s\S]*?)<\/link>/i);
-  if (bare) {
-    const v = decodeXml(bare[1].replace(/<[^>]+>/g, "").trim());
-    if (v.startsWith("http")) return v;
+function looksLikeArticle(link: string, sectionUrl: string): boolean {
+  let parsed: URL;
+  let section: URL;
+  try {
+    parsed = new URL(link);
+    section = new URL(sectionUrl);
+  } catch {
+    return false;
   }
-  return "";
+  if (parsed.protocol !== "http:" && parsed.protocol !== "https:") return false;
+  if (parsed.pathname.length < 8) return false;
+  if (/\.(css|js|png|jpe?g|gif|svg|webp|ico|woff2?|mp4|xml)$/i.test(parsed.pathname)) return false;
+  if (/\/(cdn-cgi|privacy|terms|about|contact|login|subscribe|account)\b/i.test(parsed.pathname)) {
+    return false;
+  }
+  const host = parsed.hostname.replace(/^www\./, "");
+  const sectionHost = section.hostname.replace(/^www\./, "");
+  if (host !== sectionHost && !host.endsWith(`.${sectionHost}`) && !sectionHost.endsWith(`.${host}`)) {
+    return false;
+  }
+  return parsed.pathname.split("/").filter(Boolean).length >= 2 || /\/(news|article|story|sport|tech|world|business|culture)\b/i.test(parsed.pathname);
 }
 
-/** Simple RSS/Atom parse — titles + links. Skip on failure. */
-export async function fetchRss(
+function stripTags(html: string): string {
+  return decodeHtml(html.replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim());
+}
+
+/** Open a section page and collect article links. Skip on failure. */
+export async function fetchSection(
   url: string
 ): Promise<{ title: string; link: string; outlet: string; summary?: string }[]> {
   try {
-    const ctrl = new AbortController();
-    const t = setTimeout(() => ctrl.abort(), TIMEOUT_MS);
     const res = await fetch(url, {
-      signal: ctrl.signal,
+      signal: AbortSignal.timeout(TIMEOUT_MS),
       headers: {
         "User-Agent": UA,
-        Accept: "application/rss+xml, application/atom+xml, application/xml, text/xml, */*",
+        Accept: "text/html,application/xhtml+xml,*/*",
       },
       redirect: "follow",
     });
-    clearTimeout(t);
     if (!res.ok) return [];
-    const xml = await res.text();
-    const blocks = [
-      ...xml.matchAll(/<item[\s>][\s\S]*?<\/item>/gi),
-      ...xml.matchAll(/<entry[\s>][\s\S]*?<\/entry>/gi),
-    ].map((m) => m[0]);
+    const html = await res.text();
     const outlet = outletFromUrl(url);
+    const seen = new Set<string>();
     const out: { title: string; link: string; outlet: string; summary?: string }[] = [];
-    for (const block of blocks.slice(0, 40)) {
-      const title = tagText(block, ["title"]);
-      const link = linkFromBlock(block);
-      if (!title || !link || !link.startsWith("http")) continue;
-      const summary = tagText(block, ["description", "summary", "content"]) || undefined;
-      out.push({ title, link, outlet, summary: summary?.slice(0, 400) });
+    const re = /<a\s+[^>]*href=["']([^"']+)["'][^>]*>([\s\S]*?)<\/a>/gi;
+    let m: RegExpExecArray | null;
+    while ((m = re.exec(html)) && out.length < 40) {
+      const link = absUrl(url, m[1]);
+      if (!link || seen.has(link) || !looksLikeArticle(link, url)) continue;
+      const title = stripTags(m[2]).slice(0, 220);
+      if (title.length < 18 || SKIP_TITLE.test(title)) continue;
+      seen.add(link);
+      out.push({ title, link, outlet });
     }
     return out;
   } catch {
@@ -95,43 +101,36 @@ export async function fetchRss(
 
 /**
  * Fast URL liveness check. Prefer HEAD; treat bot-walls as OK (URL is real).
- * Never invent URLs — only validate ones we already have from RSS/TinyFish.
+ * Never invent URLs — only validate ones already extracted from a fetched page.
  */
 export async function fetchPageOk(url: string): Promise<boolean> {
   if (!url || !/^https?:\/\//i.test(url)) return false;
   const head = async (): Promise<"ok" | "dead" | "retry"> => {
-    const ctrl = new AbortController();
-    const timer = setTimeout(() => ctrl.abort(), 2500);
     try {
       const res = await fetch(url, {
         method: "HEAD",
-        signal: ctrl.signal,
+        signal: AbortSignal.timeout(2500),
         headers: { "User-Agent": UA, Accept: "*/*" },
         redirect: "follow",
       });
-      clearTimeout(timer);
       if (res.status >= 200 && res.status < 400) return "ok";
       if (res.status === 401 || res.status === 403 || res.status === 405) return "ok";
       if (res.status === 404 || res.status === 410) return "dead";
       return "retry";
     } catch {
-      clearTimeout(timer);
       return "retry";
     }
   };
   const h = await head();
   if (h === "ok") return true;
   if (h === "dead") return false;
-  const ctrl = new AbortController();
-  const timer = setTimeout(() => ctrl.abort(), 2500);
   try {
     const res = await fetch(url, {
       method: "GET",
-      signal: ctrl.signal,
+      signal: AbortSignal.timeout(2500),
       headers: { "User-Agent": UA, Accept: "text/html,*/*", Range: "bytes=0-512" },
       redirect: "follow",
     });
-    clearTimeout(timer);
     try {
       res.body?.cancel();
     } catch {
@@ -140,86 +139,61 @@ export async function fetchPageOk(url: string): Promise<boolean> {
     if (res.status === 404 || res.status === 410) return false;
     return res.status < 500;
   } catch {
-    clearTimeout(timer);
     return false;
   }
 }
 
-export function hasTinyfishKey(): boolean {
-  const v = process.env[ENV.TINYFISH_API_KEY];
-  return !!(v && v.trim());
+/** Fetch opened source page as plain text. Never invents a URL. */
+export async function fetchPageText(url: string): Promise<string> {
+  if (!url || !/^https?:\/\//i.test(url)) throw new Error("sourceUrl must be a live http(s) URL");
+  const res = await fetch(url, {
+    headers: { "User-Agent": UA, Accept: "text/html,*/*" },
+    redirect: "follow",
+    signal: AbortSignal.timeout(10_000),
+  });
+  if (!res.ok) throw new Error(`source_fetch_${res.status}`);
+  const html = await res.text();
+  return html
+    .replace(/<script[\s\S]*?<\/script>/gi, " ")
+    .replace(/<style[\s\S]*?<\/style>/gi, " ")
+    .replace(/<noscript[\s\S]*?<\/noscript>/gi, " ")
+    .replace(/<[^>]+>/g, " ")
+    .replace(/\s+/g, " ")
+    .trim()
+    .slice(0, 12000);
 }
 
-/**
- * TinyFish news search — same contract as DCN Mumbai tinyfish_search.py.
- * If no key, return [] (don't crash). Never logs key values.
- */
-export async function tinyfishSearch(
-  query: string,
-  opts?: { location?: string; recencyMinutes?: number }
-): Promise<SourceHit[]> {
-  if (!hasTinyfishKey() || !query?.trim()) return [];
-  const location = opts?.location || "IN";
-  const recency = opts?.recencyMinutes ?? 2880;
-  const url = tinyfishUrl(query.trim(), location, recency);
+/** Story-page still from OG / Twitter. Returns null if none — never invents. */
+export async function fetchArticleImage(url: string): Promise<{ url: string; credit: string } | null> {
+  if (!url || !/^https?:\/\//i.test(url)) return null;
   try {
-    const ctrl = new AbortController();
-    const t = setTimeout(() => ctrl.abort(), TIMEOUT_MS);
     const res = await fetch(url, {
-      signal: ctrl.signal,
-      headers: {
-        "X-API-Key": process.env[ENV.TINYFISH_API_KEY]!.trim(),
-        Accept: "application/json",
-        "User-Agent": UA,
-      },
+      headers: { "User-Agent": UA, Accept: "text/html,*/*" },
+      redirect: "follow",
+      signal: AbortSignal.timeout(8_000),
     });
-    clearTimeout(t);
-    if (!res.ok) return [];
-    const data = (await res.json()) as {
-      results?: Array<{
-        title?: string;
-        url?: string;
-        link?: string;
-        snippet?: string;
-        publisher?: string;
-        site_name?: string;
-        date?: string;
-      }>;
-    };
-    const hits: SourceHit[] = [];
-    for (const r of data.results || []) {
-      const sourceUrl = (r.url || r.link || "").trim();
-      if (!sourceUrl.startsWith("http")) continue;
-      const title = (r.title || "").trim();
-      if (!title) continue;
-      hits.push({
-        title,
-        sourceUrl,
-        outlet: (r.publisher || r.site_name || outletFromUrl(sourceUrl)).trim(),
-        snippet: r.snippet,
-        publishedAt: r.date,
-        via: "tinyfish",
-      });
+    if (!res.ok) return null;
+    const html = await res.text();
+    const patterns = [
+      /<meta[^>]+property=["']og:image["'][^>]+content=["']([^"']+)["']/i,
+      /<meta[^>]+content=["']([^"']+)["'][^>]+property=["']og:image["']/i,
+      /<meta[^>]+name=["']twitter:image(?::src)?["'][^>]+content=["']([^"']+)["']/i,
+      /<meta[^>]+content=["']([^"']+)["'][^>]+name=["']twitter:image(?::src)?["']/i,
+    ];
+    for (const re of patterns) {
+      const m = html.match(re);
+      const img = m?.[1] ? absUrl(url, m[1].trim()) : "";
+      if (img) return { url: img, credit: outletFromUrl(url) };
     }
-    return hits;
+    return null;
   } catch {
-    return [];
+    return null;
   }
 }
 
-/** Deps bag for scoutBeat. */
-export function createScoutDeps(opts?: {
-  location?: string;
-  recencyMinutes?: number;
-  queryOverride?: string;
-}) {
+export function createScoutDeps() {
   return {
-    fetchRss,
+    fetchSection,
     fetchPageOk,
-    tinyfishSearch: async (q: string) =>
-      tinyfishSearch(opts?.queryOverride || q, {
-        location: opts?.location,
-        recencyMinutes: opts?.recencyMinutes,
-      }),
   };
 }

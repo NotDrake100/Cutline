@@ -11,7 +11,7 @@ import { scoutBeat } from "../scout/src/scout";
 import { resolvePhoto } from "../photo/src/photo";
 import { runDeskPipeline, runWedge } from "./src/runPipeline";
 import { assertApproved } from "../ship/src/ship";
-import type { BeatConfig, Pack, PhotoAsset, Rewrite, SourceHit, WireBrief } from "../core/src/types";
+import type { BeatConfig, Pack, PhotoAsset, Rewrite, WireBrief } from "../core/src/types";
 
 const ROOT = join(import.meta.dirname, "../..");
 
@@ -34,8 +34,9 @@ function md5Stub(buf: ArrayBuffer): string {
 
 function beat(partial: Partial<BeatConfig> & { id: string }): BeatConfig {
   return {
-    keywords: ["hyderabad"],
-    rssFeeds: ["https://example.test/feed"],
+    label: partial.label || partial.id,
+    keywords: ["civic"],
+    sources: ["https://example.test/section"],
     ...partial,
   };
 }
@@ -48,7 +49,7 @@ function briefFor(url: string, title = "Civic alert"): WireBrief {
   return {
     headline: title,
     angle: "service disruption",
-    cityLead: "Hyderabad:",
+    cityLead: "City:",
     visualPrompt: "flooded platform",
     facts: ["f1"],
     sourceUrl: url,
@@ -66,22 +67,20 @@ function rewriteFor(url: string): Rewrite {
 
 async function happyDeskDeps(opts: {
   fetchPageOk?: (url: string) => Promise<boolean>;
-  fetchRss?: BeatConfig extends never ? never : PipelineScoutRss;
-  photo?: Parameters<typeof resolvePhoto>[1];
-  sub?: (b: WireBrief, t: string) => Promise<Rewrite>;
-  allowTinyfish?: boolean;
-}) {
-  type PipelineScoutRss = (
+  fetchSection?: (
     url: string
   ) => Promise<{ title: string; link: string; outlet: string; summary?: string }[]>;
-  const fetchRss: PipelineScoutRss =
-    opts.fetchRss ??
+  photo?: Parameters<typeof resolvePhoto>[1];
+  sub?: (b: WireBrief, t: string) => Promise<Rewrite>;
+}) {
+  const fetchSection =
+    opts.fetchSection ??
     (async () => [
       {
-        title: "Hyderabad rains flood station",
-        link: "https://news.example/hyd-rains",
+        title: "Overnight rain floods the metro station",
+        link: "https://news.example/metro-rain",
         outlet: "Example",
-        summary: "hyderabad civic",
+        summary: "civic flood",
       },
     ]);
   const fetchPageOk =
@@ -101,20 +100,8 @@ async function happyDeskDeps(opts: {
 
   return {
     scout: {
-      fetchRss,
+      fetchSection,
       fetchPageOk,
-      ...(opts.allowTinyfish
-        ? {
-            tinyfishSearch: async (): Promise<SourceHit[]> => [
-              {
-                title: "TF hit",
-                sourceUrl: "https://news.example/tf-1",
-                outlet: "TF",
-                via: "tinyfish" as const,
-              },
-            ],
-          }
-        : {}),
     },
     photo,
     wire: async (hit: { title: string; sourceUrl: string }) => briefFor(hit.sourceUrl, hit.title),
@@ -168,10 +155,10 @@ async function S1(): Promise<Result> {
 async function S2(): Promise<Result> {
   const url = "https://news.example/live-1";
   const hits = await scoutBeat(
-    beat({ id: "s2", keywords: ["hyderabad"] }),
+    beat({ id: "s2", keywords: ["civic"] }),
     {
-      fetchRss: async () => [
-        { title: "Hyderabad update", link: url, outlet: "Ex", summary: "hyderabad" },
+      fetchSection: async () => [
+        { title: "Civic update on the wire", link: url, outlet: "Ex", summary: "civic" },
       ],
       fetchPageOk: async (u) => u === url,
     },
@@ -184,8 +171,8 @@ async function S2(): Promise<Result> {
 async function S3(): Promise<Result> {
   const b = beat({ id: "s3", keywords: ["zzzz-no-match"] });
   const deps = await happyDeskDeps({
-    fetchRss: async () => [
-      { title: "Hyderabad rains", link: "https://news.example/x", outlet: "Ex", summary: "hyderabad" },
+    fetchSection: async () => [
+      { title: "Overnight rain", link: "https://news.example/x", outlet: "Ex", summary: "weather" },
     ],
   });
   const run = await runDeskPipeline(b, deps);
@@ -194,63 +181,47 @@ async function S3(): Promise<Result> {
 }
 
 async function S4(): Promise<Result> {
-  // Code-path check only: when RSS yields <3 live hits AND tinyfish wired + query set, backup runs.
-  // Do NOT name product threshold n — assert observable: tinyfish via appears when RSS thin.
-  let tinyfishCalled = false;
+  const called: string[] = [];
   const hits = await scoutBeat(
     beat({
       id: "s4",
-      keywords: ["hyderabad"],
-      tinyfishQuery: "Hyderabad news",
-      rssFeeds: ["https://example.test/feed"],
+      keywords: ["civic"],
+      sources: ["https://example.test/a", "https://example.test/b"],
     }),
     {
-      fetchRss: async () => [
-        {
-          title: "Hyderabad one",
-          link: "https://news.example/r1",
-          outlet: "Ex",
-          summary: "hyderabad",
-        },
-      ],
-      fetchPageOk: async () => true,
-      tinyfishSearch: async () => {
-        tinyfishCalled = true;
+      fetchSection: async (url) => {
+        called.push(url);
+        if (url.endsWith("/a")) return [];
         return [
           {
-            title: "TF",
-            sourceUrl: "https://news.example/tf",
-            outlet: "TF",
-            via: "tinyfish",
+            title: "Second section civic brief",
+            link: "https://news.example/s2",
+            outlet: "Ex",
+            summary: "civic",
           },
         ];
       },
+      fetchPageOk: async () => true,
     },
     5
   );
-  const hasTf = hits.some((h) => h.via === "tinyfish");
-  const pass = tinyfishCalled && hasTf && hits.length >= 2;
-  return ok(
-    "S4",
-    pass,
-    `tinyfishCalled=${tinyfishCalled} hasTf=${hasTf} hits_n=${hits.length} (code path; threshold unnamed)`
-  );
+  const pass = called.length === 2 && hits.length === 1 && hits[0].via === "fetch";
+  return ok("S4", pass, `sources=${called.length} hits_n=${hits.length} via=${hits[0]?.via}`);
 }
 
 async function S5(): Promise<Result> {
   const hits = await scoutBeat(
-    beat({ id: "s5", keywords: ["nomatch"], tinyfishQuery: "q", rssFeeds: [] }),
+    beat({ id: "s5", keywords: [], sources: ["https://example.test/dead"] }),
     {
-      fetchRss: async () => [],
-      fetchPageOk: async () => false,
-      tinyfishSearch: async () => [
+      fetchSection: async () => [
         {
-          title: "TF dead",
-          sourceUrl: "https://news.example/dead",
-          outlet: "TF",
-          via: "tinyfish",
+          title: "Dead page should drop",
+          link: "https://news.example/dead",
+          outlet: "Ex",
+          summary: "gone",
         },
       ],
+      fetchPageOk: async () => false,
     },
     5
   );
@@ -261,11 +232,11 @@ async function S5(): Promise<Result> {
 async function S6(): Promise<Result> {
   const url = "https://news.example/same";
   const hits = await scoutBeat(
-    beat({ id: "s6", keywords: ["hyderabad"], rssFeeds: ["a", "b"] }),
+    beat({ id: "s6", keywords: ["civic"], sources: ["a", "b"] }),
     {
-      fetchRss: async () => [
-        { title: "Hyderabad A", link: url, outlet: "A", summary: "hyderabad" },
-        { title: "Hyderabad B", link: url, outlet: "B", summary: "hyderabad" },
+      fetchSection: async () => [
+        { title: "Civic A on the desk", link: url, outlet: "A", summary: "civic" },
+        { title: "Civic B on the desk", link: url, outlet: "B", summary: "civic" },
       ],
       fetchPageOk: async () => true,
     },
@@ -277,15 +248,15 @@ async function S6(): Promise<Result> {
 
 async function S7(): Promise<Result> {
   const entries = Array.from({ length: 10 }, (_, i) => ({
-    title: `Hyderabad story ${i}`,
+    title: `Civic story on the desk ${i}`,
     link: `https://news.example/s${i}`,
     outlet: "Ex",
-    summary: "hyderabad",
+    summary: "civic",
   }));
   const hits = await scoutBeat(
-    beat({ id: "s7", keywords: ["hyderabad"] }),
+    beat({ id: "s7", keywords: ["civic"] }),
     {
-      fetchRss: async () => entries,
+      fetchSection: async () => entries,
       fetchPageOk: async () => true,
     },
     3
@@ -458,11 +429,11 @@ async function D5(): Promise<Result> {
 // ——— Wedge ———
 
 async function W1(): Promise<Result> {
-  const run = await runWedge("Pune rains flood streets", {
+  const run = await runWedge("Overnight rain floods streets", {
     wireFromHeadline: async (h) => ({
       headline: h,
       angle: "civic",
-      cityLead: "Pune:",
+      cityLead: "City:",
       visualPrompt: "rain",
       facts: [],
       sourceUrl: "manual://wedge",
@@ -489,7 +460,7 @@ async function W2(): Promise<Result> {
     wireFromHeadline: async (h) => ({
       headline: h,
       angle: "markets",
-      cityLead: "Mumbai:",
+      cityLead: "City:",
       visualPrompt: "sensex",
       facts: [],
       sourceUrl: "manual://wedge",

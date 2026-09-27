@@ -11,6 +11,7 @@ build/
 *.key
 .secrets/
 runs/
+data/
 _hands_review/
 apps/web/index.html.bak*
 *.bak

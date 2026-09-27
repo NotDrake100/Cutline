@@ -1,9 +1,8 @@
-/** Env names only — never commit values. Cutline ≠ DCN VM. */
+/** Env names only — never commit values. Server / cloud runtime. */
 export const ENV = {
   GEMINI_API_KEY: "GEMINI_API_KEY",
   GEMINI_TEXT_MODEL: "GEMINI_TEXT_MODEL",
   GEMINI_IMAGE_MODEL: "GEMINI_IMAGE_MODEL",
-  TINYFISH_API_KEY: "TINYFISH_API_KEY",
   PEXELS_API_KEY: "PEXELS_API_KEY",
   CUTLINE_PUBLIC_URL: "CUTLINE_PUBLIC_URL",
   IG_APP_ID: "IG_APP_ID",
@@ -17,5 +16,4 @@ export const ENV = {
   TIKTOK_CLIENT_KEY: "TIKTOK_CLIENT_KEY",
   TIKTOK_CLIENT_SECRET: "TIKTOK_CLIENT_SECRET",
   TELEGRAM_BOT_TOKEN: "TELEGRAM_BOT_TOKEN",
-  // Do NOT put TELEGRAM_DCN_* or IG_* from /root/dcn here for deploy-on-VM.
 } as const;

@@ -78,7 +78,78 @@ export async function runDeskPipeline(
   return run;
 }
 
-/** Hackathon wedge: pasted headline only — still Gemini path, no fake news. */
+/**
+ * Sourced desk: rewrite only on a live http(s) page the desk opened.
+ * Never invents a publisher URL.
+ */
+export async function runSourcedDesk(
+  hit: { title: string; sourceUrl: string; outlet?: string; via?: import("../../core/src/types").SourceHit["via"] },
+  deps: Omit<PipelineDeps, "scout">,
+  opts: { allowGeminiGen?: boolean; autoApprove?: boolean; beat?: string } = {}
+): Promise<StoryRun> {
+  if (!hit.sourceUrl || !/^https?:\/\//i.test(hit.sourceUrl)) {
+    throw new Error("sourceUrl must be a live http(s) URL");
+  }
+  const run: StoryRun = {
+    id: deps.id(),
+    beat: opts.beat || "desk",
+    status: "drafting",
+    hits: [
+      {
+        title: hit.title,
+        sourceUrl: hit.sourceUrl,
+        outlet: hit.outlet || "outlet",
+        via: hit.via || "manual",
+      },
+    ],
+    log: [],
+    spendCents: 0,
+    createdAt: deps.now(),
+  };
+
+  const pageText = await deps.fetchPageText(hit.sourceUrl);
+  if (!pageText.trim()) {
+    run.status = "failed";
+    log(run, "wire", "source_page_empty", false);
+    return run;
+  }
+
+  run.brief = await deps.wire({ title: hit.title, sourceUrl: hit.sourceUrl, pageText });
+  if (run.brief.sourceUrl !== hit.sourceUrl) {
+    run.status = "failed";
+    log(run, "wire", "source_url_mismatch", false);
+    return run;
+  }
+  log(run, "wire", "brief", true, 1);
+
+  run.rewrite = await deps.sub(run.brief, pageText);
+  if (run.rewrite.sourceUrl !== hit.sourceUrl) {
+    run.status = "failed";
+    log(run, "sub", "source_url_mismatch", false);
+    return run;
+  }
+  log(run, "sub", "rewrite", true, 1);
+
+  run.photo =
+    (await resolvePhoto(
+      {
+        sourceUrl: hit.sourceUrl,
+        photoQuery: run.brief.visualPrompt,
+        allowGeminiGen: opts.allowGeminiGen,
+      },
+      deps.photo
+    )) ?? undefined;
+  log(run, "photo", run.photo?.via ?? "none", !!run.photo, run.photo?.via === "gemini_gen" ? 5 : 0);
+
+  run.pack = await deps.desk(run.rewrite, run.photo);
+  log(run, "desk", "pack", true, 1);
+
+  run.status = opts.autoApprove ? "approved" : "needs_input";
+  log(run, "night", run.status, true);
+  return run;
+}
+
+/** Demo wedge: pasted headline only — Gemini path, labeled manual://wedge, not a sourced story. */
 export async function runWedge(
   headline: string,
   deps: {

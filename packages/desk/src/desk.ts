@@ -1,6 +1,7 @@
 import type { Pack, PhotoAsset, Rewrite } from "../../core/src/types";
+import { parseGeminiJson } from "../../core/src/gemini";
 
-/** Captions + platform pack — Flash or deterministic fallback. */
+/** Captions + platform pack — Gemini only. No deterministic fake pack. */
 export async function packCaptions(
   rewrite: Rewrite,
   photo: PhotoAsset | undefined,
@@ -8,26 +9,18 @@ export async function packCaptions(
     geminiText?: (prompt: string) => Promise<string>;
   }
 ): Promise<Pack> {
-  if (deps?.geminiText) {
-    const raw = await deps.geminiText(
-      `JSON only {"igCaption","ytTitle","ytDescription"} for: ${rewrite.headline}\n${rewrite.body}`
-    );
-    try {
-      const p = JSON.parse(raw.replace(/^```json\s*|\s*```$/g, ""));
-      return {
-        igCaption: p.igCaption || rewrite.headline,
-        ytTitle: p.ytTitle || rewrite.headline,
-        ytDescription: p.ytDescription || rewrite.body,
-        stillUrl: photo?.pathOrUrl,
-      };
-    } catch {
-      /* fall through */
-    }
+  if (!deps?.geminiText) throw new Error("gemini_required");
+  const raw = await deps.geminiText(
+    `JSON only {"igCaption","ytTitle","ytDescription"} for: ${rewrite.headline}\n${rewrite.body}`
+  );
+  const p = parseGeminiJson<{ igCaption?: string; ytTitle?: string; ytDescription?: string }>(raw);
+  if (!p.igCaption || !p.ytTitle || !p.ytDescription) {
+    throw new Error("gemini_invalid_json");
   }
   return {
-    igCaption: `${rewrite.headline}\n\n${rewrite.body}`.slice(0, 2200),
-    ytTitle: rewrite.headline.slice(0, 100),
-    ytDescription: rewrite.body,
+    igCaption: String(p.igCaption),
+    ytTitle: String(p.ytTitle),
+    ytDescription: String(p.ytDescription),
     stillUrl: photo?.pathOrUrl,
   };
 }

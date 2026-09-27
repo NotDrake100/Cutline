@@ -610,7 +610,7 @@
     text-transform: uppercase; letter-spacing: .03em;
   }
   .via-badge.rss { background: #CFE3D7; color: #1a4d33; }
-  .via-badge.tinyfish { background: #D1DEEA; color: #1e3a5f; }
+  .via-badge.fetch { background: #D1DEEA; color: #1e3a5f; }
   .hit-actions { display: flex; flex-wrap: wrap; gap: 8px; }
   .hit-actions a, .hit-actions button {
     font-size: 12.5px; font-weight: 550;
@@ -1055,6 +1055,20 @@
     line-height: 1.4;
   }
   .hunt-truth strong { font-weight: 700; }
+  .lib-actions { display: flex; gap: 8px; margin: 0 0 16px; flex-wrap: wrap; }
+  .lib-list { display: flex; flex-direction: column; gap: 10px; }
+  .lib-card {
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    padding: 14px 16px;
+  }
+  .lib-card .kind { font-size: 11px; color: var(--dim); font-family: var(--mono); margin-bottom: 6px; }
+  .lib-card h3 { margin: 0 0 6px; font-size: 15px; font-weight: 600; }
+  .lib-card p { margin: 0; font-size: 13px; color: var(--muted); line-height: 1.45; word-break: break-word; }
+  .lib-card a { color: inherit; text-decoration: underline; text-underline-offset: 2px; }
+  .lib-thumb { width: 72px; height: 72px; border-radius: 8px; overflow: hidden; background: #111; margin: 8px 0; }
+  .lib-thumb img { width: 100%; height: 100%; object-fit: cover; }
 </style>
 </head>
 <body>
@@ -1067,7 +1081,7 @@
       </div>
       <div class="workspace-meta">
         <div class="workspace-name">Cutline Desk</div>
-        <div class="workspace-sub">Phase A · wedge</div>
+        <div class="workspace-sub">Your AI desk</div>
       </div>
     </div>
 
@@ -1084,6 +1098,12 @@
         </span>
         <span class="label">Activity</span>
         <span class="nav-dot" id="activityDot" title="Needs input"></span>
+      </button>
+      <button type="button" class="nav-item" data-view="library" id="navLibrary">
+        <span class="ico" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="4" width="7" height="7" rx="1.5"/><rect x="13" y="4" width="7" height="7" rx="1.5"/><rect x="4" y="13" width="7" height="7" rx="1.5"/><rect x="13" y="13" width="7" height="7" rx="1.5"/></svg>
+        </span>
+        <span class="label">Library</span>
       </button>
       <button type="button" class="nav-item" data-view="connect" id="navConnect">
         <span class="ico" aria-hidden="true">
@@ -1169,32 +1189,28 @@
         <p class="truth-micro"><strong>News only from real pages.</strong> Browser holds the source.</p>
 
         <div class="ask-box">
-          <textarea id="headline" placeholder="Search news or drop a video…" rows="3"></textarea>
+          <textarea id="headline" placeholder="Hunt a story or paste a headline (demo)…" rows="3"></textarea>
           <div class="ask-actions">
-            <span class="ask-hint">Wire → Still → Desk · live URL required · you approve before ship</span>
+            <span class="ask-hint">Hunt a live page, then rewrite · pasted headline is demo · you approve before ship</span>
             <button type="button" class="btn btn-lime" id="runBtn">Run</button>
           </div>
         </div>
         <div class="err" id="errBox"></div>
 
         <div class="suggestions" id="suggestions">
-          <button type="button" class="sug" data-fill="Pune rains flood streets near Deccan Gymkhana">
+          <button type="button" class="sug" id="sugHunt">
             <span class="plus">+</span>
-            Finish a news post from “Pune rains flood streets near Deccan Gymkhana”
+            Hunt a live page — rewrite only after a real source URL
           </button>
-          <button type="button" class="sug" data-fill="Council votes on late-night metro extension">
+          <button type="button" class="sug" id="sugLibrary">
             <span class="plus">+</span>
-            Draft IG + YT pack for “Council votes on late-night metro extension”
-          </button>
-          <button type="button" class="sug" data-fill="Raw clip: market protest, 42s handheld">
-            <span class="plus">+</span>
-            Cut a 42s handheld market protest into a shippable reel
+            Open the media library — clips, stills, captions
           </button>
         </div>
 
         <div class="result" id="result">
           <div class="result-head">
-            <h2>Wedge run</h2>
+            <h2 id="resultTitle">Desk run</h2>
             <span class="status-pill" id="statusPill">idle</span>
             <span class="run-meta" id="runMeta"></span>
           </div>
@@ -1218,7 +1234,7 @@
             </div>
             <div class="card log-card">
               <h3>Tool log</h3>
-              <div id="log" class="empty-log">Paste a headline. Wire → Still → Desk → needs_input. Approve unlocks ship.</div>
+              <div id="log" class="empty-log">Hunt a live URL or paste a demo headline. Gemini writes the pack. Approve unlocks ship.</div>
             </div>
           </div>
         </div>
@@ -1232,44 +1248,22 @@
         <p class="activity-sub">What needs you, and what moved.</p>
         <p class="truth-micro" style="margin:-18px 0 22px"><strong>News only from real pages.</strong> Browser holds the source.</p>
 
-        <div class="need-label" id="needLabel">2 items need your input</div>
-        <div class="need-list" id="needList">
-          <!-- live run card injected here when needs_input -->
-          <article class="need-card" data-mock="news">
-            <div class="kind"><span class="chip">News</span> Wire · Still · Desk</div>
-            <h3>News post ready for review</h3>
-            <p>Pune rains flood streets near Deccan Gymkhana — still + IG/YT captions drafted. Approve to unlock ship.</p>
-            <div class="need-actions">
-              <button type="button" class="pill pill-approve mock-approve" data-fill="Pune rains flood streets near Deccan Gymkhana">Approve</button>
-              <button type="button" class="pill pill-adjust mock-adjust" data-fill="Pune rains flood streets near Deccan Gymkhana">Adjust</button>
-              <button type="button" class="pill pill-dismiss mock-dismiss">Dismiss</button>
-            </div>
-          </article>
-          <article class="need-card" data-mock="video">
-            <div class="kind"><span class="chip">Video</span> Clip · Desk</div>
-            <h3>Video cut waiting on you</h3>
-            <p>Raw 42s handheld market protest — suggested cut points and caption pack. Adjust timing or approve.</p>
-            <div class="need-actions">
-              <button type="button" class="pill pill-approve mock-approve" data-fill="Raw clip: market protest, 42s handheld">Approve</button>
-              <button type="button" class="pill pill-adjust mock-adjust" data-fill="Raw clip: market protest, 42s handheld">Adjust</button>
-              <button type="button" class="pill pill-dismiss mock-dismiss">Dismiss</button>
-            </div>
-          </article>
-        </div>
+        <div class="need-label" id="needLabel">Nothing needs you right now</div>
+        <div class="need-list" id="needList"></div>
 
         <div class="changed">
           <h3>What’s changed</h3>
           <div class="changed-row">
-            <div class="metric">Wedge</div>
-            <div class="note"><span class="up">Live</span> — Gemini still lane online · Phase A</div>
+            <div class="metric">Hunt</div>
+            <div class="note">Live pages only — Browser holds the source URL</div>
+          </div>
+          <div class="changed-row">
+            <div class="metric">Gemini</div>
+            <div class="note">Server key required — no stub pack</div>
           </div>
           <div class="changed-row">
             <div class="metric">Approve</div>
-            <div class="note">Gate wired — ship blocked until you approve</div>
-          </div>
-          <div class="changed-row">
-            <div class="metric">Desk</div>
-            <div class="note"><span class="up">Scout on</span> — Wire / Hunt · Hyderabad → Global</div>
+            <div class="note">Ship blocked until you approve</div>
           </div>
         </div>
       </div>
@@ -1278,26 +1272,27 @@
     <!-- WIRE / HUNT -->
     <section class="view" id="viewHunt" aria-label="Wire Hunt">
       <div class="hunt-wrap">
-        <div class="kicker">Wire · Scout</div>
+        <div class="kicker">Wire</div>
         <h1>Hunt latest</h1>
-        <p class="hunt-sub">RSS + TinyFish across Cutline beats — same loop as DCN, productized here.</p>
-        <div class="hunt-truth"><strong>Truth lane:</strong> every hit needs a live sourceUrl · Browser shows the page · no AI-invented news</div>
+        <p class="hunt-sub">Open a desk. Cutline fetches live pages and keeps only real source URLs.</p>
+        <div class="hunt-truth"><strong>Browser holds the source.</strong> Every hit needs a live URL. No invented news.</div>
 
-        <div class="beat-chips" id="beatChips" role="group" aria-label="Beats">
-          <button type="button" class="beat-chip active" data-beat="hyderabad">Hyderabad</button>
-          <button type="button" class="beat-chip" data-beat="mumbai">Mumbai</button>
-          <button type="button" class="beat-chip" data-beat="pune">Pune</button>
-          <button type="button" class="beat-chip" data-beat="india">India</button>
-          <button type="button" class="beat-chip" data-beat="global">Global</button>
+        <div class="beat-chips" id="beatChips" role="group" aria-label="Desks">
+          <button type="button" class="beat-chip active" data-desk="breaking">Breaking</button>
+          <button type="button" class="beat-chip" data-desk="business">Business</button>
+          <button type="button" class="beat-chip" data-desk="culture">Culture</button>
+          <button type="button" class="beat-chip" data-desk="sports">Sports</button>
+          <button type="button" class="beat-chip" data-desk="tech">Tech</button>
+          <button type="button" class="beat-chip" data-desk="world">World</button>
         </div>
 
         <div class="hunt-bar">
           <button type="button" class="btn-lime" id="huntBtn">Hunt latest</button>
-          <span class="hunt-meta" id="huntMeta">Pick a beat, then hunt.</span>
+          <span class="hunt-meta" id="huntMeta">Pick a desk, then hunt.</span>
         </div>
         <div class="err" id="huntErr"></div>
         <div id="hitList" class="hit-list">
-          <div class="hunt-empty" id="huntEmpty">No hunt yet. Choose a city or India / Global and hit Hunt latest.</div>
+          <div class="hunt-empty" id="huntEmpty">No hunt yet. Choose a desk and hit Hunt latest.</div>
         </div>
       </div>
     </section>
@@ -1318,6 +1313,23 @@
         </div>
 
         <div class="connect-toast" id="connectToast" role="status"></div>
+      </div>
+    </section>
+
+    <!-- LIBRARY -->
+    <section class="view" id="viewLibrary" aria-label="Library">
+      <div class="connect-wrap">
+        <div class="kicker">Media</div>
+        <h1>Library</h1>
+        <p class="connect-sub">Clips, stills, videos, and captions stored on the desk. Linked to the story they came from.</p>
+        <div class="lib-actions">
+          <button type="button" class="btn-lime" id="libAddCaption">Add caption</button>
+          <button type="button" class="plugin-btn" id="libAddClip">Add clip URL</button>
+        </div>
+        <div class="err" id="libErr"></div>
+        <div id="libList" class="lib-list">
+          <div class="hunt-empty">Library is empty. Finish a sourced run or add a clip.</div>
+        </div>
       </div>
     </section>
   </main>
@@ -1540,7 +1552,7 @@
     } else if (run) {
       bar.querySelector(".msg").innerHTML = "<strong>" + escapeHtml(run.status) + "</strong>";
     }
-    $("activityDot").style.display = needs ? "" : (document.querySelectorAll(".need-card[data-mock]").length ? "" : "none");
+    $("activityDot").style.display = needs ? "" : "none";
     syncLiveNeedCard(run);
   }
 
@@ -1548,7 +1560,7 @@
     const list = $("needList");
     let live = list.querySelector(".need-card[data-live]");
     if (run?.status === "needs_input") {
-      const title = (run.headline || $("headline").value || "Wedge run").trim();
+      const title = (run.rewrite?.headline || run.brief?.headline || $("headline").value || "Desk run").trim();
       const html = `
         <div class="kind"><span class="chip">Live</span> Wire · Still · Desk</div>
         <h3>${escapeHtml(title)}</h3>
@@ -1820,7 +1832,6 @@
     pendingSourceUrl = null;
     if (keepSkeleton) {
       // leave tree visible but empty-ish? Spec: leave empty structure skeleton optional
-      // Prefer soft empty state like Cursor
       paintStructure(null);
       paintBrowser(null);
     } else {
@@ -1830,10 +1841,25 @@
     layerSnapshot = {};
   }
 
-  function applyRun(run, stub) {
+  function geminiErr(data, fallback) {
+    if (!data) return fallback;
+    if (data.error === "gemini_not_configured") {
+      return data.hint || "Connect Gemini — GEMINI_API_KEY is not set on the server.";
+    }
+    if (data.error && String(data.error).startsWith("gemini_")) {
+      return data.hint || "Gemini request failed. Check GEMINI_API_KEY and model env on the server.";
+    }
+    return data.hint || data.error || fallback;
+  }
+
+  function applyRun(run) {
     currentRun = run;
     setStatus(run.status);
-    $("runMeta").textContent = (run.id || "") + (stub ? " · stub gemini" : "");
+    const src = resolveSourceUrl(run);
+    const demo = !isLiveSourceUrl(src);
+    $("runMeta").textContent = (run.id || "") + (demo ? " · demo" : "");
+    const title = $("resultTitle");
+    if (title) title.textContent = demo ? "Demo run" : "Desk run";
     renderLog(run.log);
     markRoster(run.log);
     renderStill(run);
@@ -1844,27 +1870,31 @@
     syncApproveBar(run);
     setSideRunReady();
     switchView("home");
-    fillMagicLayers(run, { flash: true, preferBrowser: isLiveSourceUrl(pendingSourceUrl) || isLiveSourceUrl(resolveSourceUrl(run)) });
+    fillMagicLayers(run, { flash: true, preferBrowser: isLiveSourceUrl(pendingSourceUrl) || isLiveSourceUrl(src) });
   }
 
   async function doRun() {
     setErr("");
     const headline = $("headline").value.trim();
-    if (!headline) { setErr("headline required"); switchView("home"); return; }
+    const sourced = isLiveSourceUrl(pendingSourceUrl) || /^https?:\/\//i.test(headline);
+    if (!headline && !sourced) { setErr("headline required"); switchView("home"); return; }
     $("runBtn").disabled = true;
     $("sideRunBtn").disabled = true;
     setStatus("drafting");
     $("result").classList.add("show");
     $("homeWrap").classList.add("has-run");
     try {
-      const res = await fetch("/api/wedge", {
+      const sourceUrl = isLiveSourceUrl(pendingSourceUrl) ? pendingSourceUrl : (/^https?:\/\//i.test(headline) ? headline : "");
+      const res = await fetch(sourceUrl ? "/api/desk" : "/api/wedge", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ headline }),
+        body: JSON.stringify(sourceUrl
+          ? { sourceUrl, title: headline || sourceUrl, beat: selectedDesk }
+          : { headline }),
       });
       const data = await res.json();
-      if (!res.ok) throw new Error(data.error || "wedge failed");
-      applyRun(data.run, data.stub);
+      if (!res.ok) throw new Error(geminiErr(data, sourceUrl ? "desk failed" : "run failed"));
+      applyRun(data.run);
     } catch (e) {
       setErr(e.message || String(e));
       setStatus("failed");
@@ -1890,7 +1920,7 @@
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "approve failed");
-      applyRun(data.run, false);
+      applyRun(data.run);
     } catch (e) {
       setErr(e.message || String(e));
       $("approveBtn").disabled = currentRun?.status !== "needs_input";
@@ -1935,7 +1965,7 @@
     $("ban").classList.remove("show");
     $("pack").textContent = "—";
     $("log").className = "empty-log";
-    $("log").textContent = "Paste a headline. Wire → Still → Desk → needs_input. Approve unlocks ship.";
+    $("log").textContent = "Hunt a live URL or paste a demo headline. Gemini writes the pack. Approve unlocks ship.";
     markRoster([]);
     clearMagicLayers({ keepSkeleton: true });
   });
@@ -1948,43 +1978,14 @@
     }
   });
 
-  document.querySelectorAll(".sug").forEach((btn) => {
-    btn.addEventListener("click", () => {
-      $("headline").value = btn.dataset.fill || "";
-      setSideRunReady();
-      $("headline").focus();
-    });
-  });
+  $("sugHunt")?.addEventListener("click", () => switchView("hunt"));
+  $("sugLibrary")?.addEventListener("click", () => switchView("library"));
 
   $("navHome").addEventListener("click", () => switchView("home"));
   $("navActivity").addEventListener("click", () => switchView("activity"));
+  $("navLibrary")?.addEventListener("click", () => switchView("library"));
 
-  document.querySelectorAll(".mock-approve").forEach((btn) => {
-    btn.addEventListener("click", () => {
-      $("headline").value = btn.dataset.fill || "";
-      setSideRunReady();
-      switchView("home");
-      doRun();
-    });
-  });
-  document.querySelectorAll(".mock-adjust").forEach((btn) => {
-    btn.addEventListener("click", () => {
-      $("headline").value = btn.dataset.fill || "";
-      setSideRunReady();
-      switchView("home");
-      $("headline").focus();
-    });
-  });
-  document.querySelectorAll(".mock-dismiss").forEach((btn) => {
-    btn.addEventListener("click", () => {
-      const card = btn.closest(".need-card");
-      if (card) card.remove();
-      updateNeedLabel();
-    });
-  });
-
-
-  let selectedBeat = "hyderabad";
+  let selectedDesk = "breaking";
   let lastHits = [];
 
   function setHuntErr(msg) {
@@ -2009,6 +2010,10 @@
     } else if (name === "hunt") {
       $("viewHunt").classList.add("active");
       $("toolNews")?.classList.add("active-tool");
+    } else if (name === "library") {
+      $("viewLibrary").classList.add("active");
+      $("navLibrary")?.classList.add("active");
+      refreshLibrary();
     } else if (name === "connect") {
       $("viewConnect").classList.add("active");
       $("navConnect").classList.add("active");
@@ -2028,31 +2033,21 @@
     btn.addEventListener("click", () => {
       document.querySelectorAll(".beat-chip").forEach((b) => b.classList.remove("active"));
       btn.classList.add("active");
-      selectedBeat = btn.dataset.beat || "hyderabad";
-      $("huntMeta").textContent = "Beat · " + selectedBeat;
+      selectedDesk = btn.dataset.desk || "breaking";
+      $("huntMeta").textContent = "Desk · " + selectedDesk;
       $("huntMeta").classList.remove("warn");
     });
   });
 
   function renderHits(data) {
     const list = $("hitList");
-    const stub = !!data.stubTinyfish;
-    // Product rule: only show hits with a real openable sourceUrl
     lastHits = (data.hits || []).filter((h) => isLiveSourceUrl(h.sourceUrl));
-    const via = data.viaCounts || {};
-    let meta = (data.beat || selectedBeat) + " · " + lastHits.length + " sourced";
-    if (via.rss || via.tinyfish) meta += " · rss " + (via.rss || 0) + " · tinyfish " + (via.tinyfish || 0);
-    if (data.truthLane) meta += " · truth lane on";
-    if (stub) meta += " · No TinyFish key — RSS only";
+    let meta = (data.label || data.desk || selectedDesk) + " · " + lastHits.length + " sourced";
     $("huntMeta").textContent = meta;
-    $("huntMeta").classList.toggle("warn", stub);
+    $("huntMeta").classList.remove("warn");
 
     if (!lastHits.length) {
-      list.innerHTML = `<div class="hunt-empty" id="huntEmpty">${
-        stub
-          ? "No sourced hits. No TinyFish key — RSS only. Add TINYFISH_API_KEY or try another beat."
-          : "No sourced hits for this beat (every Wire/Hunt card needs a live URL)."
-      }</div>`;
+      list.innerHTML = `<div class="hunt-empty" id="huntEmpty">No sourced hits for this desk (every card needs a live URL).</div>`;
       return;
     }
     list.innerHTML = lastHits.map((h, i) => `
@@ -2116,10 +2111,10 @@
     setHuntErr("");
     const btn = $("huntBtn");
     btn.disabled = true;
-    $("huntMeta").textContent = "Hunting " + selectedBeat + "…";
+    $("huntMeta").textContent = "Hunting " + selectedDesk + "…";
     $("huntMeta").classList.remove("warn");
     try {
-      const res = await fetch("/api/hunt?beat=" + encodeURIComponent(selectedBeat));
+      const res = await fetch("/api/hunt?desk=" + encodeURIComponent(selectedDesk));
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "hunt failed");
       renderHits(data);
@@ -2361,7 +2356,7 @@
         { id: "ig", name: "Instagram", description: "Still + IG caption pack", connected: false, configured: false, missing: ["IG_APP_ID", "IG_APP_SECRET"], primary: true, local: false },
         { id: "yt", name: "YouTube", description: "Title, description + thumbnail", connected: false, configured: false, missing: ["YT_CLIENT_ID", "YT_CLIENT_SECRET"], primary: true, local: false },
         { id: "canva", name: "Canva", description: "Open design handoff", connected: false, configured: false, missing: ["CANVA_CLIENT_ID", "CANVA_CLIENT_SECRET"], primary: true, local: false },
-        { id: "telegram", name: "Telegram", description: "DCN-proven ship lane", connected: false, configured: false, missing: ["TELEGRAM_BOT_TOKEN"], primary: false, local: false },
+        { id: "telegram", name: "Telegram", description: "Channel message", connected: false, configured: false, missing: ["TELEGRAM_BOT_TOKEN"], primary: false, local: false },
         { id: "x", name: "X / Twitter", description: "Post + media", connected: false, configured: false, missing: ["X_CLIENT_ID", "X_CLIENT_SECRET"], primary: false, local: false },
         { id: "tiktok", name: "TikTok", description: "Photo publish via TikTok Login", connected: false, configured: false, missing: ["TIKTOK_CLIENT_KEY", "TIKTOK_CLIENT_SECRET"], primary: false, local: false },
         { id: "zip", name: "Download ZIP", description: "JSON + caption bundle — always works", connected: true, configured: true, missing: [], primary: false, local: true },
@@ -2373,8 +2368,8 @@
 
   // Re-paint connect cards when a run lands
   const _applyRun = applyRun;
-  applyRun = function(run, stub) {
-    _applyRun(run, stub);
+  applyRun = function(run) {
+    _applyRun(run);
     if ($("viewConnect")?.classList.contains("active")) refreshConnect();
   };
 
@@ -2383,7 +2378,7 @@
     tab.addEventListener("click", () => switchRightTab(tab.dataset.rp));
   });
 
-  // Soft empty Structure on load (Cursor-style)
+  // Soft empty Structure on load
   clearMagicLayers({ keepSkeleton: true });
 
 
@@ -2391,6 +2386,94 @@
     if (e.target && e.target.id === "gotoConnect") {
       e.preventDefault();
       switchView("connect");
+    }
+  });
+
+  function setLibErr(msg) {
+    const el = $("libErr");
+    if (!el) return;
+    if (!msg) { el.classList.remove("show"); el.textContent = ""; return; }
+    el.textContent = msg;
+    el.classList.add("show");
+  }
+
+  function renderLibrary(entries) {
+    const list = $("libList");
+    if (!list) return;
+    if (!entries || !entries.length) {
+      list.innerHTML = `<div class="hunt-empty">Library is empty. Finish a sourced run or add a clip.</div>`;
+      return;
+    }
+    list.innerHTML = entries.map((entry) => {
+      const item = entry.item || {};
+      const media = entry.media || [];
+      const kinds = media.map((m) => m.kind).join(" · ") || "item";
+      const src = item.sourceUrl
+        ? `<p><a href="${escapeHtml(item.sourceUrl)}" target="_blank" rel="noopener noreferrer">${escapeHtml(item.sourceUrl)}</a></p>`
+        : "";
+      const thumbs = media.filter((m) => m.url && (m.kind === "photo" || m.kind === "clip" || m.kind === "video")).map((m) => {
+        if (m.kind === "photo") {
+          return `<div class="lib-thumb"><img src="${escapeHtml(m.url)}" alt=""/></div>`;
+        }
+        return `<p><a href="${escapeHtml(m.url)}" target="_blank" rel="noopener noreferrer">${escapeHtml(m.kind)} · open</a></p>`;
+      }).join("");
+      const captions = media.filter((m) => m.kind === "caption" && m.body).map((m) => `<p>${escapeHtml(m.body)}</p>`).join("");
+      return `<article class="lib-card">
+        <div class="kind">${escapeHtml(kinds)}${item.desk ? " · " + escapeHtml(item.desk) : ""} · ${escapeHtml((item.createdAt || "").slice(0, 16))}</div>
+        <h3>${escapeHtml(item.title || "Untitled")}</h3>
+        ${thumbs}${captions}${src}
+      </article>`;
+    }).join("");
+  }
+
+  async function refreshLibrary() {
+    setLibErr("");
+    try {
+      const res = await fetch("/api/library");
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "library failed");
+      renderLibrary(data.entries || []);
+    } catch (e) {
+      setLibErr(e.message || String(e));
+    }
+  }
+
+  $("libAddCaption")?.addEventListener("click", async () => {
+    const body = window.prompt("Caption text");
+    if (!body || !body.trim()) return;
+    const title = window.prompt("Title (optional)") || "Caption";
+    try {
+      const res = await fetch("/api/library", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ kind: "caption", title, body: body.trim() }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "save failed");
+      refreshLibrary();
+    } catch (e) {
+      setLibErr(e.message || String(e));
+    }
+  });
+
+  $("libAddClip")?.addEventListener("click", async () => {
+    const url = window.prompt("Clip URL (https)");
+    if (!url || !/^https?:\/\//i.test(url.trim())) {
+      setLibErr("Clip needs a live http(s) URL.");
+      return;
+    }
+    const title = window.prompt("Title (optional)") || "Clip";
+    try {
+      const res = await fetch("/api/library", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ kind: "clip", title, url: url.trim() }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "save failed");
+      refreshLibrary();
+    } catch (e) {
+      setLibErr(e.message || String(e));
     }
   });
 
@@ -2405,7 +2488,7 @@
       try {
         const res = await fetch("/api/runs/" + encodeURIComponent(runId));
         const data = await res.json();
-        if (res.ok && data.run) applyRun(data.run, false);
+        if (res.ok && data.run) applyRun(data.run);
       } catch (_) { /* ignore */ }
     }
     const view = (q.get("view") || "").toLowerCase();
@@ -2419,7 +2502,7 @@
       } else {
         showConnectToast("<strong>Connect failed.</strong> " + escapeHtml(q.get("reason") || "error") + (channel ? " · " + escapeHtml(channel) : ""), "warn");
       }
-    } else if (view === "connect" || view === "activity" || view === "hunt") {
+    } else if (view === "connect" || view === "activity" || view === "hunt" || view === "library") {
       switchView(view);
     }
   })();
