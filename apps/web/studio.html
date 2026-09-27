@@ -2203,6 +2203,7 @@
     body.is-showcase .showcase-rail { display: none !important; }
     .assign { display: none; }
     .item-actions { opacity: 1; }
+    .item-act { width: 34px; height: 34px; }
     .paste-url-row { flex-wrap: wrap; }
     .paste-url-row input { flex: 1 1 100%; }
     .paste-url-row .btn { flex: 1 1 auto; min-width: 0; }
@@ -2965,8 +2966,8 @@
   }
   function aspectFromUrl(url) {
     const u = String(url || "");
-    if (/youtube|youtu\.be/i.test(u)) return "youtube";
-    if (/(^|\/\/)(www\.)?(x|twitter)\.com/i.test(u)) return "x";
+    if (/youtube|youtu\.be|sample-dcn-yt/i.test(u)) return "youtube";
+    if (/(^|\/\/)(www\.)?(x|twitter)\.com|sample-dcn-x/i.test(u)) return "x";
     return "instagram";
   }
   function setPostAspect(kind) {
