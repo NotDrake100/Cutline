@@ -136,6 +136,7 @@
       border-top: 1px solid var(--line);
     }
     .shell.desk-collapsed .sidebar { display: none; }
+    .right-pane:not(.has-live) { display: none; }
     .ig-frame {
       min-height: 0;
       max-height: min(38vh, 320px);
@@ -2096,6 +2097,35 @@
   .lib-card a { color: inherit; text-decoration: underline; text-underline-offset: 2px; }
   .lib-thumb { width: 72px; height: 72px; border-radius: 8px; overflow: hidden; background: #111; margin: 8px 0; }
   .lib-thumb img { width: 100%; height: 100%; object-fit: cover; }
+
+  /* Phone: win over later desktop frame locks (4:5 420px / tall Browser). */
+  @media (max-width: 860px) {
+    .ig-frame {
+      min-height: 0 !important;
+      max-height: min(36vh, 280px) !important;
+      height: auto !important;
+      flex: 0 0 auto !important;
+    }
+    .ig-frame.yt {
+      aspect-ratio: 16 / 9;
+      min-height: 0 !important;
+      max-height: min(22vh, 180px) !important;
+    }
+    .browser-stage { padding: 8px; }
+    .browser-preview,
+    .browser-preview[data-kind="youtube"],
+    .browser-preview[data-kind="page"] { max-width: none; }
+    .browser-poster {
+      max-height: min(32vh, 240px);
+    }
+    .browser-preview[data-kind="youtube"] .browser-poster {
+      max-height: min(20vh, 160px);
+    }
+    .browser-preview[data-kind="page"] .browser-frame-wrap {
+      min-height: 120px;
+      height: min(26vh, 180px);
+    }
+  }
 </style>
 </head>
 <body>
@@ -2693,6 +2723,9 @@
   }
   function isNarrow() {
     return window.matchMedia("(max-width: 860px)").matches;
+  }
+  function markRightPaneLive(on) {
+    $("rightPane")?.classList.toggle("has-live", !!on);
   }
   function projectNameKey(p) {
     return String(p?.name || "").trim().toLowerCase().replace(/\s+/g, " ");
@@ -3977,7 +4010,7 @@
     const kind = browserKind(url);
     const preview = $("browserPreview");
     const embed = socialEmbedUrl(url);
-    const usePoster = kind === "instagram" || kind === "x" || kind === "youtube" || !embed;
+    const usePoster = kind === "instagram" || kind === "x" || kind === "youtube";
     if (preview) {
       preview.dataset.kind = kind;
       preview.classList.toggle("has-fallback", kind !== "page");
@@ -4032,6 +4065,7 @@
     }
     if (switchTab) switchRightTab("browser");
     setStyleUrl(isToySampleUrl(url) ? DCN_STYLE_URL : url);
+    markRightPaneLive(true);
     return true;
   }
 
@@ -4064,6 +4098,7 @@
       $("browserFrame").removeAttribute("src");
       delete $("browserFrame").dataset.src;
       paintBrowserPoster("");
+      if (!currentRun) markRightPaneLive(false);
       return;
     }
     if (/^https?:\/\//i.test(src)) {
@@ -4174,6 +4209,7 @@
     if (!card) return;
     if (!run) { card.style.display = "none"; return; }
     card.style.display = "";
+    markRightPaneLive(true);
     const srcUrl = resolveSourceUrl(run);
     const isIg = looksLikePostUrl(srcUrl) && /instagram/i.test(srcUrl);
     const isYt = /youtube\.com|youtu\.be|sample-dcn-yt/i.test(srcUrl) || (run.beat || "") === "youtube";
@@ -4573,6 +4609,7 @@
     $("headline").value = "";
     seedPasteUrl();
     pendingSourceUrl = null;
+    markRightPaneLive(false);
     pendingAskPhoto = null;
     showAskAttach("");
     closeAskPlus();
