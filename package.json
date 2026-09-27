@@ -10,11 +10,15 @@
     "start": "npx tsx apps/api/server.ts",
     "studio": "npx tsx apps/api/server.ts"
   },
+  "dependencies": {
+    "better-sqlite3": "^11.10.0"
+  },
   "devDependencies": {
+    "@types/better-sqlite3": "^7.6.13",
     "tsx": "^4.19.2",
     "typescript": "^5.7.2"
   },
   "engines": {
-    "node": ">=22"
+    "node": ">=20"
   }
 }

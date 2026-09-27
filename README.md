@@ -18,6 +18,8 @@ Missing `GEMINI_API_KEY` returns a clear error. The desk does not invent headlin
 
 Deploy: see `DEPLOY.md` (Cloud Run Dockerfile or Vercel). Health: `GET /api/health` → `{ geminiConfigured: true|false }`.
 
+Needs Node 20+. `GEMINI_API_KEY` is read from `process.env`. Locally, `npm run dev` loads a gitignored repo-root `.env` when the var is empty; Vercel/Cloud Run env is not overwritten.
+
 ## Run
 
 ```

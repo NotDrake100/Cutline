@@ -1,10 +1,11 @@
 /**
  * SQLite media library — clips, photos, videos, captions, stills, style pref.
- * File-backed. Vercel writes to /tmp. Not localStorage.
+ * File-backed via better-sqlite3 (Node 20+). node:sqlite is Node 22-only.
+ * Vercel writes to /tmp. Not localStorage.
  */
 import { mkdirSync } from "node:fs";
 import { dirname } from "node:path";
-import { DatabaseSync } from "node:sqlite";
+import Database from "better-sqlite3";
 import type { DeskItem, LibraryEntry, MediaKind, MediaRecord } from "../../core/src/types";
 import { dbFile } from "../../core/src/paths";
 import { DEFAULT_STYLE_ID, isStyleId } from "../../core/src/styles";
@@ -12,12 +13,13 @@ import { DEFAULT_STYLE_ID, isStyleId } from "../../core/src/styles";
 const DB_PATH = dbFile();
 const KINDS: MediaKind[] = ["clip", "photo", "video", "caption", "still"];
 
-let db: DatabaseSync | null = null;
+let db: Database.Database | null = null;
 
-function open(): DatabaseSync {
+function open(): Database.Database {
   if (db) return db;
   mkdirSync(dirname(DB_PATH), { recursive: true });
-  db = new DatabaseSync(DB_PATH);
+  db = new Database(DB_PATH);
+  db.pragma("journal_mode = WAL");
   db.exec(`
     CREATE TABLE IF NOT EXISTS desk_items (
       id TEXT PRIMARY KEY,

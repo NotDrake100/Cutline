@@ -44,6 +44,7 @@ const ROOT = join(import.meta.dirname, "../..");
 const WEB = join(ROOT, "apps/web");
 const UPLOADS = uploadsRoot();
 
+/** Fill empty process.env from gitignored repo-root .env. Existing / Vercel env wins. */
 export async function loadDotEnv() {
   try {
     const raw = await readFile(join(ROOT, ".env"), "utf8");
@@ -63,7 +64,7 @@ export async function loadDotEnv() {
       if (!(k in process.env) || process.env[k] === "") process.env[k] = v;
     }
   } catch {
-    /* no .env — Gemini required for live pack */
+    /* no local .env — GEMINI_API_KEY still comes from process.env / host env */
   }
 }
 

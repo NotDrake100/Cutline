@@ -1,5 +1,6 @@
 /**
  * Gemini adapter — live API only.
+ * Reads GEMINI_API_KEY from process.env (Vercel/Cloud Run env, or loadDotEnv .env).
  * Missing key or a failed call throws. Never invents headlines, stills, or pack copy.
  */
 import { ENV } from "./env";

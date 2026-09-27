@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "build": { "env": { "NODE_VERSION": "22" } },
+  "build": { "env": { "NODE_VERSION": "20.x" } },
   "builds": [
     { "src": "api/index.ts", "use": "@vercel/node" },
     { "src": "apps/web/**", "use": "@vercel/static" }

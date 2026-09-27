@@ -1,6 +1,10 @@
 # Deploy Cutline
 
+Node 20+. The library uses `better-sqlite3` (not `node:sqlite`) so local Node 20, Vercel, and Cloud Run images all boot.
+
 Set `GEMINI_API_KEY` on the host. Never put the key in git.
+
+Local `npm run dev` reads a gitignored repo-root `.env` into `process.env` only when the var is unset or empty — so a key Archit already has locally stays local, and Vercel/Cloud Run env always wins.
 
 Optional: `GEMINI_TEXT_MODEL`, `GEMINI_IMAGE_MODEL`, `PORT`, `CUTLINE_PUBLIC_URL`.
 
