@@ -1961,11 +1961,176 @@
   .lib-card a { color: inherit; text-decoration: underline; text-underline-offset: 2px; }
   .lib-thumb { width: 72px; height: 72px; border-radius: 8px; overflow: hidden; background: #111; margin: 8px 0; }
   .lib-thumb img { width: 100%; height: 100%; object-fit: cover; }
+
+  /* ——— Phone chrome (Chat | Post | Browser + overlay drawer). Desktop ≥768px stays 3-col. ——— */
+  .phone-bar, .phone-backdrop { display: none; }
+  .sidebar-reach { display: flex; flex-direction: column; gap: 2px; padding-top: 8px; }
+  .sidebar-reach .nav-item { width: 100%; }
+
+  @media (min-width: 768px) {
+    .shell,
+    .shell.browser-focus,
+    .shell.desk-collapsed,
+    .shell.browser-focus.desk-collapsed {
+      grid-template-rows: none;
+    }
+    .shell { grid-template-columns: var(--sidebar-w) 1fr var(--right-w); }
+    .shell.browser-focus { grid-template-columns: var(--sidebar-w) 0 minmax(0, 1fr); }
+    .shell.desk-collapsed { grid-template-columns: 0 minmax(0, 1fr) var(--right-w); }
+    .sidebar {
+      width: auto;
+      height: auto;
+      border-right: 1px solid var(--line);
+      border-bottom: none;
+    }
+    .right-pane {
+      width: auto;
+      max-height: none;
+      border-left: 1px solid var(--line);
+      border-top: none;
+    }
+  }
+
+  @media (max-width: 767px) {
+    html, body { height: 100%; overflow: hidden; }
+    body.phone-lock { overflow: hidden; }
+
+    .phone-bar {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-shrink: 0;
+      height: 56px;
+      padding: 8px 10px;
+      background: var(--bg);
+      border-bottom: 1px solid var(--line);
+      z-index: 20;
+    }
+    .phone-menu-btn {
+      width: 40px; height: 40px;
+      border-radius: 12px;
+      display: grid; place-items: center;
+      color: var(--ink);
+      flex-shrink: 0;
+    }
+    .phone-menu-btn:hover { background: var(--nav-hover); }
+    .phone-menu-btn svg { width: 20px; height: 20px; }
+    .phone-seg {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex: 1;
+      min-width: 0;
+      height: 36px;
+      padding: 3px;
+      border-radius: var(--radius-pill);
+      background: var(--nav-active);
+    }
+    .phone-seg-btn {
+      flex: 1;
+      height: 100%;
+      border-radius: var(--radius-pill);
+      font-size: 13px;
+      font-weight: 650;
+      color: var(--muted);
+      letter-spacing: -.01em;
+    }
+    .phone-seg-btn.active {
+      background: var(--card);
+      color: var(--ink);
+      box-shadow: 0 1px 2px rgba(10,10,10,.08);
+    }
+
+    .phone-backdrop {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(10,10,10,.38);
+      z-index: 28;
+    }
+    .shell.phone-nav-open .phone-backdrop { display: block; }
+
+    .shell,
+    .shell.browser-focus,
+    .shell.desk-collapsed,
+    .shell.browser-focus.desk-collapsed {
+      display: flex;
+      flex-direction: column;
+      grid-template-columns: none;
+      grid-template-rows: none;
+      height: 100dvh;
+      min-height: 0;
+    }
+    .shell.browser-focus .main {
+      visibility: visible;
+      overflow: auto;
+      pointer-events: auto;
+    }
+    .shell.desk-collapsed .sidebar { display: flex; }
+    .shell.desk-collapsed .panel-restore { display: none; }
+
+    .sidebar {
+      position: fixed;
+      top: 0; left: 0; bottom: 0;
+      width: min(86vw, 320px);
+      height: 100dvh;
+      z-index: 30;
+      transform: translateX(-104%);
+      transition: transform .2s ease;
+      border-right: 1px solid var(--line);
+      border-bottom: none;
+      box-shadow: none;
+    }
+    .shell.phone-nav-open .sidebar {
+      transform: translateX(0);
+      box-shadow: 16px 0 40px rgba(10,10,10,.16);
+    }
+
+    .main {
+      flex: 1 1 auto;
+      min-height: 0;
+      width: 100%;
+    }
+    .right-pane {
+      display: none;
+      flex: 1 1 auto;
+      width: 100%;
+      max-height: none;
+      min-height: 0;
+      border-left: none;
+      border-top: none;
+    }
+    .shell.phone-pane-post .main,
+    .shell.phone-pane-browser .main { display: none; }
+    .shell.phone-pane-post .right-pane,
+    .shell.phone-pane-browser .right-pane { display: flex; }
+    .rp-tabs .panel-toggle { display: none; }
+    .rp-tabs { padding-top: 6px; }
+
+    .home-wrap {
+      justify-content: flex-start;
+      padding: 20px 16px 28px;
+    }
+    .home-wrap h1 { margin-bottom: 12px; }
+    .purpose-line, .showcase-rail { display: none; }
+    .assign { margin-top: 18px; }
+  }
 </style>
 </head>
 <body>
-<div class="shell">
-  <aside class="sidebar" aria-label="Workspace">
+<div class="shell phone-pane-chat" id="deskShell">
+  <header class="phone-bar" id="phoneBar">
+    <button type="button" class="phone-menu-btn" id="phoneMenuBtn" aria-label="Open menu" aria-controls="deskSidebar" aria-expanded="false">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+    </button>
+    <div class="phone-seg" role="tablist" aria-label="Desk pane">
+      <button type="button" class="phone-seg-btn active" role="tab" aria-selected="true" data-phone-pane="chat" id="phoneChatBtn">Chat</button>
+      <button type="button" class="phone-seg-btn" role="tab" aria-selected="false" data-phone-pane="post" id="phonePostBtn">Post</button>
+      <button type="button" class="phone-seg-btn" role="tab" aria-selected="false" data-phone-pane="browser" id="phoneBrowserBtn">Browser</button>
+    </div>
+  </header>
+  <div class="phone-backdrop" id="phoneBackdrop" hidden></div>
+  <aside class="sidebar" id="deskSidebar" aria-label="Workspace">
     <div class="workspace">
       <div class="mark" aria-hidden="true">
         <img src="assets/cutline-mark.png" alt="" onerror="this.style.display='none';this.nextElementSibling.style.display='grid'"/>
@@ -2025,6 +2190,21 @@
     <div class="section-label">Recents</div>
     <nav class="nav" aria-label="Recents" id="recentList">
       <div class="side-empty">No recent stories</div>
+    </nav>
+
+    <nav class="sidebar-reach" aria-label="Account">
+      <button type="button" class="nav-item" data-view="archived" id="navArchived">
+        <span class="ico" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M4 7h16v12H4z"/><path d="M9 7V5h6v2"/></svg>
+        </span>
+        <span class="label">Archived</span>
+      </button>
+      <button type="button" class="nav-item" data-view="settings" id="navSettings">
+        <span class="ico" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9c.3.6.9 1 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg>
+        </span>
+        <span class="label">Settings</span>
+      </button>
     </nav>
 
     <div class="section-label">Tools</div>
@@ -2301,6 +2481,16 @@
         <div class="err" id="libErr"></div>
         <div id="libList" class="lib-list">
           <div class="hunt-empty">No images yet. Finish a story or add a photo.</div>
+        </div>
+      </div>
+    </section>
+
+    <section class="view" id="viewArchived" aria-label="Archived">
+      <div class="activity-wrap">
+        <h1>Archived</h1>
+        <p class="activity-sub">Stories you put aside. Restore them from here.</p>
+        <div class="need-list" id="archivedMainList">
+          <div class="side-empty">Nothing archived yet.</div>
         </div>
       </div>
     </section>
@@ -4391,8 +4581,13 @@
       $("navPlugins")?.classList.add("active");
       $("toolShip")?.classList.add("active-tool");
       if (typeof refreshConnect === "function") refreshConnect();
+    } else if (name === "archived") {
+      $("viewArchived")?.classList.add("active");
+      $("navArchived")?.classList.add("active");
+      if (typeof paintArchived === "function") paintArchived();
     } else if (name === "settings") {
       $("viewSettings")?.classList.add("active");
+      $("navSettings")?.classList.add("active");
       applySession(readSession() || ensureSession());
     } else {
       $("viewHome").classList.add("active");
@@ -4557,6 +4752,8 @@
   $("navPlugins")?.addEventListener("click", () => switchView("connect"));
   $("navExplore")?.addEventListener("click", () => switchView("hunt"));
   $("navLibrary")?.addEventListener("click", () => switchView("library"));
+  $("navArchived")?.addEventListener("click", () => switchView("archived"));
+  $("navSettings")?.addEventListener("click", () => switchView("settings"));
   $("toolNews")?.addEventListener("click", () => switchView("hunt"));
   $("toolShip")?.addEventListener("click", () => {
     switchView("home");
@@ -5715,6 +5912,134 @@
     const n = (ap.pending || []).length;
     if ($("activityDot")) $("activityDot").style.display = n > 0 ? "" : "none";
   } catch (_) { /* ignore */ }
+
+  /* ——— Phone chrome: drawer + Chat | Post | Browser ——— */
+  const PHONE_MQ = window.matchMedia("(max-width: 767px)");
+  function isPhone() { return PHONE_MQ.matches; }
+  function deskShell() { return document.querySelector(".shell"); }
+
+  function setPhoneNavOpen(on) {
+    const shell = deskShell();
+    if (!shell) return;
+    const open = !!on && isPhone();
+    shell.classList.toggle("phone-nav-open", open);
+    $("phoneMenuBtn")?.setAttribute("aria-expanded", open ? "true" : "false");
+    $("phoneMenuBtn")?.setAttribute("aria-label", open ? "Close menu" : "Open menu");
+    const backdrop = $("phoneBackdrop");
+    if (backdrop) backdrop.hidden = !open;
+    document.body.classList.toggle("phone-lock", open);
+  }
+
+  function setPhonePane(pane) {
+    const next = pane === "post" || pane === "browser" ? pane : "chat";
+    const shell = deskShell();
+    if (!shell) return;
+    shell.classList.toggle("phone-pane-chat", next === "chat");
+    shell.classList.toggle("phone-pane-post", next === "post");
+    shell.classList.toggle("phone-pane-browser", next === "browser");
+    document.querySelectorAll(".phone-seg-btn").forEach((btn) => {
+      const on = btn.dataset.phonePane === next;
+      btn.classList.toggle("active", on);
+      btn.setAttribute("aria-selected", on ? "true" : "false");
+    });
+    if (next === "post") switchRightTab("structure");
+    if (next === "browser") switchRightTab("browser");
+    if (next === "chat" && isPhone()) {
+      document.querySelector(".shell")?.classList.remove("browser-focus");
+    }
+    if (isPhone()) setPhoneNavOpen(false);
+  }
+
+  function paintArchived() {
+    const root = $("archivedMainList");
+    if (!root) return;
+    let rows = [];
+    try {
+      const raw = JSON.parse(localStorage.getItem("cutline.archived") || "[]");
+      if (Array.isArray(raw)) rows = raw;
+    } catch (_) { /* ignore */ }
+    if (!rows.length) {
+      try {
+        const store = JSON.parse(localStorage.getItem(PROJECTS_KEY) || "null");
+        const archived = (store?.projects || []).filter((p) => p.archived);
+        rows = archived.map((p) => ({ title: p.name, sourceUrl: p.styleUrl || "" }));
+      } catch (_) { /* ignore */ }
+    }
+    if (!rows.length) {
+      root.innerHTML = `<div class="side-empty">Nothing archived yet.</div>`;
+      return;
+    }
+    root.innerHTML = rows.map((r, i) => `
+      <article class="need-card">
+        <h3>${escapeHtml(r.title || "Archived story")}</h3>
+        <p>${escapeHtml(r.sourceUrl || "No source URL")}</p>
+        <div class="need-actions">
+          <button type="button" class="pill pill-adjust" data-archived-open="${i}">Open in Chat</button>
+        </div>
+      </article>`).join("");
+    root.querySelectorAll("[data-archived-open]").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        const item = rows[Number(btn.dataset.archivedOpen)];
+        if (!item) return;
+        switchView("home");
+        setPhonePane("chat");
+        if (item.sourceUrl && typeof doAnalyze === "function") doAnalyze(item.sourceUrl);
+        else if (item.title && $("headline")) $("headline").value = item.title;
+      });
+    });
+  }
+
+  $("phoneMenuBtn")?.addEventListener("click", () => {
+    const open = deskShell()?.classList.contains("phone-nav-open");
+    setPhoneNavOpen(!open);
+  });
+  $("phoneBackdrop")?.addEventListener("click", () => setPhoneNavOpen(false));
+  document.querySelectorAll(".phone-seg-btn").forEach((btn) => {
+    btn.addEventListener("click", () => setPhonePane(btn.dataset.phonePane || "chat"));
+  });
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape") setPhoneNavOpen(false);
+  });
+  PHONE_MQ.addEventListener?.("change", () => {
+    if (!isPhone()) {
+      setPhoneNavOpen(false);
+      document.body.classList.remove("phone-lock");
+    } else {
+      setPhonePane("chat");
+    }
+  });
+
+  const _switchViewPhone = switchView;
+  switchView = function(name) {
+    _switchViewPhone(name);
+    if (isPhone()) {
+      setPhoneNavOpen(false);
+      if (name === "home" || name === "activity" || name === "scheduled" || name === "hunt" || name === "explore" || name === "library" || name === "connect" || name === "plugins" || name === "settings" || name === "archived") {
+        setPhonePane("chat");
+      }
+    }
+  };
+
+  const _switchRightTabPhone = switchRightTab;
+  switchRightTab = function(name) {
+    _switchRightTabPhone(name);
+    if (!isPhone()) return;
+    const shell = deskShell();
+    if (!shell) return;
+    if (name === "browser" && shell.classList.contains("phone-pane-chat")) return;
+    if (name === "structure" && shell.classList.contains("phone-pane-post")) return;
+    if (name === "browser") {
+      shell.classList.remove("phone-pane-chat", "phone-pane-post");
+      shell.classList.add("phone-pane-browser");
+      document.querySelectorAll(".phone-seg-btn").forEach((btn) => {
+        const on = btn.dataset.phonePane === "browser";
+        btn.classList.toggle("active", on);
+        btn.setAttribute("aria-selected", on ? "true" : "false");
+      });
+    }
+  };
+
+  if (isPhone()) setPhonePane("chat");
 </script>
 </body>
 </html>
