@@ -9,6 +9,6 @@ Open **`Cutline Design Kit.html`** in a browser, then import into Figma with [ht
 Tokens live in `tokens.json` (cream + Ace lime). Logo mark: `../apps/web/assets/cutline-mark.png`.
 
 ## Product (do not drift)
-- News search → post on locked template
-- Video upload → fully edited video on same template
-- Not a newspaper CMS. Not “pack” marketing.
+- Cutline is your AI desk. News in, post out. Raw video in, edited cut out. You approve.
+- News search → finished post; video upload → fully edited cut
+- Not a newspaper CMS. Not “pack” / “template” as the headline idea.
