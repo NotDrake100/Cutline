@@ -862,12 +862,15 @@
   .project-home[hidden] { display: none !important; }
   .home-wrap.has-run .project-home { display: none !important; }
   .project-home .ask-suggest-label { flex: 0 0 100%; margin: 0 0 2px; }
+  .ask-suggest .ask-chip.active,
   .ask-chip.project-chip.active,
   .ask-chip.project-new:hover {
     border-color: var(--ink);
     background: var(--ink);
     color: var(--on-ink);
   }
+  .ask-suggest .ask-chip.active .k,
+  .ask-suggest .ask-chip.active .t,
   .ask-chip.project-chip.active .k,
   .ask-chip.project-chip.active .t,
   .ask-chip.project-new:hover .k,
@@ -2848,6 +2851,7 @@
 
   let pendingSourceUrl = null; // from Hunt "Use on desk"
   let pendingAskPhoto = null;
+  let selectedNewsTip = null;
   let layerSnapshot = {}; // hash of last painted layer values for flash
   let selectedStyle = "tight_news";
   let selectedDesk = "pune";
@@ -4880,6 +4884,8 @@
     seedPasteUrl();
     pendingSourceUrl = null;
     pendingAskPhoto = null;
+    selectedNewsTip = null;
+    document.querySelectorAll("#askSuggest .ask-chip.active, #newsRecList .news-rec.active").forEach((el) => el.classList.remove("active"));
     showAskAttach("");
     closeAskPlus();
     $("approveBar").style.display = "none";
@@ -5295,29 +5301,24 @@
     return out;
   }
 
-  async function runNewsTip(t) {
+  function pickNewsTip(t, btn) {
     if (!t) return;
     selectedDesk = t.desk;
     paintCityChips();
     $("headline").value = t.title;
-    /* Tips run fixtures; keep the paste field on a real public style URL */
+    /* Hold the tip source for Run. Do not fetch, paint a still, or leave Chat. */
     pendingSourceUrl = t.url;
     seedPasteUrl();
     setStyleUrl(DCN_STYLE_URL);
-    /* Tips = news photo + editable text only — never Hyd chrome */
-    if (currentRun) {
-      currentRun._hydChrome = false;
-      if (currentRun.pack) delete currentRun.pack.templateChrome;
-    }
-    loadBrowserUrl(t.url, { switchTab: true });
+    selectedNewsTip = t;
+    document.querySelectorAll("#askSuggest [data-ask-rec], #newsRecList [data-rec]").forEach((el) => {
+      el.classList.toggle("active", el === btn);
+    });
+    headerPane = "chat";
     switchView("home");
-    await doRun();
-    if (currentRun) {
-      currentRun._hydChrome = false;
-      if (currentRun.pack) delete currentRun.pack.templateChrome;
-      paintIgPost(currentRun);
-    }
-    switchRightTab("structure");
+    if (isNarrow()) setPostOpen(false);
+    syncMobileChrome();
+    $("headline")?.focus();
   }
 
   function paintNewsRecs() {
@@ -5332,7 +5333,9 @@
         </button>`
       ).join("");
       ask.querySelectorAll("[data-ask-rec]").forEach((btn) => {
-        btn.addEventListener("click", () => runNewsTip(tips[Number(btn.dataset.askRec)]));
+        const tip = tips[Number(btn.dataset.askRec)];
+        if (selectedNewsTip && tip && selectedNewsTip.title === tip.title) btn.classList.add("active");
+        btn.addEventListener("click", () => pickNewsTip(tip, btn));
       });
     }
     /* Legacy below-fold list kept in DOM but hidden — chips in ask box are primary */
@@ -5345,7 +5348,9 @@
         </button>`
       ).join("");
       list.querySelectorAll("[data-rec]").forEach((btn) => {
-        btn.addEventListener("click", () => runNewsTip(tips[Number(btn.dataset.rec)]));
+        const tip = tips[Number(btn.dataset.rec)];
+        if (selectedNewsTip && tip && selectedNewsTip.title === tip.title) btn.classList.add("active");
+        btn.addEventListener("click", () => pickNewsTip(tip, btn));
       });
     }
   }
