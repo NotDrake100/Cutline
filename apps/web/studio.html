@@ -753,6 +753,27 @@
   .connect-toast a { color: var(--ink); text-decoration: underline; text-underline-offset: 2px; }
   .connect-toast.ok { border-color: rgba(34,197,94,.35); }
   .connect-toast.warn { border-color: rgba(255,59,48,.3); }
+  .gemini-toast {
+    display: none;
+    margin: 0 0 16px;
+    padding: 12px 14px;
+    border-radius: var(--radius-sm);
+    background: #fff7ed;
+    border: 1px solid rgba(234,88,12,.28);
+    font-size: 13px; color: #9a3412;
+    line-height: 1.45;
+  }
+  .gemini-toast.show { display: block; }
+  .gemini-toast strong { color: #7c2d12; }
+  .gemini-toast.ok {
+    background: #f0fdf4;
+    border-color: rgba(34,197,94,.35);
+    color: #166534;
+  }
+  .gemini-toast.ok strong { color: #14532d; }
+  .layer-clip-ph video { width: 100%; max-height: 160px; border-radius: 8px; background: #111; }
+  .layer-clip-ph .clip-note { margin-top: 8px; font-size: 11px; color: var(--dim); }
+  .layer-clip-ph .clip-actions { margin-top: 8px; display: flex; gap: 8px; justify-content: center; }
 
   /* ——— Right pane · Magic Layer / Browser ——— */
   .right-pane {
@@ -1195,7 +1216,9 @@
             <button type="button" class="btn btn-lime" id="runBtn">Run</button>
           </div>
         </div>
+        <div class="gemini-toast" id="geminiToast" role="status"></div>
         <div class="err" id="errBox"></div>
+        <input type="file" id="clipFile" accept="video/mp4,video/webm,video/quicktime,video/x-m4v" hidden/>
 
         <div class="suggestions" id="suggestions">
           <button type="button" class="sug" id="sugHunt">
@@ -1325,6 +1348,7 @@
         <div class="lib-actions">
           <button type="button" class="btn-lime" id="libAddCaption">Add caption</button>
           <button type="button" class="plugin-btn" id="libAddClip">Add clip URL</button>
+          <button type="button" class="plugin-btn lime" id="libUploadClip">Upload clip</button>
         </div>
         <div class="err" id="libErr"></div>
         <div id="libList" class="lib-list">
@@ -1407,7 +1431,11 @@
             <span class="layer-kind">Clip</span>
             <span class="layer-chip" data-chip>updated</span>
           </div>
-          <div class="layer-clip-ph" id="layerClipPh">upload / cut later</div>
+          <div class="layer-clip-ph" id="layerClipPh">
+            <div>No clip yet</div>
+            <div class="clip-actions"><button type="button" class="plugin-btn lime" id="clipUploadBtn">Upload clip</button></div>
+            <div class="clip-note">Raw file stored on the desk. Cut is not generated.</div>
+          </div>
         </div>
       </div>
     </div>
@@ -1724,10 +1752,10 @@
       if (wedgeChip) wedgeChip.classList.add("show");
     }
 
-    // Clip
+    // Clip — raw upload only; never invent a cut
     const clipUrl = run.pack?.clipUrl || "";
     next.clip = clipUrl;
-    $("layerClipPh").textContent = clipUrl ? clipUrl : "upload / cut later";
+    renderClipSlot(clipUrl);
 
     if (flash && Object.keys(layerSnapshot).length) {
       const map = {
@@ -1841,6 +1869,29 @@
     layerSnapshot = {};
   }
 
+  function showGeminiToast(msg, kind) {
+    const el = $("geminiToast");
+    if (!el) return;
+    if (!msg) { el.className = "gemini-toast"; el.textContent = ""; return; }
+    el.innerHTML = msg;
+    el.className = "gemini-toast show" + (kind ? " " + kind : "");
+  }
+
+  function renderClipSlot(clipUrl) {
+    const box = $("layerClipPh");
+    if (!box) return;
+    if (clipUrl) {
+      box.innerHTML = `<video src="${escapeHtml(clipUrl)}" controls playsinline></video>
+        <div class="clip-note">Raw upload — cut pending</div>
+        <div class="clip-actions"><button type="button" class="plugin-btn lime" id="clipUploadBtn">Replace clip</button></div>`;
+    } else {
+      box.innerHTML = `<div>No clip yet</div>
+        <div class="clip-actions"><button type="button" class="plugin-btn lime" id="clipUploadBtn">Upload clip</button></div>
+        <div class="clip-note">Raw file stored on the desk. Cut is not generated.</div>`;
+    }
+    $("clipUploadBtn")?.addEventListener("click", () => $("clipFile")?.click());
+  }
+
   function geminiErr(data, fallback) {
     if (!data) return fallback;
     if (data.error === "gemini_not_configured") {
@@ -1896,7 +1947,11 @@
       if (!res.ok) throw new Error(geminiErr(data, sourceUrl ? "desk failed" : "run failed"));
       applyRun(data.run);
     } catch (e) {
-      setErr(e.message || String(e));
+      const msg = e.message || String(e);
+      setErr(msg);
+      if (/Connect Gemini|gemini_not_configured|GEMINI_API_KEY/i.test(msg)) {
+        showGeminiToast("<strong>Connect Gemini.</strong> " + escapeHtml(msg));
+      }
       setStatus("failed");
       syncApproveBar(currentRun);
     } finally {
@@ -2456,6 +2511,44 @@
     }
   });
 
+  async function uploadClipFile(file) {
+    if (!file) return;
+    const fd = new FormData();
+    fd.append("file", file, file.name);
+    if (currentRun?.id) fd.append("runId", currentRun.id);
+    if (typeof selectedDesk === "string") fd.append("desk", selectedDesk);
+    fd.append("title", (currentRun?.rewrite?.headline || currentRun?.brief?.headline || file.name || "Clip").slice(0, 80));
+    const src = resolveSourceUrl(currentRun);
+    if (isLiveSourceUrl(src)) fd.append("sourceUrl", src);
+    const res = await fetch("/api/clip", { method: "POST", body: fd });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || "clip upload failed");
+    if (data.run) applyRun(data.run);
+    else if (data.url) {
+      if (currentRun) {
+        currentRun.pack = currentRun.pack || {};
+        currentRun.pack.clipUrl = data.url;
+      }
+      renderClipSlot(data.url);
+    }
+    if ($("viewLibrary")?.classList.contains("active")) refreshLibrary();
+    return data;
+  }
+
+  $("clipFile")?.addEventListener("change", async (e) => {
+    const file = e.target.files && e.target.files[0];
+    e.target.value = "";
+    if (!file) return;
+    try {
+      await uploadClipFile(file);
+    } catch (err) {
+      setErr(err.message || String(err));
+      setLibErr(err.message || String(err));
+    }
+  });
+  $("clipUploadBtn")?.addEventListener("click", () => $("clipFile")?.click());
+  $("libUploadClip")?.addEventListener("click", () => $("clipFile")?.click());
+
   $("libAddClip")?.addEventListener("click", async () => {
     const url = window.prompt("Clip URL (https)");
     if (!url || !/^https?:\/\//i.test(url.trim())) {
@@ -2476,6 +2569,15 @@
       setLibErr(e.message || String(e));
     }
   });
+
+  fetch("/api/health")
+    .then((r) => r.json())
+    .then((data) => {
+      if (!data.gemini) {
+        showGeminiToast("<strong>Connect Gemini.</strong> GEMINI_API_KEY is not set on the server. Hunt and Browser still work. Rewrite and still need the key.");
+      }
+    })
+    .catch(() => {});
 
   updateNeedLabel();
   setSideRunReady();

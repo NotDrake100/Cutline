@@ -3,8 +3,9 @@
  * Serves apps/web + API. Never logs secrets.
  */
 import { createServer, type IncomingMessage, type ServerResponse } from "node:http";
-import { readFile, stat } from "node:fs/promises";
+import { mkdir, readFile, stat, writeFile } from "node:fs/promises";
 import { join, extname, normalize } from "node:path";
+import { randomBytes } from "node:crypto";
 import { handleWedge } from "./wedge";
 import { ensureDeskLog, handleDesk } from "./desk";
 import { gemini } from "../../packages/core/src/gemini";
@@ -31,12 +32,14 @@ import {
   saveRunToLibrary,
   upsertDeskItem,
 } from "../../packages/library/src/db";
+import { clipExt, readMultipart } from "./upload";
 
 const PORT = Number(process.env.PORT) || 8787;
 const ROOT = join(import.meta.dirname, "../..");
 const WEB = join(ROOT, "apps/web");
+const UPLOADS = join(ROOT, "data", "uploads");
 
-async function loadDotEnv() {
+export async function loadDotEnv() {
   try {
     const raw = await readFile(join(ROOT, ".env"), "utf8");
     for (const line of raw.split("\n")) {
@@ -71,6 +74,10 @@ const MIME: Record<string, string> = {
   ".svg": "image/svg+xml",
   ".ico": "image/x-icon",
   ".woff2": "font/woff2",
+  ".mp4": "video/mp4",
+  ".webm": "video/webm",
+  ".mov": "video/quicktime",
+  ".m4v": "video/mp4",
 };
 
 function redirect(res: ServerResponse, location: string) {
@@ -442,7 +449,7 @@ async function handleApi(req: IncomingMessage, res: ServerResponse, url: URL) {
     }
   }
 
-  if (method === "GET" && path === "/api/health") {
+  if (method === "GET" && (path === "/api/health" || path === "/api/status")) {
     return json(res, 200, {
       ok: true,
       gemini: gemini.hasKey(),
@@ -455,6 +462,75 @@ async function handleApi(req: IncomingMessage, res: ServerResponse, url: URL) {
         tiktok: missingEnv("tiktok").length === 0,
       },
     });
+  }
+
+  if (method === "POST" && path === "/api/clip") {
+    try {
+      const { fields, file } = await readMultipart(req);
+      if (!file || !file.bytes.length) {
+        return json(res, 400, { error: "clip file required" });
+      }
+      const mime = file.mime || "video/mp4";
+      if (!mime.startsWith("video/") && !/\.(mp4|webm|mov|m4v)$/i.test(file.filename)) {
+        return json(res, 400, { error: "video file required" });
+      }
+      await mkdir(UPLOADS, { recursive: true });
+      const id = `clip_${Date.now().toString(36)}_${randomBytes(3).toString("hex")}`;
+      const ext = clipExt(file.filename, mime);
+      const filename = `${id}.${ext}`;
+      await writeFile(join(UPLOADS, filename), file.bytes);
+      const url = `/media/${filename}`;
+      const title = (fields.title || file.filename || "Clip").trim();
+      const runId = (fields.runId || "").trim();
+      const item = upsertDeskItem({
+        desk: fields.desk || undefined,
+        title,
+        runId: runId || undefined,
+        sourceUrl: fields.sourceUrl || undefined,
+      });
+      const media = addMedia({
+        itemId: item.id,
+        kind: "clip",
+        title,
+        url,
+        mime: mime.startsWith("video/") ? mime : `video/${ext}`,
+        body: "Raw upload — cut pending",
+      });
+      let run: StoryRun | undefined;
+      if (runId) {
+        try {
+          run = await loadRun(runId);
+          run.pack = run.pack || {
+            igCaption: "",
+            ytTitle: run.rewrite?.headline || title,
+            ytDescription: "",
+          };
+          run.pack.clipUrl = url;
+          run.log.push({
+            agent: "clip",
+            at: new Date().toISOString(),
+            action: "upload",
+            ok: true,
+            detail: "raw upload — cut pending",
+          });
+          await saveRun(run);
+        } catch {
+          run = undefined;
+        }
+      }
+      return json(res, 200, {
+        ok: true,
+        url,
+        media,
+        item,
+        run: run || null,
+        note: "Raw upload stored. Cut is not generated.",
+      });
+    } catch (e) {
+      const msg = (e as Error).message || "clip_failed";
+      const status = msg === "clip_too_large" ? 413 : 400;
+      return json(res, status, { error: msg });
+    }
   }
 
   if (method === "GET" && (path === "/api/desks" || path === "/api/beats")) {
@@ -509,6 +585,45 @@ async function handleApi(req: IncomingMessage, res: ServerResponse, url: URL) {
   return json(res, 404, { error: "not_found" });
 }
 
+async function serveUpload(reqPath: string, res: ServerResponse): Promise<boolean> {
+  const name = decodeURIComponent(reqPath.split("?")[0] || "").replace(/^\/media\//, "");
+  if (!name || name.includes("..") || name.includes("/") || name.includes("\\")) {
+    return false;
+  }
+  const filePath = join(UPLOADS, name);
+  if (!filePath.startsWith(UPLOADS)) return false;
+  try {
+    const st = await stat(filePath);
+    if (!st.isFile()) return false;
+    const buf = await readFile(filePath);
+    const ext = extname(filePath).toLowerCase();
+    res.writeHead(200, {
+      "Content-Type": MIME[ext] || "application/octet-stream",
+      "Cache-Control": "private, max-age=3600",
+    });
+    res.end(buf);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+export async function handleHttp(req: IncomingMessage, res: ServerResponse): Promise<void> {
+  const host = req.headers.host || `127.0.0.1:${PORT}`;
+  const url = new URL(req.url || "/", `http://${host}`);
+  if (url.pathname.startsWith("/api/")) {
+    await handleApi(req, res, url);
+    return;
+  }
+  if (url.pathname.startsWith("/media/")) {
+    const ok = await serveUpload(url.pathname, res);
+    if (!ok) json(res, 404, { error: "not_found" });
+    return;
+  }
+  const ok = await serveStatic(url.pathname, res);
+  if (!ok) json(res, 404, { error: "not_found" });
+}
+
 async function main() {
   await loadDotEnv();
   const hasKey = gemini.hasKey();
@@ -520,21 +635,16 @@ async function main() {
 
   createServer(async (req, res) => {
     try {
-      const host = req.headers.host || `127.0.0.1:${PORT}`;
-      const url = new URL(req.url || "/", `http://${host}`);
-      if (url.pathname.startsWith("/api/")) {
-        await handleApi(req, res, url);
-        return;
-      }
-      const ok = await serveStatic(url.pathname, res);
-      if (!ok) json(res, 404, { error: "not_found" });
+      await handleHttp(req, res);
     } catch (e) {
       json(res, 500, { error: (e as Error).message || "server_error" });
     }
   }).listen(PORT, "0.0.0.0");
 }
 
-main().catch((e) => {
-  console.error("boot_failed", (e as Error).message);
-  process.exit(1);
-});
+if (!process.env.VERCEL) {
+  main().catch((e) => {
+    console.error("boot_failed", (e as Error).message);
+    process.exit(1);
+  });
+}

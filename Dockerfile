@@ -1,0 +1,9 @@
+FROM node:22-bookworm-slim
+WORKDIR /app
+COPY package.json package-lock.json ./
+RUN npm ci
+COPY . .
+ENV NODE_ENV=production
+ENV PORT=8080
+EXPOSE 8080
+CMD ["npx", "tsx", "apps/api/server.ts"]

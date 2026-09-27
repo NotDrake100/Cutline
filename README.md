@@ -16,6 +16,8 @@ Optional: `PEXELS_API_KEY`, `CUTLINE_PUBLIC_URL`, and Connect app credentials in
 
 Missing `GEMINI_API_KEY` returns a clear error. The desk does not invent headlines, stills, or pack copy.
 
+Deploy: see `DEPLOY.md` (Cloud Run Dockerfile or Vercel). Health: `GET /api/health` → `{ gemini: true|false }`.
+
 ## Run
 
 ```

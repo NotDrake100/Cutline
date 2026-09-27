@@ -1,16 +1,18 @@
-# Cutline — judge path
+# Cutline — 60 seconds
 
-Your AI desk. News in, post out. You approve.
+Your AI desk. Hunt a live page. Approve. Ship a ZIP.
+
+Connect plugins stay **Connect required** until an account is linked. They do not pretend a post succeeded.
 
 ## Kill path
 
-1. Open **Studio**.
-2. Open **Wire** and pick a desk (Breaking, Business, Culture, Sports, Tech, World).
-3. **Hunt latest.** Every card is a live page.
-4. **Open in Browser** — the pane shows the source URL. That is the truth surface.
-5. **Use on desk** — Gemini rewrites from that page. Approve before ship.
-6. **Library** — clips, stills, and captions persist on the desk.
+1. **Open Studio** → **News** (Wire).
+2. Pick a desk (Breaking / Business / Culture / Sports / Tech / World) → **Hunt latest**.
+3. Click **Open in Browser**. The pane shows the live source URL. That is the truth surface.
+4. **Use on desk**. Magic Layer fills still + captions from that page (needs Gemini on the server).
+5. **Approve**.
+6. **Connect** → **Download ZIP**. Pack is local. Other channels say connect required until linked.
 
-Pasted headline without a URL is demo only. It is not a sourced story.
+No Gemini key → a toast says **Connect Gemini**. Hunt and Browser still work. Rewrite / still / pack do not invent a story.
 
-Missing Gemini on the server fails clearly. Connect does not claim a post succeeded unless the channel accepted it.
+Clip: **Library → Upload clip** stores the raw file on the desk. It is labeled raw — not an edited cut.

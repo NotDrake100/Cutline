@@ -7,6 +7,7 @@
     "gate": "npx tsx packages/orchestrator/runAcceptance.ts --gate",
     "accept": "npx tsx packages/orchestrator/runAcceptance.ts",
     "dev": "npx tsx apps/api/server.ts",
+    "start": "npx tsx apps/api/server.ts",
     "studio": "npx tsx apps/api/server.ts"
   },
   "devDependencies": {
