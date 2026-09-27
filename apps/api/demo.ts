@@ -31,7 +31,7 @@ const STORIES: DemoStory[] = [
     title: "Metro Phase 2 stations get weekend trial hours.",
     outlet: "City desk",
     page: "/sample-pune.html",
-    still: "/assets/demo/pune.jpg",
+    still: "/assets/demo/pune-metro.jpg",
     body: "Trial hours start on the new stretch this weekend. Demo fixture so the desk can finish a post without billing AI.",
     caption: "Pune · Metro Phase 2 weekend trials. Demo fixture.",
   },
@@ -76,18 +76,18 @@ const STORIES: DemoStory[] = [
     title: "HITEC City feeder buses add late trips.",
     outlet: "City desk",
     page: "/sample-hyderabad.html",
-    still: "/assets/demo/source.jpg",
+    still: "/assets/demo/hyderabad.jpg",
     body: "Late feeder trips start on the HITEC City loop this week. Cached demo source for Browser and the Magic Layer.",
     caption: "Hyderabad · HITEC City late feeders. Cached demo pack.",
   },
   {
     desk: "hyderabad",
-    title: "Tank Bund stretch marked for Sunday cycle hours.",
+    title: "ORR express buses add a late evening loop.",
     outlet: "City desk",
     page: "/sample-hyderabad.html",
-    still: "/assets/demo/source.jpg",
-    body: "Sunday cycle hours return on a marked Tank Bund stretch. Demo fixture for the public desk.",
-    caption: "Hyderabad · Tank Bund Sunday cycle hours. Demo fixture.",
+    still: "/assets/demo/hyderabad.jpg",
+    body: "A late evening loop is added on ORR express buses. Demo fixture so the desk can finish a post without billing AI.",
+    caption: "Hyderabad · ORR express late loop. Demo fixture.",
   },
 ];
 
@@ -100,7 +100,7 @@ export function demoStillFor(sourceUrl: string, desk?: string): string | null {
     "sample-mumbai": "/assets/demo/mumbai.jpg",
     "sample-bengaluru": "/assets/demo/bengaluru.jpg",
     "sample-delhi": "/assets/demo/delhi.jpg",
-    "sample-hyderabad": "/assets/demo/source.jpg",
+    "sample-hyderabad": "/assets/demo/hyderabad.jpg",
   };
   for (const [key, path] of Object.entries(map)) {
     if (lower.includes(key)) return path;
@@ -142,10 +142,10 @@ export function demoHits(deskId: string, base: string): { desk: string; label: s
 
 function matchStory(sourceUrl: string, title: string, desk?: string): DemoStory {
   const lower = (sourceUrl || "").toLowerCase();
-  const byPage = STORIES.find((s) => lower.includes(s.page.replace(".html", "")) || lower.endsWith(s.page));
-  if (byPage) return byPage;
   const byTitle = STORIES.find((s) => title && s.title.toLowerCase() === title.toLowerCase());
   if (byTitle) return byTitle;
+  const byPage = STORIES.find((s) => lower.includes(s.page.replace(".html", "")) || lower.endsWith(s.page));
+  if (byPage) return byPage;
   const byDesk = STORIES.find((s) => s.desk === (desk || "").toLowerCase());
   return byDesk || STORIES[0]!;
 }

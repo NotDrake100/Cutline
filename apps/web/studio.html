@@ -107,9 +107,60 @@
     .shell, .shell.browser-focus, .shell.desk-collapsed, .shell.browser-focus.desk-collapsed {
       grid-template-columns: 1fr; grid-template-rows: auto 1fr auto;
     }
-    .sidebar { width: 100%; height: auto; border-right: none; border-bottom: 1px solid var(--line); }
-    .right-pane { width: 100%; max-height: 42vh; border-left: none; border-top: 1px solid var(--line); }
+    .sidebar {
+      width: 100%;
+      height: auto;
+      max-height: none;
+      border-right: none;
+      border-bottom: 1px solid var(--line);
+      padding: 10px 12px 8px;
+      overflow: hidden;
+    }
+    .sidebar .nav,
+    .sidebar .tools,
+    .sidebar .section-label,
+    .sidebar #recentList,
+    .sidebar .sidebar-spacer,
+    .sidebar .sidebar-foot { display: none; }
+    .sidebar #projectList {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 4px;
+    }
+    .sidebar #projectList .nav-item { padding: 6px 8px; font-size: 12.5px; }
+    .right-pane {
+      width: 100%;
+      max-height: 50vh;
+      min-height: 220px;
+      border-left: none;
+      border-top: 1px solid var(--line);
+    }
     .shell.desk-collapsed .sidebar { display: none; }
+    .right-pane:not(.has-live) { display: none; }
+    .ig-frame {
+      min-height: 0;
+      max-height: min(38vh, 320px);
+      height: auto !important;
+      flex: 0 0 auto !important;
+    }
+    .ig-frame.yt {
+      min-height: 0 !important;
+      max-height: min(22vh, 200px);
+    }
+    .ig-post { margin: 6px 8px 8px; }
+    .browser-stage { padding: 8px; align-items: stretch; }
+    .browser-preview,
+    .browser-preview[data-kind="youtube"],
+    .browser-preview[data-kind="page"] { max-width: none; }
+    .browser-poster { max-height: min(34vh, 260px); }
+    .browser-preview[data-kind="youtube"] .browser-poster { max-height: min(22vh, 180px); }
+    .browser-preview[data-kind="page"] .browser-frame-wrap {
+      min-height: 140px;
+      height: min(28vh, 200px);
+    }
+    .browser-hint { font-size: 11px; padding: 6px 10px; }
+    .home-wrap h1 { font-size: 26px; }
+    .purpose-line { display: none; }
   }
 
   /* ——— Sidebar ——— */
@@ -581,10 +632,14 @@
     text-overflow: ellipsis;
     max-width: 280px;
   }
-  @media (max-width: 720px) {
-    .ask-chip { border-radius: 14px; max-width: 100%; }
-    .ask-chip .t { white-space: normal; max-width: none; }
+  .ask-chip-ico {
+    display: none;
+    width: 18px; height: 18px;
+    color: var(--muted);
+    place-items: center;
+    flex-shrink: 0;
   }
+  .ask-chip-ico svg { width: 18px; height: 18px; display: block; }
 
   .project-home {
     display: flex;
@@ -1526,6 +1581,13 @@
     max-height: 4.2em;
     overflow: hidden;
   }
+  .ig-frame.yt {
+    aspect-ratio: 16 / 9;
+    height: auto !important;
+    min-height: 180px !important;
+    max-height: 280px;
+    flex: 0 0 auto !important;
+  }
   .ig-frame.no-chrome .ig-plate,
   .ig-frame.no-chrome .ig-chrome,
   .ig-frame.no-chrome .ig-card-text { display: none; }
@@ -1816,33 +1878,75 @@
   }
   .browser-hint.show { display: block; }
   .browser-hint strong { color: var(--ink); font-weight: 600; }
+  .browser-stage {
+    flex: 1;
+    min-height: 0;
+    overflow: auto;
+    background: var(--bg);
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    padding: 14px 14px 20px;
+  }
+  .shell.browser-focus.desk-collapsed .browser-stage {
+    align-items: center;
+    padding: 28px 24px;
+  }
+  .browser-preview {
+    width: 100%;
+    max-width: 420px;
+    background: #fff;
+    border: 1px solid var(--line);
+    border-radius: 16px;
+    overflow: hidden;
+    box-shadow: 0 10px 28px rgba(0,0,0,.06);
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+  }
+  .browser-preview[data-kind="youtube"] { max-width: 640px; }
+  .browser-preview[data-kind="page"] { max-width: 560px; }
   .browser-poster {
     display: none;
-    flex: 0 0 320px;
-    height: 320px;
-    min-height: 320px;
-    background: #111;
+    background: #F4F4F2;
+    aspect-ratio: 4 / 5;
+    max-height: 420px;
     overflow: hidden;
-    border-bottom: 1px solid var(--line);
   }
   .browser-poster.show { display: block; }
+  .browser-preview[data-kind="youtube"] .browser-poster {
+    aspect-ratio: 16 / 9;
+    max-height: 360px;
+  }
   .browser-poster img {
     width: 100%;
     height: 100%;
     object-fit: contain;
     object-position: center;
-    background: #111;
+    background: #F4F4F2;
     max-width: none;
   }
   .browser-frame-wrap {
-    flex: 1; min-height: 360px;
-    background: #111;
     position: relative;
+    background: #fff;
+    min-height: 0;
+    display: none;
   }
+  .browser-preview[data-kind="youtube"] .browser-frame-wrap {
+    display: block;
+    aspect-ratio: 16 / 9;
+  }
+  .browser-preview[data-kind="page"] .browser-frame-wrap {
+    display: block;
+    min-height: 280px;
+    height: min(52vh, 420px);
+  }
+  .browser-preview.has-fallback .browser-frame-wrap { display: none; }
   .browser-frame-wrap iframe {
     width: 100%; height: 100%; border: none;
     background: #fff;
-    min-height: 360px;
+    min-height: 0;
+    display: block;
   }
   .browser-blocked {
     position: absolute; inset: 0;
@@ -1852,7 +1956,7 @@
     padding: 24px;
     text-align: center;
     font-size: 13px; color: var(--muted);
-    background: var(--bg);
+    background: #fff;
   }
   .browser-blocked a {
     color: var(--ink); font-weight: 600;
@@ -1961,6 +2065,118 @@
   .lib-card a { color: inherit; text-decoration: underline; text-underline-offset: 2px; }
   .lib-thumb { width: 72px; height: 72px; border-radius: 8px; overflow: hidden; background: #111; margin: 8px 0; }
   .lib-thumb img { width: 100%; height: 100%; object-fit: cover; }
+
+  /* Phone: win over later desktop frame locks (4:5 420px / tall Browser). */
+  @media (max-width: 860px) {
+    .ig-frame {
+      min-height: 0 !important;
+      max-height: min(36vh, 280px) !important;
+      height: auto !important;
+      flex: 0 0 auto !important;
+    }
+    .ig-frame.yt {
+      aspect-ratio: 16 / 9;
+      min-height: 0 !important;
+      max-height: min(22vh, 180px) !important;
+    }
+    .browser-stage { padding: 8px; }
+    .browser-preview,
+    .browser-preview[data-kind="youtube"],
+    .browser-preview[data-kind="page"] { max-width: none; }
+    .browser-poster {
+      max-height: min(32vh, 240px);
+    }
+    .browser-preview[data-kind="youtube"] .browser-poster {
+      max-height: min(20vh, 160px);
+    }
+    .browser-preview[data-kind="page"] .browser-frame-wrap {
+      min-height: 120px;
+      height: min(26vh, 180px);
+    }
+
+    /* ChatGPT Work-style recents: icon + one truncated line above composer. */
+    .ask-box {
+      display: flex;
+      flex-direction: column;
+      background: transparent;
+      border: none;
+      box-shadow: none;
+      padding: 0;
+      border-radius: 0;
+    }
+    .ask-box:focus-within {
+      border: none;
+      box-shadow: none;
+    }
+    .ask-suggest {
+      order: -1;
+      display: flex;
+      flex-direction: column;
+      flex-wrap: nowrap;
+      gap: 0;
+      padding: 4px 2px 22px;
+      width: 100%;
+    }
+    .ask-suggest .ask-suggest-label { display: none; }
+    .ask-suggest .ask-chip {
+      display: flex;
+      align-items: center;
+      width: 100%;
+      max-width: none;
+      border: none;
+      border-radius: 0;
+      background: transparent;
+      padding: 8px 2px;
+      gap: 12px;
+    }
+    .ask-suggest .ask-chip:hover,
+    .ask-suggest .ask-chip:active {
+      background: transparent;
+      transform: none;
+      border: none;
+    }
+    .ask-suggest .ask-chip-ico {
+      display: grid;
+      width: 18px;
+      height: 18px;
+      color: var(--muted);
+    }
+    .ask-suggest .ask-chip-ico svg { width: 18px; height: 18px; }
+    .ask-suggest .ask-chip .k { display: none; }
+    .ask-suggest .ask-chip .t {
+      flex: 1 1 auto;
+      min-width: 0;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: none;
+      font-size: 15px;
+      font-weight: 450;
+      letter-spacing: -.01em;
+      color: var(--ink);
+    }
+    .ask-box textarea {
+      min-height: 72px;
+      border: 1px solid var(--line);
+      border-bottom: none;
+      border-radius: 22px 22px 0 0;
+      background: var(--panel);
+      padding: 14px 16px 8px;
+    }
+    .ask-attach {
+      margin: 0;
+      border-radius: 0;
+      border-left: 1px solid var(--line);
+      border-right: 1px solid var(--line);
+    }
+    .ask-actions {
+      border: 1px solid var(--line);
+      border-top: none;
+      border-radius: 0 0 22px 22px;
+      background: var(--panel);
+      padding: 6px 12px 12px;
+    }
+  }
 </style>
 </head>
 <body>
@@ -2116,15 +2332,15 @@
         <div class="paste-url" id="pasteUrlWrap">
           <p class="assign-label">Paste a post URL</p>
           <div class="paste-url-row">
-            <input id="pastePostUrl" type="url" placeholder="Instagram, X, YouTube, or any post link" autocomplete="off" spellcheck="false"/>
+            <input id="pastePostUrl" type="url" value="https://www.instagram.com/p/DdwHjcpId9B/" placeholder="https://www.instagram.com/p/DdwHjcpId9B/" autocomplete="off" spellcheck="false"/>
             <button type="button" class="btn btn-lime" id="analyzeBtn">Analyze</button>
             <button type="button" class="btn btn-ink" id="copyStyleBtn" title="Build a DCN-style card from this URL">Copy this style</button>
           </div>
           <p class="paste-style-hint">Have a post URL? <button type="button" class="linkish" id="copyStyleLink">Copy this style</button> → real template chrome + photo + editable headline.</p>
           <div class="assign-chips" id="socialChips">
             <button type="button" class="assign-chip" data-social="instagram" data-url="https://www.instagram.com/p/DdwHjcpId9B/">DCN · Instagram</button>
-            <button type="button" class="assign-chip" data-social="x">DCN · X</button>
-            <button type="button" class="assign-chip" data-social="youtube">DCN · YouTube</button>
+            <button type="button" class="assign-chip" data-social="x" data-url="https://x.com/dcnpune">DCN · X</button>
+            <button type="button" class="assign-chip" data-social="youtube" data-url="https://www.youtube.com/watch?v=izIvPk-61lA">DCN · YouTube</button>
           </div>
           <div class="style-url" id="styleUrlRow">
             <input id="styleUrl" type="text" readonly aria-label="Style source URL"/>
@@ -2473,12 +2689,16 @@
           <a class="browser-open" id="browserOpen" href="#" target="_blank" rel="noopener noreferrer">Open</a>
         </div>
         <div class="browser-hint" id="browserHint"></div>
-        <div class="browser-poster" id="browserPoster"><img id="browserPosterImg" alt="Page still" width="1080" height="720"/></div>
-        <div class="browser-frame-wrap" id="browserFrameWrap">
-          <iframe id="browserFrame" sandbox="allow-scripts allow-same-origin allow-popups allow-forms allow-popups-to-escape-sandbox" allow="encrypted-media; clipboard-write; picture-in-picture; fullscreen" referrerpolicy="origin" title="Source preview"></iframe>
-          <div class="browser-blocked" id="browserBlocked" style="display:none">
-            <span id="browserBlockedNote">This site blocks in-panel preview.</span>
-            <a id="browserBlockedLink" href="#" target="_blank" rel="noopener noreferrer">Open the post</a>
+        <div class="browser-stage" id="browserStage">
+          <div class="browser-preview" id="browserPreview" data-kind="page">
+            <div class="browser-poster" id="browserPoster"><img id="browserPosterImg" alt="Page still" width="1080" height="720"/></div>
+            <div class="browser-frame-wrap" id="browserFrameWrap">
+              <iframe id="browserFrame" sandbox="allow-scripts allow-same-origin allow-popups allow-forms allow-popups-to-escape-sandbox" allow="encrypted-media; clipboard-write; picture-in-picture; fullscreen" referrerpolicy="origin" title="Source preview"></iframe>
+              <div class="browser-blocked" id="browserBlocked" style="display:none">
+                <span id="browserBlockedNote">This site blocks in-panel preview.</span>
+                <a id="browserBlockedLink" href="#" target="_blank" rel="noopener noreferrer">Open the post</a>
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -2534,6 +2754,50 @@
 
   const $ = (id) => document.getElementById(id);
   const agents = ["wire", "still", "desk", "ship"];
+  const DCN_STYLE_URL = "https://www.instagram.com/p/DdwHjcpId9B/";
+  const DCN_X_URL = "https://x.com/dcnpune";
+  const DCN_YT_URL = "https://www.youtube.com/watch?v=izIvPk-61lA";
+
+  function isToySampleUrl(u) {
+    return /\/sample-[a-z0-9-]+\.html(\?|#|$)/i.test(String(u || ""));
+  }
+  function publicStyleUrl(u) {
+    const raw = typeof cleanPastedUrl === "function" ? cleanPastedUrl(u || "") : String(u || "").trim();
+    if (!raw || isToySampleUrl(raw) || (typeof isLiveSourceUrl === "function" && !isLiveSourceUrl(raw))) return DCN_STYLE_URL;
+    return raw;
+  }
+  function seedPasteUrl() {
+    const el = $("pastePostUrl");
+    if (!el) return;
+    if (!el.value.trim() || isToySampleUrl(el.value)) el.value = DCN_STYLE_URL;
+    el.placeholder = DCN_STYLE_URL;
+  }
+  function isNarrow() {
+    return window.matchMedia("(max-width: 860px)").matches;
+  }
+  function markRightPaneLive(on) {
+    $("rightPane")?.classList.toggle("has-live", !!on);
+  }
+  function projectNameKey(p) {
+    return String(p?.name || "").trim().toLowerCase().replace(/\s+/g, " ");
+  }
+  function uniqueProjects(projects) {
+    const list = Array.isArray(projects) ? projects.slice() : [];
+    const out = [];
+    const seenName = new Set();
+    const seenId = new Set();
+    const take = (p) => {
+      if (!p || seenId.has(p.id)) return;
+      const nk = projectNameKey(p);
+      if (nk && seenName.has(nk)) return;
+      if (nk) seenName.add(nk);
+      seenId.add(p.id);
+      out.push(p);
+    };
+    for (const id of ["dcn-pune", "dcn-hyderabad"]) take(list.find((p) => p.id === id));
+    for (const p of list) take(p);
+    return out;
+  }
   const STILL_FILL_HTML = `<div class="still-fill" aria-busy="true" aria-label="Generating still">
     <div class="still-fill-shimmer"></div>
     <div class="still-fill-wash"></div>
@@ -2707,8 +2971,12 @@
         const cur = byId.get(s.id);
         if (!cur.recents || !cur.recents.length) cur.recents = s.recents;
         if (!cur.chrome) cur.chrome = s.chrome;
-        if (!cur.styleUrl) cur.styleUrl = s.styleUrl;
+        if (!cur.styleUrl || isToySampleUrl(cur.styleUrl)) cur.styleUrl = s.styleUrl;
       }
+    }
+    store.projects = uniqueProjects(store.projects);
+    if (store.activeId && !store.projects.some((p) => p.id === store.activeId)) {
+      store.activeId = store.projects[0]?.id || null;
     }
     writeProjectsStore(store);
     activeProjectId = store.activeId || null;
@@ -2781,10 +3049,10 @@
     writeProjectsStore(store);
     selectedDesk = proj.city || "pune";
     paintCityChips();
-    if (proj.styleUrl && $("pastePostUrl") && !($("pastePostUrl").value || "").trim()) {
-      $("pastePostUrl").value = proj.styleUrl;
+    if (proj.styleUrl && $("pastePostUrl") && (!($("pastePostUrl").value || "").trim() || isToySampleUrl($("pastePostUrl").value))) {
+      $("pastePostUrl").value = publicStyleUrl(proj.styleUrl);
     }
-    if (proj.styleUrl) setStyleUrl(proj.styleUrl);
+    if (proj.styleUrl) setStyleUrl(publicStyleUrl(proj.styleUrl));
     const cityLabel = (proj.city || "pune").replace(/^./, (c) => c.toUpperCase());
     if ($("copyStyleBtn")) {
       $("copyStyleBtn").title = `Build a ${cityLabel}-style ${proj.outlet || "DCN"} card from this URL`;
@@ -2838,6 +3106,11 @@
         : suggested) || suggested;
       name = String(name).trim() || suggested;
     }
+    const existing = store.projects.find((p) =>
+      projectNameKey(p) === projectNameKey({ name })
+      || ((p.outlet || "DCN") === outlet && (p.city || "").toLowerCase() === city && /^dcn\s/i.test(name))
+    );
+    if (existing && !opts.forceNew) return setActiveProject(existing.id);
     let id = opts.id || slugProjectId(name);
     if (store.projects.some((p) => p.id === id)) id = id + "-" + Date.now().toString(36);
     let proj = {
@@ -2880,7 +3153,7 @@
   function paintProjectNav() {
     const root = $("projectList");
     if (!root) return;
-    const projects = listProjects();
+    const projects = uniqueProjects(listProjects());
     const active = activeProjectId;
     const folderSvg = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M4 8h16v11H4z"/><path d="M8 8V6h8v2"/></svg>`;
     const plusSvg = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>`;
@@ -2907,16 +3180,21 @@
   function paintProjectChips() {
     const root = $("projectHome");
     if (!root) return;
-    const projects = listProjects().filter((p) => p.id === "dcn-pune" || p.id === "dcn-hyderabad" || p.id === activeProjectId);
-    /* Always show the two demo seeds + any other active */
+    const projects = uniqueProjects(listProjects());
+    /* Always show the two demo seeds + any other unique active */
     const seen = new Set();
     const chips = [];
     for (const id of ["dcn-pune", "dcn-hyderabad"]) {
-      const p = listProjects().find((x) => x.id === id);
-      if (p) { chips.push(p); seen.add(p.id); }
+      const p = projects.find((x) => x.id === id);
+      if (p) { chips.push(p); seen.add(p.id); seen.add(projectNameKey(p)); }
     }
-    for (const p of listProjects()) {
-      if (!seen.has(p.id) && p.id === activeProjectId) chips.push(p);
+    for (const p of projects) {
+      const nk = projectNameKey(p);
+      if (!seen.has(p.id) && !seen.has(nk) && p.id === activeProjectId) {
+        chips.push(p);
+        seen.add(p.id);
+        if (nk) seen.add(nk);
+      }
     }
     const active = activeProjectId;
     root.innerHTML = `<div class="ask-suggest-label">Projects</div>` +
@@ -3260,7 +3538,7 @@
     const sampleRoot = $("exploreSamples");
     const styleRoot = $("exploreStyles");
     if (projRoot) {
-      const projects = listProjects();
+      const projects = uniqueProjects(listProjects());
       projRoot.innerHTML = projects.map((p) => `
         <button type="button" class="explore-tile" data-ex-project="${escapeHtml(p.id)}">
           <span class="k">${escapeHtml(p.outlet || "DCN")}</span>
@@ -3718,19 +3996,24 @@
     return "";
   }
 
+  function browserKind(url) {
+    const u = String(url || "");
+    if (/instagram\.com|instagr\.am|sample-dcn-ig/i.test(u)) return "instagram";
+    if (/x\.com|twitter\.com|sample-dcn-x/i.test(u)) return "x";
+    if (/youtube\.com|youtu\.be|sample-dcn-yt/i.test(u)) return "youtube";
+    return "page";
+  }
+
   function socialHint(url, embed) {
-    if (/instagram\.com|instagr\.am/i.test(url)) {
-      return embed
-        ? "<strong>Instagram embed</strong> in this panel. Open the original post if it stays blank."
-        : "<strong>Instagram blocks</strong> in-panel preview. Open the post to see it in full.";
+    const kind = browserKind(url);
+    if (kind === "instagram") {
+      return "<strong>Contained preview</strong> of the sourced still. Open the original post for the live page.";
     }
-    if (/(^|\.)x\.com|twitter\.com/i.test(url)) {
-      return embed
-        ? "<strong>X embed</strong> in this panel. Open the original post if it stays blank."
-        : "<strong>X blocks</strong> in-panel preview. Open the post to see it in full.";
+    if (kind === "x") {
+      return "<strong>Contained preview</strong> with the DCN mark. Open the original post for the live page.";
     }
-    if (/youtube\.com|youtu\.be/i.test(url)) {
-      return embed ? "<strong>YouTube</strong> embed in this panel." : "";
+    if (kind === "youtube") {
+      return embed ? "<strong>YouTube</strong> in a 16:9 frame." : "<strong>YouTube preview</strong> — open the video if the embed stays blank.";
     }
     return "";
   }
@@ -3738,10 +4021,10 @@
   function posterForUrl(url) {
     const u = String(url || "");
     if (/instagram\.com|instagr\.am|sample-dcn-ig/i.test(u)) return "/assets/demo/dcn-ig.jpg";
-    if (/(^|\.)x\.com|twitter\.com|sample-dcn-x/i.test(u)) return "/assets/demo/dcn-x.jpg";
+    if (/x\.com|twitter\.com|sample-dcn-x/i.test(u)) return "/assets/demo/dcn-x.jpg";
     if (/youtube\.com|youtu\.be|sample-dcn-yt/i.test(u)) return "/assets/demo/dcn-yt.jpg";
     if (/sample-pune/i.test(u)) return "/assets/demo/pune.jpg";
-    if (/sample-hyderabad/i.test(u)) return "/assets/demo/source.jpg";
+    if (/sample-hyderabad/i.test(u)) return "/assets/demo/hyderabad.jpg";
     if (/sample-mumbai/i.test(u)) return "/assets/demo/mumbai.jpg";
     if (/sample-delhi/i.test(u)) return "/assets/demo/delhi.jpg";
     if (/sample-bengaluru/i.test(u)) return "/assets/demo/bengaluru.jpg";
@@ -3775,9 +4058,16 @@
     $("browserUrl").textContent = url;
     $("browserOpen").href = url;
     $("browserBlockedLink").href = url;
-    paintBrowserPoster(url);
+    const kind = browserKind(url);
+    const preview = $("browserPreview");
     const embed = socialEmbedUrl(url);
-    const frameUrl = embed || url;
+    const usePoster = kind === "instagram" || kind === "x" || kind === "youtube";
+    if (preview) {
+      preview.dataset.kind = kind;
+      preview.classList.toggle("has-fallback", kind !== "page");
+    }
+    paintBrowserPoster(usePoster ? url : "");
+    const frameUrl = (kind === "youtube" || kind === "page") ? (embed || url) : "";
     const hint = $("browserHint");
     const hintText = socialHint(url, embed);
     if (hint) {
@@ -3787,35 +4077,46 @@
     const frame = $("browserFrame");
     const blocked = $("browserBlocked");
     const note = $("browserBlockedNote");
-    const noEmbedBlock = !embed && /instagram\.com|instagr\.am|x\.com|twitter\.com|facebook\.com|tiktok\.com/i.test(url);
     if (note) {
-      note.textContent = noEmbedBlock
-        ? "This site blocks in-panel preview. Open the post to see it in full — caption is on Post."
-        : "Preview blocked. Open the post to see it in full.";
+      note.textContent = kind === "page"
+        ? "Preview blocked. Open the page to see it in full."
+        : "Open the post to see it in full — caption is on Post.";
     }
-    blocked.style.display = noEmbedBlock ? "flex" : "none";
-    if (frame.dataset.src !== frameUrl) {
+    blocked.style.display = "none";
+    clearTimeout(frame._bt);
+    frame.onload = null;
+    if (!frameUrl) {
+      frame.removeAttribute("src");
+      delete frame.dataset.src;
+    } else if (frame.dataset.src !== frameUrl) {
       frame.dataset.src = frameUrl;
-      frame.src = frameUrl;
-      clearTimeout(frame._bt);
-      if (embed) {
+      if (kind === "youtube" && embed) {
+        /* Poster first so a blocked embed never leaves a gray hole. */
+        paintBrowserPoster(url);
+        if (preview) preview.classList.add("has-fallback");
+        frame.onload = () => {
+          clearTimeout(frame._bt);
+          try {
+            const doc = frame.contentDocument;
+            if (doc && !doc.body) return;
+          } catch (_) { /* cross-origin player — treat as loaded */ }
+          if (preview) preview.classList.remove("has-fallback");
+          paintBrowserPoster("");
+        };
+        frame.src = frameUrl;
         frame._bt = setTimeout(() => {
-          /* Embed often blanks (IG login wall). Keep cached still poster + clear note — never look broken. */
           paintBrowserPoster(url);
           const box = $("browserPoster");
           if (box) box.classList.add("show");
-          if (hint) {
-            const stillHint = /instagram/i.test(url)
-              ? "<strong>Instagram embed</strong> may stay blank here. Cached still is on Post — open the original if you need the live page."
-              : hintText;
-            hint.innerHTML = stillHint || hintText;
-            hint.classList.add("show");
-          }
-        }, 1800);
+          if (preview) preview.classList.add("has-fallback");
+        }, 2500);
+      } else {
+        frame.src = frameUrl;
       }
     }
     if (switchTab) switchRightTab("browser");
-    setStyleUrl(url);
+    setStyleUrl(isToySampleUrl(url) ? DCN_STYLE_URL : url);
+    markRightPaneLive(true);
     return true;
   }
 
@@ -3828,9 +4129,12 @@
       field.value = "";
       return;
     }
-    field.value = url;
+    const shown = publicStyleUrl(url);
+    field.value = shown;
     row.classList.add("show");
-    if ($("pastePostUrl") && !$("pastePostUrl").value) $("pastePostUrl").value = url;
+    if ($("pastePostUrl") && (!$("pastePostUrl").value || isToySampleUrl($("pastePostUrl").value))) {
+      $("pastePostUrl").value = shown;
+    }
   }
 
   function paintBrowser(run) {
@@ -3845,6 +4149,7 @@
       $("browserFrame").removeAttribute("src");
       delete $("browserFrame").dataset.src;
       paintBrowserPoster("");
+      if (!currentRun) markRightPaneLive(false);
       return;
     }
     if (/^https?:\/\//i.test(src)) {
@@ -3955,8 +4260,14 @@
     if (!card) return;
     if (!run) { card.style.display = "none"; return; }
     card.style.display = "";
-    const isIg = looksLikePostUrl(resolveSourceUrl(run)) && /instagram/i.test(resolveSourceUrl(run));
+    markRightPaneLive(true);
+    const srcUrl = resolveSourceUrl(run);
+    const isIg = looksLikePostUrl(srcUrl) && /instagram/i.test(srcUrl);
+    const isYt = /youtube\.com|youtu\.be|sample-dcn-yt/i.test(srcUrl) || (run.beat || "") === "youtube";
+    const isX = /x\.com|twitter\.com|sample-dcn-x/i.test(srcUrl) || (run.beat || "") === "x";
     const cachedIg = "/assets/demo/dcn-ig.jpg";
+    const cachedX = "/assets/demo/dcn-x.jpg";
+    const cachedYt = "/assets/demo/dcn-yt.jpg";
     const deskAsset = (u) => {
       if (!u) return "";
       /* Signed Instagram CDN expires / 403s — never rewrite size params; use the cached JPG. */
@@ -3972,6 +4283,12 @@
     if (isIg && !photos.some((p) => /dcn-ig\.(jpg|jpeg|png|webp)/i.test(p.url || ""))) {
       photos.unshift({ url: cachedIg, credit: "Sourced still" });
     }
+    if (isX && !photos.some((p) => /dcn-x\.(jpg|jpeg|png|webp)/i.test(p.url || ""))) {
+      photos.unshift({ url: cachedX, credit: "DCN" });
+    }
+    if (isYt && !photos.some((p) => /dcn-yt\.(jpg|jpeg|png|webp)/i.test(p.url || ""))) {
+      photos.unshift({ url: cachedYt, credit: "DCN" });
+    }
     if (photos.length) run.photos = photos;
     if (run.photo?.via === "gemini_gen" && photos[0]) {
       setPostPhoto(photos[0]);
@@ -3983,7 +4300,9 @@
     let current = deskAsset(run.photo?.pathOrUrl) || deskAsset(run.pack?.stillUrl);
     if (current && !preferRaster(current)) current = "";
     /* Prefer the selected still (Photo tool cycle). Only fall back to the cached IG JPG. */
-    let url = (current && preferRaster(current) ? current : "") || (isIg ? cachedIg : "") || rasterStill || safeStill || cachedIg;
+    let url = (isX ? cachedX : "") || (isYt ? cachedYt : "")
+      || (current && preferRaster(current) ? current : "")
+      || (isIg ? cachedIg : "") || rasterStill || safeStill || cachedIg;
     const fallbacks = photos.map((p) => deskAsset(p.url)).filter((u) => u && u !== url && preferRaster(u));
     if (isIg && !fallbacks.includes(cachedIg) && url !== cachedIg) fallbacks.push(cachedIg);
     if (url && run.photo && run.photo.pathOrUrl !== url) {
@@ -4007,9 +4326,17 @@
       if (fill) fill.hidden = true;
       const src = url || cachedIg;
       frame.style.backgroundImage = "none";
-      frame.style.height = "420px";
-      frame.style.minHeight = "420px";
-      frame.style.flex = "0 0 420px";
+      frame.classList.toggle("yt", !!isYt);
+      frame.classList.toggle("x", !!isX);
+      if (isYt || isNarrow()) {
+        frame.style.height = "";
+        frame.style.minHeight = "";
+        frame.style.flex = "";
+      } else {
+        frame.style.height = "420px";
+        frame.style.minHeight = "420px";
+        frame.style.flex = "0 0 420px";
+      }
       frame.classList.toggle("no-chrome", !chromeSrc);
       if (photo) {
         photo.hidden = false;
@@ -4155,7 +4482,8 @@
     const social = looksLikePostUrl(src);
     fillMagicLayers(run, { flash: true, preferBrowser: opts?.preferBrowser ?? social });
     setStyleUrl(src);
-    if (isLiveSourceUrl(src) && $("pastePostUrl")) $("pastePostUrl").value = src;
+    if (isLiveSourceUrl(src) && $("pastePostUrl") && !isToySampleUrl(src)) $("pastePostUrl").value = src;
+    else seedPasteUrl();
     if (pendingAskPhoto?.url) {
       currentRun.photos = currentRun.photos || [];
       currentRun.photos.unshift({ url: pendingAskPhoto.url, credit: pendingAskPhoto.credit || "Photo" });
@@ -4270,7 +4598,8 @@
     if (looksLikeStyleMatch(headline) && isLiveSourceUrl(refUrl)) return doStyleMatch(headline);
     const asUrl = looksLikePostUrl(headline) ? headline : "";
     if (asUrl) return doAnalyze(asUrl);
-    if (!samplePending && looksLikePostUrl(pasted) && !currentRun) return doAnalyze(pasted);
+    /* A leftover style URL in Paste must not steal a typed / tip headline. */
+    if (!samplePending && looksLikePostUrl(pasted) && !currentRun && !headline) return doAnalyze(pasted);
     const sourced = isLiveSourceUrl(pendingSourceUrl) || /^https?:\/\//i.test(headline);
     if (!headline && !sourced) { return runAssignment(); }
     $("runBtn").disabled = true;
@@ -4329,8 +4658,9 @@
 
   function newDesk() {
     $("headline").value = "";
-    if ($("pastePostUrl")) $("pastePostUrl").value = "";
+    seedPasteUrl();
     pendingSourceUrl = null;
+    markRightPaneLive(false);
     pendingAskPhoto = null;
     showAskAttach("");
     closeAskPlus();
@@ -4480,9 +4810,9 @@
     btn.addEventListener("click", () => {
       const kind = btn.dataset.social || "instagram";
       const url = btn.dataset.url
-        || (kind === "x" ? location.origin + "/sample-dcn-x.html"
-          : kind === "youtube" ? location.origin + "/sample-dcn-yt.html"
-          : "https://www.instagram.com/p/DdwHjcpId9B/");
+        || (kind === "x" ? DCN_X_URL
+          : kind === "youtube" ? DCN_YT_URL
+          : DCN_STYLE_URL);
       document.querySelectorAll("#socialChips [data-social]").forEach((b) => b.classList.remove("active"));
       btn.classList.add("active");
       doAnalyze(url);
@@ -4705,17 +5035,15 @@
   }
 
   function newsTips() {
-    const origin = location.origin;
-    /* Pool rotates so recommendations feel different across sessions — plain news photos, no DCN chrome */
+    /* Chip click fills the prompt only. Photos attach after Run. No Tank Bund. */
     return [
-      { desk: "pune", kicker: "Pune", title: "Overnight bus routes go to a vote in Pune.", url: origin + "/sample-pune.html" },
-      { desk: "pune", kicker: "Pune", title: "Metro Phase 2 stations get weekend trial hours.", url: origin + "/sample-pune.html" },
-      { desk: "hyderabad", kicker: "Hyderabad", title: "HITEC City feeder buses add late trips.", url: origin + "/sample-hyderabad.html" },
-      { desk: "hyderabad", kicker: "Hyderabad", title: "Tank Bund stretch marked for Sunday cycle hours.", url: origin + "/sample-hyderabad.html" },
-      { desk: "mumbai", kicker: "Mumbai", title: "Harbour line holds a late-night clearance window.", url: origin + "/sample-mumbai.html" },
-      { desk: "mumbai", kicker: "Mumbai", title: "Marine Drive stretch marked for Sunday cycle hours.", url: origin + "/sample-mumbai.html" },
-      { desk: "bengaluru", kicker: "Bengaluru", title: "Whitefield feeder buses add a late last trip.", url: origin + "/sample-bengaluru.html" },
-      { desk: "delhi", kicker: "Delhi", title: "Yellow Line weekend work shifts to early Monday.", url: origin + "/sample-delhi.html" },
+      { desk: "pune", kicker: "Pune", title: "Overnight bus routes go to a vote in Pune.", still: "/assets/demo/pune.jpg" },
+      { desk: "pune", kicker: "Pune", title: "Metro Phase 2 stations get weekend trial hours.", still: "/assets/demo/pune-metro.jpg" },
+      { desk: "hyderabad", kicker: "Hyderabad", title: "HITEC City feeder buses add late trips.", still: "/assets/demo/hyderabad.jpg" },
+      { desk: "hyderabad", kicker: "Hyderabad", title: "ORR express buses add a late evening loop.", still: "/assets/demo/hyderabad.jpg" },
+      { desk: "mumbai", kicker: "Mumbai", title: "Harbour line holds a late-night clearance window.", still: "/assets/demo/mumbai.jpg" },
+      { desk: "bengaluru", kicker: "Bengaluru", title: "Whitefield feeder buses add a late last trip.", still: "/assets/demo/bengaluru.jpg" },
+      { desk: "delhi", kicker: "Delhi", title: "Yellow Line weekend work shifts to early Monday.", still: "/assets/demo/delhi.jpg" },
     ];
   }
 
@@ -4741,29 +5069,32 @@
     return out;
   }
 
-  async function runNewsTip(t) {
+  function fillNewsTip(t) {
     if (!t) return;
     selectedDesk = t.desk;
     paintCityChips();
     $("headline").value = t.title;
-    /* Keep tip URL in paste field so Copy this style is one click away */
-    if ($("pastePostUrl")) $("pastePostUrl").value = t.url;
-    pendingSourceUrl = t.url;
-    setStyleUrl(t.url);
-    /* Tips = news photo + editable text only — never Hyd chrome */
-    if (currentRun) {
-      currentRun._hydChrome = false;
-      if (currentRun.pack) delete currentRun.pack.templateChrome;
-    }
-    loadBrowserUrl(t.url, { switchTab: true });
+    pendingSourceUrl = null;
+    seedPasteUrl();
+    setStyleUrl(DCN_STYLE_URL);
+    setSideRunReady();
     switchView("home");
-    await doRun();
-    if (currentRun) {
-      currentRun._hydChrome = false;
-      if (currentRun.pack) delete currentRun.pack.templateChrome;
-      paintIgPost(currentRun);
-    }
     switchRightTab("structure");
+    $("headline")?.focus();
+  }
+
+  async function runNewsTip(t) {
+    fillNewsTip(t);
+  }
+
+  function tipGlyph(t) {
+    const title = String(t?.title || "").toLowerCase();
+    const bus = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="4" width="16" height="12" rx="2"/><path d="M4 11h16M8 19v-3M16 19v-3M7 16h.01M17 16h.01"/></svg>`;
+    const rail = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="3" width="14" height="13" rx="2"/><path d="M8 16v3M16 16v3M5 10h14M9 13h.01M15 13h.01"/></svg>`;
+    const news = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M4 6h12v14H6a2 2 0 0 1-2-2V6z"/><path d="M16 8h4v10a2 2 0 0 1-2 2h-2"/><path d="M7 10h6M7 14h4"/></svg>`;
+    if (/metro|yellow line|harbour/.test(title)) return rail;
+    if (/bus|feeder|orr|overnight/.test(title)) return bus;
+    return news;
   }
 
   function paintNewsRecs() {
@@ -4772,13 +5103,14 @@
     if (ask) {
       ask.hidden = tips.length === 0;
       ask.innerHTML = `<div class="ask-suggest-label">Try a story</div>` + tips.map((t, i) =>
-        `<button type="button" class="ask-chip" data-ask-rec="${i}" title="${escapeHtml(t.title)}">
+        `<button type="button" class="ask-chip" data-ask-rec="${i}" data-desk="${escapeHtml(t.desk)}" title="${escapeHtml(t.title)}">
+          <span class="ask-chip-ico" aria-hidden="true">${tipGlyph(t)}</span>
           <span class="k">${escapeHtml(t.kicker)}</span>
           <span class="t">${escapeHtml(t.title)}</span>
         </button>`
       ).join("");
       ask.querySelectorAll("[data-ask-rec]").forEach((btn) => {
-        btn.addEventListener("click", () => runNewsTip(tips[Number(btn.dataset.askRec)]));
+        btn.addEventListener("click", () => fillNewsTip(tips[Number(btn.dataset.askRec)]));
       });
     }
     /* Legacy below-fold list kept in DOM but hidden — chips in ask box are primary */
@@ -4791,7 +5123,7 @@
         </button>`
       ).join("");
       list.querySelectorAll("[data-rec]").forEach((btn) => {
-        btn.addEventListener("click", () => runNewsTip(tips[Number(btn.dataset.rec)]));
+        btn.addEventListener("click", () => fillNewsTip(tips[Number(btn.dataset.rec)]));
       });
     }
   }
@@ -5697,6 +6029,7 @@
   ensureProjects();
   ensureScheduled();
   ensureApprovals();
+  seedPasteUrl();
   paintProjectNav();
   paintProjectChips();
   try {
