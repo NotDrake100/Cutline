@@ -5076,29 +5076,18 @@
     return out;
   }
 
-  async function runNewsTip(t) {
+  function pickNewsTip(t) {
     if (!t) return;
     selectedDesk = t.desk;
     paintCityChips();
     $("headline").value = t.title;
-    /* Keep tip URL in paste field so Copy this style is one click away */
+    /* Hold the source for an explicit Run; selecting a tip never runs the desk. */
     if ($("pastePostUrl")) $("pastePostUrl").value = t.url;
     pendingSourceUrl = t.url;
     setStyleUrl(t.url);
-    /* Tips = news photo + editable text only — never Hyd chrome */
-    if (currentRun) {
-      currentRun._hydChrome = false;
-      if (currentRun.pack) delete currentRun.pack.templateChrome;
-    }
-    loadBrowserUrl(t.url, { switchTab: true });
+    /* Stay on Chat/home. Run is the only action that opens a result or fetches a still. */
     switchView("home");
-    await doRun();
-    if (currentRun) {
-      currentRun._hydChrome = false;
-      if (currentRun.pack) delete currentRun.pack.templateChrome;
-      paintIgPost(currentRun);
-    }
-    switchRightTab("structure");
+    $("headline")?.focus();
   }
 
   function paintNewsRecs() {
@@ -5113,7 +5102,7 @@
         </button>`
       ).join("");
       ask.querySelectorAll("[data-ask-rec]").forEach((btn) => {
-        btn.addEventListener("click", () => runNewsTip(tips[Number(btn.dataset.askRec)]));
+        btn.addEventListener("click", () => pickNewsTip(tips[Number(btn.dataset.askRec)]));
       });
     }
     /* Legacy below-fold list kept in DOM but hidden — chips in ask box are primary */
@@ -5126,7 +5115,7 @@
         </button>`
       ).join("");
       list.querySelectorAll("[data-rec]").forEach((btn) => {
-        btn.addEventListener("click", () => runNewsTip(tips[Number(btn.dataset.rec)]));
+        btn.addEventListener("click", () => pickNewsTip(tips[Number(btn.dataset.rec)]));
       });
     }
   }
