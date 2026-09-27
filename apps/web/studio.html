@@ -2000,11 +2000,12 @@
       align-items: center;
       gap: 10px;
       flex-shrink: 0;
+      position: relative;
       height: 56px;
       padding: 8px 10px;
       background: var(--bg);
       border-bottom: 1px solid var(--line);
-      z-index: 20;
+      z-index: 21;
     }
     .phone-menu-btn {
       width: 40px; height: 40px;
@@ -2104,15 +2105,16 @@
     .shell.phone-pane-browser .main { display: none; }
     .shell.phone-pane-post .right-pane,
     .shell.phone-pane-browser .right-pane { display: flex; }
-    .rp-tabs .panel-toggle { display: none; }
-    .rp-tabs { padding-top: 6px; }
+    .rp-tabs { display: none; }
 
     .home-wrap {
       justify-content: flex-start;
       padding: 20px 16px 28px;
     }
     .home-wrap h1 { margin-bottom: 12px; }
-    .purpose-line, .showcase-rail { display: none; }
+    .purpose-line,
+    .showcase-rail,
+    body.is-showcase .showcase-rail { display: none !important; }
     .assign { margin-top: 18px; }
   }
 </style>
