@@ -92,6 +92,8 @@ export interface BeatConfig {
   rssFeeds: string[];
   tinyfishQuery?: string;
   location?: string;
+  /** TinyFish recency window; short for global "latest". Default 2880. */
+  recencyMinutes?: number;
 }
 
 

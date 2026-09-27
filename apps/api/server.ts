@@ -10,6 +10,9 @@ import { gemini } from "../../packages/core/src/gemini";
 import { loadRun, saveRun } from "../../packages/core/src/runs";
 import { ENV } from "../../packages/core/src/env";
 import type { StoryRun, WedgeRequest } from "../../packages/core/src/types";
+import { BEATS, listBeats, getBeat } from "../../packages/scout/src/beats";
+import { scoutBeat } from "../../packages/scout/src/scout";
+import { createScoutDeps, hasTinyfishKey } from "../../packages/scout/src/http";
 
 const PORT = Number(process.env.PORT) || 8787;
 const ROOT = join(import.meta.dirname, "../..");
@@ -183,6 +186,78 @@ async function handleApi(req: IncomingMessage, res: ServerResponse, url: URL) {
     }
   }
 
+
+
+  if (method === "GET" && path === "/api/health") {
+    return json(res, 200, {
+      ok: true,
+      gemini: gemini.hasKey(),
+      tinyfish: hasTinyfishKey(),
+      // names only — never values
+    });
+  }
+
+  if (method === "GET" && path === "/api/beats") {
+    const beats = listBeats().map((b) => ({
+      id: b.id,
+      tinyfishQuery: b.tinyfishQuery || null,
+      feedCount: b.rssFeeds.length,
+      location: b.location || null,
+      keywordCount: b.keywords.length,
+      recencyMinutes: b.recencyMinutes ?? null,
+    }));
+    return json(res, 200, { beats, stubTinyfish: !hasTinyfishKey() });
+  }
+
+  if (
+    (method === "GET" && path === "/api/hunt") ||
+    (method === "POST" && path === "/api/hunt")
+  ) {
+    let beatId = url.searchParams.get("beat") || "";
+    let qOverride = url.searchParams.get("q") || undefined;
+    if (method === "POST") {
+      const raw = await readBody(req);
+      try {
+        const body = JSON.parse(raw || "{}") as { beat?: string; query?: string; q?: string };
+        if (body.beat) beatId = body.beat;
+        if (body.query || body.q) qOverride = body.query || body.q;
+      } catch {
+        return json(res, 400, { error: "invalid_json" });
+      }
+    }
+    beatId = (beatId || "").trim().toLowerCase();
+    const allowed = Object.keys(BEATS);
+    if (!beatId || !getBeat(beatId)) {
+      return json(res, 400, {
+        error: "beat required",
+        allowed,
+      });
+    }
+    const beat = { ...getBeat(beatId)! };
+    if (qOverride?.trim()) beat.tinyfishQuery = qOverride.trim();
+    const deps = createScoutDeps({
+      location: beat.location,
+      recencyMinutes: beat.recencyMinutes,
+      queryOverride: qOverride?.trim() || undefined,
+    });
+    try {
+      const hits = await scoutBeat(beat, deps, 8);
+      const viaCounts = { rss: 0, tinyfish: 0, outlet_fetch: 0, manual: 0 };
+      for (const h of hits) {
+        if (h.via in viaCounts) viaCounts[h.via as keyof typeof viaCounts]++;
+      }
+      return json(res, 200, {
+        beat: beat.id,
+        query: beat.tinyfishQuery || null,
+        hits,
+        viaCounts,
+        stubTinyfish: !hasTinyfishKey(),
+      });
+    } catch (e) {
+      return json(res, 500, { error: (e as Error).message || "hunt_failed" });
+    }
+  }
+
   return json(res, 404, { error: "not_found" });
 }
 
@@ -190,8 +265,9 @@ async function main() {
   await loadDotEnv();
   const hasKey = gemini.hasKey();
   // Mentions env NAMES only — never values
+  const tf = hasTinyfishKey();
   console.log(
-    `cutline listening :${PORT} | gemini=${hasKey ? "live" : "stub"} | models text=${process.env[ENV.GEMINI_TEXT_MODEL] || "default"} image=${process.env[ENV.GEMINI_IMAGE_MODEL] || "default"}`
+    `cutline listening :${PORT} | gemini=${hasKey ? "live" : "stub"} | tinyfish=${tf ? "live" : "stub"} | models text=${process.env[ENV.GEMINI_TEXT_MODEL] || "default"} image=${process.env[ENV.GEMINI_IMAGE_MODEL] || "default"}`
   );
   console.log(`  web  http://127.0.0.1:${PORT}/`);
   console.log(`  studio http://127.0.0.1:${PORT}/studio.html`);

@@ -18,3 +18,4 @@ apps/web/index.html.bak*
 coverage/
 tmp/
 .cache/
+apps/web/studio.html.bak*
