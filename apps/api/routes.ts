@@ -30,4 +30,6 @@ export const ROUTES = [
   "GET  /api/library/:id",
   "GET  /api/styles",
   "PUT  /api/style",
+  "GET  /api/photos",
+  "POST /api/pack",
 ] as const;

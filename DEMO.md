@@ -8,11 +8,10 @@ Connect plugins stay **Connect required** until an account is linked. They do no
 
 1. **Open Studio** → **News** (Wire).
 2. Pick a desk (Breaking / Business / Culture / Sports / Tech / World) → **Hunt latest**.
-3. Click **Open in Browser**. The pane shows the live source URL. That is the truth surface.
-4. **Use on desk**. Magic Layer fills still + captions from that page (needs Gemini on the server).
-5. **Approve**.
-6. **Connect** → **Download ZIP**. Pack is local. Other channels say connect required until linked.
+3. Click **Open in Browser**. The pane shows the live source URL.
+4. **Use on desk**. Magic Layer fills the Instagram post — still from the page, caption from the page. Voice chips rewrite the caption when Gemini is on.
+5. Edit caption or pick another source photo in place.
+6. **Approve**.
+7. **Connect** → **Download ZIP**. Other channels stay connect required until linked.
 
-No Gemini key → a toast says **Connect Gemini**. Hunt and Browser still work. Rewrite / still / pack do not invent a story.
-
-Clip: **Library → Upload clip** stores the raw file on the desk. It is labeled raw — not an edited cut.
+Hunt and Browser always work. If Gemini is off, the desk uses the source photo and page text. Approve and ZIP still complete.

@@ -3,7 +3,7 @@ import { runSourcedDesk } from "../../packages/orchestrator/src/runPipeline";
 import { wireFromPage } from "../../packages/wire/src/wire";
 import { rewriteHouse } from "../../packages/sub/src/sub";
 import { packCaptions } from "../../packages/desk/src/desk";
-import { fetchPageText, fetchArticleImage } from "../../packages/scout/src/http";
+import { fetchPageText, fetchArticleImage, fetchArticleImages } from "../../packages/scout/src/http";
 import { downloadBytes, pexelsSearch } from "../../packages/photo/src/http";
 import type { DeskRequest, DeskResponse, StoryRun } from "../../packages/core/src/types";
 import { getStyle } from "../../packages/core/src/styles";
@@ -23,7 +23,7 @@ function outletFromUrl(url: string): string {
 
 /**
  * POST /api/desk  { sourceUrl, title?, beat? }
- * Rewrite + pack only on a live opened page. Gemini required.
+ * Rewrite + pack on a live opened page. Gemini when present; else sourced photo + page text.
  */
 export async function handleDesk(
   body: DeskRequest,
@@ -66,6 +66,22 @@ export async function handleDesk(
     { beat, allowGeminiGen: false, styleId: style.id }
   );
   run.styleId = style.id;
+  try {
+    const images = await fetchArticleImages(sourceUrl, 8);
+    run.photos = images;
+    if (!run.photo && images[0]) {
+      run.photo = {
+        pathOrUrl: images[0].url,
+        credit: images[0].credit,
+        md5: "og",
+        via: "article_og",
+        bannedForPrint: false,
+      };
+      if (run.pack) run.pack.stillUrl = images[0].url;
+    }
+  } catch {
+    /* page photos optional */
+  }
 
   return { run, mode: "desk" };
 }

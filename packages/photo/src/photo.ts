@@ -44,7 +44,7 @@ export async function resolvePhoto(
     };
   }
 
-  const pexels = await deps.pexelsSearch(opts.photoQuery || "india city news");
+  const pexels = await deps.pexelsSearch(opts.photoQuery || "news desk");
   if (pexels) {
     const buf = await deps.download(pexels.url);
     return {

@@ -82,6 +82,7 @@ export interface StoryRun {
   rewrite?: Rewrite;
   photo?: PhotoAsset;
   pack?: Pack;
+  photos?: { url: string; credit: string }[];
   styleId?: string;
   log: AgentLogEntry[];
   spendCents: number;

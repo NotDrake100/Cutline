@@ -17,7 +17,7 @@ import { restyleRunCopy } from "../../packages/sub/src/restyle";
 import type { DeskRequest, MediaKind, StoryRun, WedgeRequest } from "../../packages/core/src/types";
 import { DESKS, listDesks, getDesk } from "../../packages/scout/src/desks";
 import { scoutBeat } from "../../packages/scout/src/scout";
-import { createScoutDeps } from "../../packages/scout/src/http";
+import { createScoutDeps, fetchArticleImages } from "../../packages/scout/src/http";
 import { listPlugins, shipRun, type ShipChannel } from "../../packages/ship/src/ship";
 import {
   connectionViews,
@@ -142,6 +142,18 @@ function persistLibrary(run: StoryRun) {
       caption: run.pack?.igCaption || run.rewrite?.caption || null,
       clipUrl: run.pack?.clipUrl,
     });
+    for (const pic of run.photos || []) {
+      if (!pic.url || pic.url === imageUrl) continue;
+      try {
+        addMedia({
+          kind: "photo",
+          title: title,
+          url: pic.url,
+        });
+      } catch {
+        /* skip one photo */
+      }
+    }
   } catch {
     /* library write must not fail the run */
   }
@@ -236,12 +248,6 @@ async function handleApi(req: IncomingMessage, res: ServerResponse, url: URL) {
     } catch {
       return json(res, 400, { error: "invalid_json" });
     }
-    if (!gemini.hasKey()) {
-      return json(res, 503, {
-        error: "gemini_not_configured",
-        hint: "Connect Gemini — set GEMINI_API_KEY on the server.",
-      });
-    }
     try {
       body.styleId = resolveStyleId(body.styleId);
       const { run: rawRun } = await handleWedge(body, {
@@ -252,8 +258,39 @@ async function handleApi(req: IncomingMessage, res: ServerResponse, url: URL) {
       await saveRun(run);
       persistLibrary(run);
       return json(res, 200, { run, mode: "wedge" });
-    } catch (e) {
-      return geminiFail(res, e);
+    } catch {
+      const headline = (body.headline || "").trim();
+      if (!headline) return json(res, 400, { error: "headline required" });
+      const now = new Date().toISOString();
+      const run: StoryRun = {
+        id: `wedge_${Date.now().toString(36)}`,
+        beat: "wedge",
+        status: "needs_input",
+        hits: [],
+        brief: {
+          headline,
+          angle: headline,
+          cityLead: "",
+          visualPrompt: headline,
+          facts: [],
+          sourceUrl: "manual://wedge",
+        },
+        rewrite: {
+          headline,
+          body: headline,
+          houseStyle: getStyle(body.styleId).label,
+          sourceUrl: "manual://wedge",
+        },
+        pack: { igCaption: headline, ytTitle: headline, ytDescription: headline },
+        styleId: body.styleId,
+        log: [],
+        spendCents: 0,
+        createdAt: now,
+      };
+      const saved = ensureWedgeLog(run);
+      await saveRun(saved);
+      persistLibrary(saved);
+      return json(res, 200, { run: saved, mode: "wedge" });
     }
   }
 
@@ -265,12 +302,6 @@ async function handleApi(req: IncomingMessage, res: ServerResponse, url: URL) {
     } catch {
       return json(res, 400, { error: "invalid_json" });
     }
-    if (!gemini.hasKey()) {
-      return json(res, 503, {
-        error: "gemini_not_configured",
-        hint: "Connect Gemini — set GEMINI_API_KEY on the server.",
-      });
-    }
     try {
       body.styleId = resolveStyleId(body.styleId);
       const { run: rawRun } = await handleDesk(body, {
@@ -278,11 +309,13 @@ async function handleApi(req: IncomingMessage, res: ServerResponse, url: URL) {
         image: (p) => gemini.image(p),
       });
       const run = ensureDeskLog(rawRun);
+      if (run.status === "failed") run.status = "needs_input";
       await saveRun(run);
-      if (run.status !== "failed") persistLibrary(run);
+      persistLibrary(run);
       return json(res, 200, { run, mode: "desk" });
     } catch (e) {
-      return geminiFail(res, e);
+      console.error("desk_soft", e instanceof Error ? e.message : e);
+      return json(res, 400, { error: "source_needed" });
     }
   }
 
@@ -304,8 +337,8 @@ async function handleApi(req: IncomingMessage, res: ServerResponse, url: URL) {
       if (gemini.hasKey() && styleId && styleId !== run.styleId) {
         try {
           await applyStyleToRun(run, styleId);
-        } catch (e) {
-          return geminiFail(res, e);
+        } catch {
+          /* keep last good pack */
         }
       }
       run.status = "approved";
@@ -333,24 +366,21 @@ async function handleApi(req: IncomingMessage, res: ServerResponse, url: URL) {
       return json(res, 400, { error: "invalid_json" });
     }
     if (!body.runId) return json(res, 400, { error: "runId required" });
-    if (!gemini.hasKey()) {
-      return json(res, 503, {
-        error: "gemini_not_configured",
-        hint: "Connect Gemini — set GEMINI_API_KEY on the server.",
-      });
-    }
     try {
       const run = await loadRun(body.runId);
       const styleId = resolveStyleId(body.styleId);
-      await applyStyleToRun(run, styleId);
-      await saveRun(run);
-      persistLibrary(run);
-      return json(res, 200, { run, style: getStyle(styleId) });
-    } catch (e) {
-      if (e instanceof Error && (e.message.startsWith("gemini_") || e.message === "gemini_not_configured")) {
-        return geminiFail(res, e);
+      if (gemini.hasKey()) {
+        try {
+          await applyStyleToRun(run, styleId);
+          await saveRun(run);
+          persistLibrary(run);
+        } catch {
+          /* keep last good pack */
+        }
       }
-      return json(res, 404, { error: (e as Error).message || "run_not_found" });
+      return json(res, 200, { run, style: getStyle(styleId) });
+    } catch {
+      return json(res, 404, { error: "run_not_found" });
     }
   }
 
@@ -377,6 +407,52 @@ async function handleApi(req: IncomingMessage, res: ServerResponse, url: URL) {
       return json(res, 200, { selected, style: getStyle(selected) });
     } catch (e) {
       return json(res, 400, { error: (e as Error).message || "style_failed" });
+    }
+  }
+
+  if (method === "GET" && path === "/api/photos") {
+    const src = (url.searchParams.get("url") || url.searchParams.get("sourceUrl") || "").trim();
+    if (!/^https?:\/\//i.test(src)) return json(res, 400, { error: "source_needed" });
+    const photos = await fetchArticleImages(src, 8);
+    return json(res, 200, { photos, sourceUrl: src });
+  }
+
+  if (method === "POST" && path === "/api/pack") {
+    const raw = await readBody(req);
+    let body: { runId?: string; igCaption?: string; headline?: string; stillUrl?: string };
+    try {
+      body = JSON.parse(raw || "{}") as typeof body;
+    } catch {
+      return json(res, 400, { error: "invalid_json" });
+    }
+    if (!body.runId) return json(res, 400, { error: "runId required" });
+    try {
+      const run = await loadRun(body.runId);
+      if (body.headline && run.rewrite) run.rewrite.headline = body.headline.trim();
+      if (body.igCaption) {
+        run.pack = run.pack || {
+          igCaption: "",
+          ytTitle: run.rewrite?.headline || "",
+          ytDescription: "",
+        };
+        run.pack.igCaption = body.igCaption;
+        if (run.rewrite) run.rewrite.caption = body.igCaption;
+      }
+      if (body.stillUrl) {
+        run.photo = {
+          pathOrUrl: body.stillUrl,
+          credit: run.photo?.credit || "Source",
+          md5: run.photo?.md5 || "og",
+          via: run.photo?.via || "article_og",
+          bannedForPrint: false,
+        };
+        if (run.pack) run.pack.stillUrl = body.stillUrl;
+      }
+      await saveRun(run);
+      persistLibrary(run);
+      return json(res, 200, { run });
+    } catch {
+      return json(res, 404, { error: "run_not_found" });
     }
   }
 

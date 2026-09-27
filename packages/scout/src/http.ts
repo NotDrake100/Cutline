@@ -178,32 +178,77 @@ export async function fetchPageText(url: string): Promise<string> {
     .slice(0, 12000);
 }
 
-/** Story-page still from OG / Twitter. Returns null if none — never invents. */
-export async function fetchArticleImage(url: string): Promise<{ url: string; credit: string } | null> {
-  if (!url || !/^https?:\/\//i.test(url)) return null;
+const SKIP_IMG =
+  /logo|icon|sprite|pixel|avatar|emoji|spinner|badge|button|advert|favicon|tracking|1x1|spacer/i;
+
+function collectImageUrls(html: string, pageUrl: string): string[] {
+  const found: string[] = [];
+  const push = (raw?: string) => {
+    if (!raw) return;
+    const first = raw.split(/\s+/)[0] || "";
+    const img = absUrl(pageUrl, first.trim());
+    if (!img || found.includes(img)) return;
+    if (!/^https?:\/\//i.test(img)) return;
+    if (SKIP_IMG.test(img)) return;
+    if (/\.svg(\?|$)/i.test(img)) return;
+    found.push(img);
+  };
+  const meta = [
+    /<meta[^>]+property=["']og:image(?::secure_url|:url)?["'][^>]+content=["']([^"']+)["']/gi,
+    /<meta[^>]+content=["']([^"']+)["'][^>]+property=["']og:image(?::secure_url|:url)?["']/gi,
+    /<meta[^>]+name=["']twitter:image(?::src)?["'][^>]+content=["']([^"']+)["']/gi,
+    /<meta[^>]+content=["']([^"']+)["'][^>]+name=["']twitter:image(?::src)?["']/gi,
+  ];
+  for (const re of meta) {
+    let m: RegExpExecArray | null;
+    while ((m = re.exec(html))) push(m[1]);
+  }
+  const imgRe = /<img\b[^>]*>/gi;
+  let tag: RegExpExecArray | null;
+  while ((tag = imgRe.exec(html))) {
+    const chunk = tag[0];
+    const src = chunk.match(/\b(?:src|data-src|data-original)=["']([^"']+)["']/i);
+    const srcset = chunk.match(/\bsrcset=["']([^"']+)["']/i);
+    if (srcset?.[1]) {
+      const last = srcset[1]
+        .split(",")
+        .map((s) => s.trim().split(/\s+/)[0])
+        .filter(Boolean)
+        .pop();
+      push(last);
+    }
+    push(src?.[1]);
+  }
+  return found;
+}
+
+/** Story-page stills from OG / Twitter / article imgs. Never invents. */
+export async function fetchArticleImages(
+  url: string,
+  limit = 8
+): Promise<{ url: string; credit: string }[]> {
+  if (!url || !/^https?:\/\//i.test(url)) return [];
   try {
     const res = await fetch(url, {
       headers: { "User-Agent": UA, Accept: "text/html,*/*" },
       redirect: "follow",
       signal: AbortSignal.timeout(8_000),
     });
-    if (!res.ok) return null;
+    if (!res.ok) return [];
     const html = await res.text();
-    const patterns = [
-      /<meta[^>]+property=["']og:image["'][^>]+content=["']([^"']+)["']/i,
-      /<meta[^>]+content=["']([^"']+)["'][^>]+property=["']og:image["']/i,
-      /<meta[^>]+name=["']twitter:image(?::src)?["'][^>]+content=["']([^"']+)["']/i,
-      /<meta[^>]+content=["']([^"']+)["'][^>]+name=["']twitter:image(?::src)?["']/i,
-    ];
-    for (const re of patterns) {
-      const m = html.match(re);
-      const img = m?.[1] ? absUrl(url, m[1].trim()) : "";
-      if (img) return { url: img, credit: outletFromUrl(url) };
-    }
-    return null;
+    const credit = outletFromUrl(url);
+    return collectImageUrls(html, url)
+      .slice(0, limit)
+      .map((img) => ({ url: img, credit }));
   } catch {
-    return null;
+    return [];
   }
+}
+
+/** First story-page still from OG / Twitter. Returns null if none — never invents. */
+export async function fetchArticleImage(url: string): Promise<{ url: string; credit: string } | null> {
+  const all = await fetchArticleImages(url, 1);
+  return all[0] || null;
 }
 
 export function createScoutDeps() {

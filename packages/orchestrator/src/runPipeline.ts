@@ -1,6 +1,7 @@
 import type { AgentLogEntry, BeatConfig, StoryRun } from "../../core/src/types";
 import { scoutBeat } from "../../scout/src/scout";
 import { resolvePhoto } from "../../photo/src/photo";
+import { sourcedBrief, sourcedPack, sourcedRewrite } from "../../desk/src/sourced";
 
 export interface PipelineDeps {
   scout: Parameters<typeof scoutBeat>[1];
@@ -109,42 +110,70 @@ export async function runSourcedDesk(
     styleId: opts.styleId,
   };
 
-  const pageText = await deps.fetchPageText(hit.sourceUrl);
+  let pageText = "";
+  try {
+    pageText = await deps.fetchPageText(hit.sourceUrl);
+  } catch {
+    pageText = "";
+  }
   if (!pageText.trim()) {
-    run.status = "failed";
-    log(run, "wire", "source_page_empty", false);
-    return run;
+    pageText = hit.title || "";
+    if (!pageText.trim()) {
+      run.status = "failed";
+      log(run, "wire", "source_page_empty", false);
+      return run;
+    }
+    log(run, "wire", "source", true, 0);
   }
 
-  run.brief = await deps.wire({ title: hit.title, sourceUrl: hit.sourceUrl, pageText });
-  if (run.brief.sourceUrl !== hit.sourceUrl) {
-    run.status = "failed";
-    log(run, "wire", "source_url_mismatch", false);
-    return run;
+  try {
+    run.brief = await deps.wire({ title: hit.title, sourceUrl: hit.sourceUrl, pageText });
+    if (run.brief.sourceUrl !== hit.sourceUrl) {
+      run.status = "failed";
+      log(run, "wire", "source_url_mismatch", false);
+      return run;
+    }
+    log(run, "wire", "brief", true, 1);
+  } catch {
+    run.brief = sourcedBrief({ title: hit.title, sourceUrl: hit.sourceUrl, pageText });
+    log(run, "wire", "source", true, 0);
   }
-  log(run, "wire", "brief", true, 1);
 
-  run.rewrite = await deps.sub(run.brief, pageText);
-  if (run.rewrite.sourceUrl !== hit.sourceUrl) {
-    run.status = "failed";
-    log(run, "sub", "source_url_mismatch", false);
-    return run;
+  try {
+    run.rewrite = await deps.sub(run.brief, pageText);
+    if (run.rewrite.sourceUrl !== hit.sourceUrl) {
+      run.status = "failed";
+      log(run, "sub", "source_url_mismatch", false);
+      return run;
+    }
+    log(run, "sub", "rewrite", true, 1);
+  } catch {
+    run.rewrite = sourcedRewrite(run.brief, pageText);
+    log(run, "sub", "source", true, 0);
   }
-  log(run, "sub", "rewrite", true, 1);
 
-  run.photo =
-    (await resolvePhoto(
-      {
-        sourceUrl: hit.sourceUrl,
-        photoQuery: run.brief.visualPrompt,
-        allowGeminiGen: opts.allowGeminiGen,
-      },
-      deps.photo
-    )) ?? undefined;
-  log(run, "photo", run.photo?.via ?? "none", !!run.photo, run.photo?.via === "gemini_gen" ? 5 : 0);
+  try {
+    run.photo =
+      (await resolvePhoto(
+        {
+          sourceUrl: hit.sourceUrl,
+          photoQuery: run.brief.visualPrompt,
+          allowGeminiGen: opts.allowGeminiGen,
+        },
+        deps.photo
+      )) ?? undefined;
+  } catch {
+    run.photo = undefined;
+  }
+  log(run, "photo", run.photo?.via ?? "source", !!run.photo, run.photo?.via === "gemini_gen" ? 5 : 0);
 
-  run.pack = await deps.desk(run.rewrite, run.photo);
-  log(run, "desk", "pack", true, 1);
+  try {
+    run.pack = await deps.desk(run.rewrite, run.photo);
+    log(run, "desk", "pack", true, 1);
+  } catch {
+    run.pack = sourcedPack(run.rewrite, run.photo);
+    log(run, "desk", "source", true, 0);
+  }
 
   run.status = opts.autoApprove ? "approved" : "needs_input";
   log(run, "night", run.status, true);
@@ -174,17 +203,41 @@ export async function runWedge(
     createdAt: deps.now(),
     styleId: deps.styleId,
   };
-  run.brief = await deps.wireFromHeadline(headline);
+  try {
+    run.brief = await deps.wireFromHeadline(headline);
+  } catch {
+    run.brief = {
+      headline,
+      angle: headline,
+      cityLead: "",
+      visualPrompt: headline,
+      facts: [],
+      sourceUrl: "manual://wedge",
+    };
+  }
   run.brief.sourceUrl = run.brief.sourceUrl || "manual://wedge";
-  run.photo = await deps.stillGemini(run.brief);
-  run.photo.bannedForPrint = true;
+  try {
+    run.photo = await deps.stillGemini(run.brief);
+    if (run.photo) run.photo.bannedForPrint = true;
+  } catch {
+    run.photo = undefined;
+  }
   run.rewrite = {
     headline: run.brief.headline,
     body: run.brief.angle,
     sourceUrl: run.brief.sourceUrl,
     houseStyle: deps.houseStyle || "Tight news",
   };
-  run.pack = await deps.desk(run.rewrite, run.photo);
+  try {
+    run.pack = await deps.desk(run.rewrite, run.photo);
+  } catch {
+    run.pack = {
+      igCaption: run.brief.headline,
+      ytTitle: run.brief.headline,
+      ytDescription: run.brief.angle || run.brief.headline,
+      stillUrl: run.photo?.pathOrUrl,
+    };
+  }
   run.status = "needs_input";
   return run;
 }
