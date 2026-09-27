@@ -4,7 +4,7 @@ Your AI desk. Hunt a live page, rewrite, approve, then ship.
 
 Public site: **https://cutline.dev** (Vercel). Same app as `cutline.vercel.app`. Do not deploy this to a DCN droplet.
 
-Landing CTA **See it work** opens the public demo desk (`/studio?showcase=1`). Paste an Instagram / X / YouTube URL (or a DCN chip) to analyze a post into the desk — Demo uses OG / oEmbed / fixtures, never Gemini.
+Landing CTA **Open the desk** opens the public demo (`/studio?demo=1`). Paste an Instagram / X / YouTube URL (or a DCN chip) to analyze a post into the desk — Demo uses OG / oEmbed / fixtures, never Gemini.
 
 ## Demo vs owner AI
 

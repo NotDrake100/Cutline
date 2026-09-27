@@ -1,6 +1,6 @@
 # Cutline — 60 seconds (public showcase)
 
-Landing **See it work** → `/studio?showcase=1`. Public traffic is Demo: fixtures + cached city pages. Gemini is never billed.
+Landing **Open the desk** → `/studio?demo=1`. Public traffic is Demo: fixtures + cached city pages. Gemini is never billed.
 
 ## Kill path
 
