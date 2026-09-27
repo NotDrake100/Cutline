@@ -13,6 +13,7 @@ import type { StoryRun, WedgeRequest } from "../../packages/core/src/types";
 import { BEATS, listBeats, getBeat } from "../../packages/scout/src/beats";
 import { scoutBeat } from "../../packages/scout/src/scout";
 import { createScoutDeps, hasTinyfishKey } from "../../packages/scout/src/http";
+import { listPlugins, shipRun, type ShipChannel } from "../../packages/ship/src/ship";
 
 const PORT = Number(process.env.PORT) || 8787;
 const ROOT = join(import.meta.dirname, "../..");
@@ -173,6 +174,60 @@ async function handleApi(req: IncomingMessage, res: ServerResponse, url: URL) {
       return json(res, 200, { run });
     } catch (e) {
       return json(res, 404, { error: (e as Error).message || "run_not_found" });
+    }
+  }
+
+
+  if (method === "GET" && path === "/api/plugins") {
+    return json(res, 200, { plugins: listPlugins() });
+  }
+
+  if (method === "POST" && path === "/api/ship") {
+    const raw = await readBody(req);
+    let body: { runId?: string; channel?: string };
+    try {
+      body = JSON.parse(raw || "{}") as { runId?: string; channel?: string };
+    } catch {
+      return json(res, 400, { error: "invalid_json" });
+    }
+    if (!body.runId) return json(res, 400, { error: "runId required" });
+    const channel = (body.channel || "").trim().toLowerCase() as ShipChannel;
+    const allowed: ShipChannel[] = ["ig", "yt", "canva", "zip", "telegram", "x", "tiktok"];
+    if (!allowed.includes(channel)) {
+      return json(res, 400, { error: "channel required", allowed });
+    }
+    try {
+      const run = await loadRun(body.runId);
+      if (run.status !== "approved" && run.status !== "needs_input") {
+        return json(res, 409, {
+          error: `ship_blocked: status=${run.status}`,
+          hint: "Run must be needs_input or approved",
+        });
+      }
+      const result = await shipRun(run, channel);
+      // Log ship attempt — never claim published for OAuth stubs
+      run.log.push({
+        agent: "ship",
+        at: new Date().toISOString(),
+        action: `ship_${channel}`,
+        ok: result.ok,
+        detail: result.status + (result.warning ? ` · ${result.warning}` : ""),
+        spendCents: 0,
+      });
+      if (channel === "zip" && result.status === "downloaded") {
+        // ZIP is a real local export; do not flip to shipped (OAuth not done)
+      }
+      await saveRun(run);
+      return json(res, 200, { ...result, runId: run.id, runStatus: run.status });
+    } catch (e) {
+      const msg = (e as Error).message || "ship_failed";
+      if (msg.startsWith("ship_blocked") || msg.includes("share preview")) {
+        return json(res, 409, { error: msg });
+      }
+      if (msg.includes("invalid run") || msg.includes("ENOENT") || msg.includes("no such file")) {
+        return json(res, 404, { error: "run_not_found" });
+      }
+      return json(res, 404, { error: msg.includes("run") ? msg : "run_not_found" });
     }
   }
 

@@ -3,7 +3,8 @@
  * POST /api/wedge  { headline }           → hackathon
  * POST /api/desk   { beatId }             → full scout pipeline
  * POST /api/approve { runId }             → needs_input → approved
- * POST /api/ship    { runId, channel }    → ig|yt|canva|zip
+ * POST /api/ship    { runId, channel }    → ig|yt|canva|zip|telegram|x|tiktok
+ * GET  /api/plugins                       → channel list + connected flags
  * GET  /api/beats                         → beat catalog
  * GET  /api/hunt?beat=&q=                 → scoutBeat live hunt
  * POST /api/hunt { beat, query? }         → same
@@ -13,6 +14,7 @@ export const ROUTES = [
   "POST /api/desk",
   "POST /api/approve",
   "POST /api/ship",
+  "GET  /api/plugins",
   "GET  /api/runs/:id",
   "GET  /api/health",
   "GET  /api/beats",

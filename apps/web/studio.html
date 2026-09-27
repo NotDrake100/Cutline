@@ -626,6 +626,134 @@
   }
   .tool-row.active-tool { background: var(--nav-active); }
 
+
+  /* ——— Connect / Plugins ——— */
+  .connect-wrap {
+    max-width: 820px;
+    margin: 0 auto;
+    padding: 36px 28px 64px;
+  }
+  .connect-wrap .kicker {
+    font-size: 11px; font-weight: 600; color: var(--dim);
+    letter-spacing: .04em; text-transform: uppercase; margin-bottom: 8px;
+  }
+  .connect-wrap h1 {
+    font-size: 28px; font-weight: 650; letter-spacing: -.03em;
+    margin: 0 0 8px; line-height: 1.15;
+  }
+  .connect-sub {
+    font-size: 14px; color: var(--muted); margin: 0 0 22px; line-height: 1.45;
+    max-width: 52ch;
+  }
+  .connect-run {
+    display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+    padding: 10px 14px;
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-sm);
+    margin-bottom: 22px;
+    font-size: 12.5px; color: var(--muted);
+  }
+  .connect-run strong { color: var(--ink); font-weight: 600; }
+  .connect-run .run-id {
+    font-family: var(--mono); font-size: 11.5px; color: var(--ink);
+    background: var(--nav-active); padding: 3px 8px; border-radius: 6px;
+  }
+  .connect-run.warn { border-color: rgba(255,59,48,.25); }
+  .plugin-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 12px;
+  }
+  .plugin-card {
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    padding: 16px 16px 14px;
+    display: flex; flex-direction: column; gap: 10px;
+    min-height: 168px;
+    transition: border-color .12s ease, box-shadow .12s ease;
+  }
+  .plugin-card:hover {
+    border-color: var(--line-strong);
+    box-shadow: 0 1px 0 rgba(0,0,0,.03);
+  }
+  .plugin-card.primary { border-color: rgba(0,0,0,.1); }
+  .plugin-top {
+    display: flex; align-items: flex-start; gap: 12px;
+  }
+  .plugin-mark {
+    width: 36px; height: 36px;
+    border-radius: 10px;
+    display: grid; place-items: center;
+    flex-shrink: 0;
+    color: #fff;
+    font-weight: 700; font-size: 13px;
+  }
+  .plugin-mark svg { width: 18px; height: 18px; }
+  .plugin-mark.ig { background: #E1306C; }
+  .plugin-mark.yt { background: #FF0000; }
+  .plugin-mark.canva { background: #00C4CC; }
+  .plugin-mark.telegram { background: #229ED9; }
+  .plugin-mark.x { background: #0A0A0A; }
+  .plugin-mark.tiktok { background: #111111; }
+  .plugin-mark.zip { background: #343434; color: #E1F435; }
+  .plugin-meta { min-width: 0; flex: 1; }
+  .plugin-name {
+    font-size: 14.5px; font-weight: 600; letter-spacing: -.01em;
+    display: flex; align-items: center; gap: 6px;
+  }
+  .plugin-badge {
+    font-size: 10px; font-weight: 600;
+    padding: 2px 7px; border-radius: 999px;
+    background: var(--nav-active); color: var(--muted);
+  }
+  .plugin-badge.soon { background: rgba(255,59,48,.1); color: var(--red); }
+  .plugin-badge.local { background: rgba(34,197,94,.12); color: #15803d; }
+  .plugin-desc {
+    font-size: 12.5px; color: var(--muted); margin-top: 3px; line-height: 1.4;
+  }
+  .plugin-actions {
+    margin-top: auto;
+    display: flex; flex-direction: column; gap: 6px;
+  }
+  .plugin-btn {
+    display: inline-flex; align-items: center; justify-content: center;
+    height: 34px; padding: 0 12px;
+    border-radius: 9px;
+    font-size: 12.5px; font-weight: 600;
+    background: var(--ink); color: #fff;
+    transition: filter .12s ease, opacity .12s ease;
+  }
+  .plugin-btn:hover:not(:disabled) { filter: brightness(1.08); }
+  .plugin-btn:disabled { opacity: .4; cursor: not-allowed; }
+  .plugin-btn.lime {
+    background: var(--lime); color: var(--lime-ink);
+  }
+  .plugin-btn.ghost {
+    background: transparent; color: var(--ink);
+    border: 1px solid var(--line-strong);
+  }
+  .plugin-btn.ghost:hover:not(:disabled) { background: var(--nav-hover); }
+  .plugin-hint {
+    font-size: 11px; color: var(--dim); line-height: 1.35;
+  }
+  .connect-toast {
+    display: none;
+    margin-top: 18px;
+    padding: 12px 14px;
+    border-radius: var(--radius-sm);
+    background: var(--panel);
+    border: 1px solid var(--line);
+    font-size: 12.5px; color: var(--muted);
+    line-height: 1.45;
+  }
+  .connect-toast.show { display: block; }
+  .connect-toast strong { color: var(--ink); }
+  .connect-toast a { color: var(--ink); text-decoration: underline; text-underline-offset: 2px; }
+  .connect-toast.ok { border-color: rgba(34,197,94,.35); }
+  .connect-toast.warn { border-color: rgba(255,59,48,.3); }
+
   /* ——— Right pane · Magic Layer / Browser ——— */
   .right-pane {
     background: var(--panel);
@@ -862,6 +990,12 @@
         <span class="label">Activity</span>
         <span class="nav-dot" id="activityDot" title="Needs input"></span>
       </button>
+      <button type="button" class="nav-item" data-view="connect" id="navConnect">
+        <span class="ico" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M8 12h8"/><path d="M10 8H7a3 3 0 0 0 0 8h3"/><path d="M14 8h3a3 3 0 0 1 0 8h-3"/></svg>
+        </span>
+        <span class="label">Connect</span>
+      </button>
     </nav>
 
     <div class="section-label">Agents</div>
@@ -887,13 +1021,13 @@
         <span class="label">Clip</span>
         <span class="dot"></span>
       </div>
-      <div class="nav-item nav-agent" data-agent="ship">
+      <button type="button" class="nav-item nav-agent" data-agent="ship" id="agentShip" data-open-connect="1">
         <span class="ico" aria-hidden="true">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h11"/><path d="m12 7 5 5-5 5"/></svg>
         </span>
         <span class="label">Ship</span>
         <span class="dot"></span>
-      </div>
+      </button>
     </nav>
 
     <div class="section-label">Tools</div>
@@ -916,7 +1050,7 @@
         </span>
         <span class="label">Captions</span>
       </button>
-      <button type="button" class="tool-row t4" title="Ship" aria-label="Ship">
+      <button type="button" class="tool-row t4" title="Ship / Connect" aria-label="Ship" id="toolShip" data-open-connect="1">
         <span class="tool-ico" aria-hidden="true">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v12"/><path d="m7 11 5 5 5-5"/><path d="M5 20h14"/></svg>
         </span>
@@ -1071,6 +1205,25 @@
         <div id="hitList" class="hit-list">
           <div class="hunt-empty" id="huntEmpty">No hunt yet. Choose a city or India / Global and hit Hunt latest.</div>
         </div>
+      </div>
+    </section>
+
+    <!-- CONNECT / PLUGINS -->
+    <section class="view" id="viewConnect" aria-label="Connect">
+      <div class="connect-wrap">
+        <div class="kicker">Ship · Plugins</div>
+        <h1>Connect</h1>
+        <p class="connect-sub">Ship packs to Instagram, YouTube, Canva, and more. OAuth publish is stubbed — Download ZIP always works.</p>
+
+        <div class="connect-run" id="connectRunBar">
+          <span id="connectRunMsg">Run a story first — then Ship to a channel.</span>
+        </div>
+
+        <div class="plugin-grid" id="pluginGrid" aria-label="Plugins">
+          <!-- cards filled by JS -->
+        </div>
+
+        <div class="connect-toast" id="connectToast" role="status"></div>
       </div>
     </section>
   </main>
@@ -1282,7 +1435,7 @@
     bar.style.display = needs || run?.status === "approved" ? "flex" : (run ? "flex" : "none");
     $("approveBtn").disabled = !needs;
     if (run?.status === "approved") {
-      bar.querySelector(".msg").innerHTML = "<strong>Approved.</strong> Ship unlocked for this run.";
+      bar.querySelector(".msg").innerHTML = "<strong>Approved.</strong> Ship unlocked — open <a href=\"javascript:void(0)\" id=\"gotoConnect\" style=\"text-decoration:underline\">Connect</a>.";
     } else if (needs) {
       bar.querySelector(".msg").innerHTML = "<strong>Needs your input.</strong> Review still + pack, then approve to unlock ship.";
     } else if (run) {
@@ -1610,10 +1763,16 @@
   function switchView(name) {
     document.querySelectorAll(".view").forEach((v) => v.classList.remove("active"));
     document.querySelectorAll(".nav-item[data-view]").forEach((n) => n.classList.remove("active"));
-    const view = name === "activity" ? $("viewActivity") : $("viewHome");
-    view.classList.add("active");
-    const nav = name === "activity" ? $("navActivity") : $("navHome");
-    nav.classList.add("active");
+    if (name === "activity") {
+      $("viewActivity").classList.add("active");
+      $("navActivity").classList.add("active");
+    } else if (name === "connect") {
+      $("viewConnect").classList.add("active");
+      $("navConnect").classList.add("active");
+    } else {
+      $("viewHome").classList.add("active");
+      $("navHome").classList.add("active");
+    }
   }
 
   $("runBtn").addEventListener("click", doRun);
@@ -1711,6 +1870,11 @@
     } else if (name === "hunt") {
       $("viewHunt").classList.add("active");
       $("toolNews")?.classList.add("active-tool");
+    } else if (name === "connect") {
+      $("viewConnect").classList.add("active");
+      $("navConnect").classList.add("active");
+      $("toolShip")?.classList.add("active-tool");
+      refreshConnect();
     } else {
       $("viewHome").classList.add("active");
       $("navHome").classList.add("active");
@@ -1799,6 +1963,203 @@
   $("huntBtn").addEventListener("click", doHunt);
 
 
+
+  $("navConnect").addEventListener("click", () => switchView("connect"));
+
+  document.querySelectorAll("[data-open-connect]").forEach((el) => {
+    el.addEventListener("click", () => switchView("connect"));
+  });
+
+  const PLUGIN_MARKS = {
+    ig: { cls: "ig", svg: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="4" y="4" width="16" height="16" rx="4"/><circle cx="12" cy="12" r="3.5"/><circle cx="17" cy="7" r="1" fill="currentColor" stroke="none"/></svg>' },
+    yt: { cls: "yt", svg: '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M22 12c0-2.2-.3-3.6-.7-4.4-.4-.8-1-1.4-1.8-1.7C18 5.4 12 5.4 12 5.4s-6 0-7.5.5c-.8.3-1.4.9-1.8 1.7C2.3 8.4 2 9.8 2 12s.3 3.6.7 4.4c.4.8 1 1.4 1.8 1.7 1.5.5 7.5.5 7.5.5s6 0 7.5-.5c.8-.3 1.4-.9 1.8-1.7.4-.8.7-2.2.7-4.4z"/><path d="M10 9.5v5l5-2.5-5-2.5z" fill="#fff"/></svg>' },
+    canva: { cls: "canva", svg: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="8"/><path d="M8 13c1.5 2 6.5 2 8 0"/></svg>' },
+    telegram: { cls: "telegram", svg: '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M20.5 4.5 3.8 10.8c-1.1.4-1.1 1.1-.2 1.4l4.3 1.3 1.6 5c.2.6.6.7 1.2.4l2.3-2.1 4.5 3.3c.8.4 1.4.2 1.6-.8L21.8 5.7c.3-1.1-.4-1.6-1.3-1.2z"/></svg>' },
+    x: { cls: "x", svg: '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M17.5 3h3l-6.6 7.5L22 21h-5.7l-4.5-5.9L6.5 21H3.4l7-8L2 3h5.8l4 5.4L17.5 3z"/></svg>' },
+    tiktok: { cls: "tiktok", svg: '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M16 3c.4 2.2 1.8 3.8 4 4.2v3c-1.5-.1-2.9-.6-4-1.4V15a6 6 0 1 1-6-6c.3 0 .7 0 1 .1v3.1a3 3 0 1 0 2 2.8V3h3z"/></svg>' },
+    zip: { cls: "zip", svg: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M7 3h7l5 5v13a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1z"/><path d="M14 3v5h5M10 12h2M10 15h2M10 18h2"/></svg>' },
+  };
+
+  let pluginsCache = null;
+
+  function canShip() {
+    return !!(currentRun?.id && (currentRun.status === "approved" || currentRun.status === "needs_input") && currentRun.pack);
+  }
+
+  function refreshConnectBar() {
+    const bar = $("connectRunBar");
+    if (!bar) return;
+    if (canShip()) {
+      bar.classList.toggle("warn", currentRun.status === "needs_input");
+      const hl = (currentRun.rewrite?.headline || currentRun.brief?.headline || "").slice(0, 60);
+      bar.innerHTML = `<strong>Ready to ship</strong> <span class="run-id">${escapeHtml(currentRun.id)}</span> <span>${escapeHtml(currentRun.status)}${hl ? " · " + escapeHtml(hl) : ""}</span>`;
+    } else if (currentRun?.id) {
+      bar.classList.add("warn");
+      bar.innerHTML = `<strong>Run ${escapeHtml(currentRun.id)}</strong> — status ${escapeHtml(currentRun.status)}. Approve or wait for pack before ship.`;
+    } else {
+      bar.classList.remove("warn");
+      bar.innerHTML = `<span id="connectRunMsg">Run a story first — then Ship to a channel.</span>`;
+    }
+  }
+
+  function showConnectToast(html, kind) {
+    const t = $("connectToast");
+    if (!t) return;
+    t.className = "connect-toast show" + (kind ? " " + kind : "");
+    t.innerHTML = html;
+  }
+
+  function downloadText(filename, content, mime) {
+    const blob = new Blob([content], { type: mime || "application/json" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 1500);
+  }
+
+  async function doShip(channel) {
+    if (!currentRun?.id) {
+      showConnectToast("<strong>No run.</strong> Run a story on Home first.", "warn");
+      return;
+    }
+    showConnectToast("Shipping to " + escapeHtml(channel) + "…");
+    try {
+      const res = await fetch("/api/ship", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ runId: currentRun.id, channel }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "ship failed");
+
+      if (channel === "zip" && data.download?.content) {
+        downloadText(data.download.filename || "cutline-pack.json", data.download.content, data.download.mime);
+        // also offer caption as second file if pack preview has shareText
+        if (data.pack?.shareText) {
+          downloadText(`cutline-${currentRun.id}-caption.txt`, [
+            data.pack.ytTitle || "",
+            "",
+            "— IG —",
+            data.pack.igCaption || "",
+            "",
+            "— YT —",
+            data.pack.ytDescription || "",
+          ].join("\n"), "text/plain");
+        }
+        showConnectToast("<strong>ZIP pack downloaded.</strong> JSON + caption saved locally. No OAuth needed.", "ok");
+        return;
+      }
+
+      if (data.status === "connect_required") {
+        const link = data.connectUrl
+          ? ` <a href="${escapeHtml(data.connectUrl)}" target="_blank" rel="noopener noreferrer">Open ${escapeHtml(channel)}</a>`
+          : "";
+        const next = data.nextStep ? " " + escapeHtml(data.nextStep) : "";
+        const warn = data.warning ? `<br/><span>${escapeHtml(data.warning)}</span>` : "";
+        const preview = data.pack?.igCaption || data.pack?.ytTitle
+          ? `<br/><br/><strong>Pack preview</strong><br/><pre style="white-space:pre-wrap;margin:6px 0 0;font-size:11.5px;font-family:var(--mono)">${escapeHtml((data.pack.shareText || data.pack.igCaption || "").slice(0, 500))}</pre>`
+          : "";
+        showConnectToast(`<strong>Connect required.</strong>${next}${link}${warn}${preview}`, "warn");
+        if (channel === "canva" && data.connectUrl) {
+          // soft open canva handoff
+          window.open(data.connectUrl, "_blank", "noopener,noreferrer");
+        }
+        return;
+      }
+
+      showConnectToast("<strong>Ship:</strong> " + escapeHtml(data.status || "ok"), "ok");
+    } catch (e) {
+      showConnectToast("<strong>Ship failed.</strong> " + escapeHtml(e.message || String(e)), "warn");
+    }
+  }
+
+  function renderPluginCards(plugins) {
+    const grid = $("pluginGrid");
+    if (!grid) return;
+    const shipOk = canShip();
+    grid.innerHTML = plugins.map((p) => {
+      const mark = PLUGIN_MARKS[p.id] || PLUGIN_MARKS.zip;
+      let badge = "";
+      if (p.comingSoon) badge = '<span class="plugin-badge soon">Coming soon</span>';
+      else if (p.local) badge = '<span class="plugin-badge local">Always on</span>';
+      else if (p.connected) badge = '<span class="plugin-badge">Connected</span>';
+      else badge = '<span class="plugin-badge">Not connected</span>';
+
+      let btn = "";
+      let hint = "";
+      if (p.comingSoon) {
+        btn = `<button type="button" class="plugin-btn ghost" disabled>Coming soon</button>`;
+        hint = `<div class="plugin-hint">Optional — not wired yet</div>`;
+      } else if (p.local) {
+        btn = `<button type="button" class="plugin-btn lime" data-ship="${p.id}" ${shipOk ? "" : "disabled"}>Download pack</button>`;
+        hint = shipOk
+          ? `<div class="plugin-hint">Exports JSON + caption for this run</div>`
+          : `<div class="plugin-hint">Run a story first</div>`;
+      } else if (shipOk) {
+        btn = `<button type="button" class="plugin-btn" data-ship="${p.id}">Ship to ${escapeHtml(p.name)}</button>`;
+        hint = `<div class="plugin-hint">Returns pack + connect step (OAuth not live)</div>`;
+      } else {
+        btn = `<button type="button" class="plugin-btn ghost" data-ship="${p.id}" disabled>Connect</button>`;
+        hint = `<div class="plugin-hint">Run a story first</div>`;
+      }
+
+      return `<article class="plugin-card ${p.primary ? "primary" : ""}" data-plugin="${p.id}">
+        <div class="plugin-top">
+          <div class="plugin-mark ${mark.cls}" aria-hidden="true">${mark.svg}</div>
+          <div class="plugin-meta">
+            <div class="plugin-name">${escapeHtml(p.name)} ${badge}</div>
+            <div class="plugin-desc">${escapeHtml(p.description)}</div>
+          </div>
+        </div>
+        <div class="plugin-actions">${btn}${hint}</div>
+      </article>`;
+    }).join("");
+
+    grid.querySelectorAll("[data-ship]").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        if (btn.disabled) return;
+        doShip(btn.dataset.ship);
+      });
+    });
+  }
+
+  async function refreshConnect() {
+    refreshConnectBar();
+    try {
+      if (!pluginsCache) {
+        const res = await fetch("/api/plugins");
+        const data = await res.json();
+        pluginsCache = data.plugins || [];
+      }
+      renderPluginCards(pluginsCache);
+    } catch (e) {
+      // fallback static list if API down
+      const fallback = [
+        { id: "ig", name: "Instagram", description: "Still + IG caption pack", connected: false, primary: true, local: false },
+        { id: "yt", name: "YouTube", description: "Title, description + thumbnail", connected: false, primary: true, local: false },
+        { id: "canva", name: "Canva", description: "Open design handoff", connected: false, primary: true, local: false },
+        { id: "telegram", name: "Telegram", description: "DCN-proven ship lane", connected: false, primary: false, local: false },
+        { id: "x", name: "X / Twitter", description: "Post + media", connected: false, primary: false, local: false },
+        { id: "tiktok", name: "TikTok", description: "Shorts handoff", connected: false, primary: false, local: false, comingSoon: true },
+        { id: "zip", name: "Download ZIP", description: "JSON + caption bundle — always works", connected: true, primary: false, local: true },
+      ];
+      renderPluginCards(fallback);
+      showConnectToast("<strong>Plugins API offline.</strong> Showing local catalog.", "warn");
+    }
+  }
+
+  // Re-paint connect cards when a run lands
+  const _applyRun = applyRun;
+  applyRun = function(run, stub) {
+    _applyRun(run, stub);
+    if ($("viewConnect")?.classList.contains("active")) refreshConnect();
+  };
+
+
   // Honest Gemini / TinyFish status (names only — never key values)
   fetch("/api/health").then((r) => r.json()).then((h) => {
     const g = !!h.gemini;
@@ -1819,8 +2180,33 @@
   // Soft empty Structure on load (Cursor-style)
   clearMagicLayers({ keepSkeleton: true });
 
+
+  document.addEventListener("click", (e) => {
+    if (e.target && e.target.id === "gotoConnect") {
+      e.preventDefault();
+      switchView("connect");
+    }
+  });
+
   updateNeedLabel();
   setSideRunReady();
+
+  // Deep-link: ?view=connect|activity|hunt|home  & optional ?runId=
+  (async function bootFromQuery() {
+    const q = new URLSearchParams(location.search);
+    const runId = q.get("runId");
+    if (runId) {
+      try {
+        const res = await fetch("/api/runs/" + encodeURIComponent(runId));
+        const data = await res.json();
+        if (res.ok && data.run) applyRun(data.run, false);
+      } catch (_) { /* ignore */ }
+    }
+    const view = (q.get("view") || "").toLowerCase();
+    if (view === "connect" || view === "activity" || view === "hunt") {
+      switchView(view);
+    }
+  })();
 </script>
 </body>
 </html>
