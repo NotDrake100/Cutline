@@ -63,18 +63,18 @@
     overflow: hidden;
     pointer-events: none;
   }
+  .shell.desk-collapsed .sidebar { display: none; }
   .shell.desk-collapsed {
     grid-template-columns: 0 minmax(0, 1fr) var(--right-w);
   }
-  .shell.desk-collapsed .sidebar { display: none; }
-  .shell.browser-focus.desk-collapsed {
-    grid-template-columns: 0 0 minmax(640px, 1fr);
-  }
-  .shell.desk-collapsed .right-pane,
   .shell.browser-focus.desk-collapsed .right-pane {
-    width: auto;
-    min-width: 0;
+    position: fixed;
+    inset: 0;
+    z-index: 15;
+    width: 100vw;
+    height: 100vh;
     max-width: none;
+    border: none;
   }
   .panel-toggle {
     width: 34px; height: 34px;
@@ -3435,7 +3435,9 @@
     const preview = (q.get("preview") || "").toLowerCase();
     if (preview === "browser" || preview === "browser-closed") {
       loadBrowserUrl(location.origin + "/sample-source.html", { switchTab: true });
-      if (preview === "browser-closed") setDeskCollapsed(true);
+      if (preview === "browser-closed") {
+        requestAnimationFrame(() => setDeskCollapsed(true));
+      }
     } else if (preview === "profile") {
       switchView("home");
       if ($("profileMenu")) $("profileMenu").hidden = false;
