@@ -6,7 +6,8 @@ import type { WedgeRequest, WedgeResponse } from "../../packages/core/src/types"
 
 /**
  * POST /api/wedge  { headline, demoId? }
- * Wires runWedge → needs_input StoryRun. No Scout. No fake publisher URLs.
+ * Wires runWedge → needs_input StoryRun. No Scout.
+ * sourceUrl stays manual://wedge — never invent a publisher URL or unsourced story.
  *
  * Caller must inject Gemini (or mocks). This module does not read process.env
  * values into logs.

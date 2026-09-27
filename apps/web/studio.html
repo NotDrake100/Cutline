@@ -960,6 +960,101 @@
     border-radius: var(--radius-pill);
     background: var(--lime);
   }
+
+  /* ——— Truth lane · sourced proof ——— */
+  .truth-micro {
+    margin: 8px 0 0;
+    font-size: 12.5px;
+    color: var(--muted);
+    letter-spacing: -.01em;
+  }
+  .truth-micro strong { color: var(--ink); font-weight: 600; }
+  .sourced-pill {
+    display: inline-flex; align-items: center; gap: 5px;
+    padding: 3px 9px;
+    border-radius: var(--radius-pill);
+    font-size: 11px; font-weight: 700;
+    letter-spacing: .02em;
+    text-transform: uppercase;
+    background: rgba(34,197,94,.16);
+    color: #166534;
+    border: 1px solid rgba(34,197,94,.35);
+  }
+  .sourced-pill .dot {
+    width: 6px; height: 6px; border-radius: 50%;
+    background: #16a34a;
+    box-shadow: 0 0 0 2px rgba(22,163,74,.22);
+  }
+  .hit-card .hit-top {
+    display: flex; flex-wrap: wrap; align-items: center; gap: 8px;
+  }
+  .hit-card .hit-outlet {
+    font-size: 12.5px; font-weight: 600; color: var(--ink);
+  }
+  .hit-actions button.open-browser {
+    background: var(--bg);
+    border-color: var(--line-strong);
+    color: var(--ink);
+  }
+  .hit-actions button.open-browser:hover { background: var(--nav-hover); }
+  .truth-banner {
+    display: flex; flex-wrap: wrap; align-items: center; gap: 8px;
+    margin: 0 12px 4px;
+    padding: 9px 12px;
+    border-radius: 10px;
+    background: rgba(225,244,53,.22);
+    border: 1px solid rgba(225,244,53,.55);
+    font-size: 11.5px; font-weight: 600;
+    color: var(--ink);
+    letter-spacing: -.01em;
+    flex-shrink: 0;
+  }
+  .truth-banner .tb-ico {
+    width: 14px; height: 14px; flex-shrink: 0;
+    display: grid; place-items: center;
+  }
+  .truth-banner .tb-ico svg { width: 14px; height: 14px; }
+  .wedge-chip {
+    display: none;
+    margin: 0 12px 8px;
+    padding: 8px 12px;
+    border-radius: 10px;
+    background: rgba(251,191,36,.18);
+    border: 1px solid rgba(251,191,36,.4);
+    font-size: 11.5px; font-weight: 600;
+    color: #b45309;
+    flex-shrink: 0;
+  }
+  .wedge-chip.show { display: block; }
+  .layer-ban.ai-still {
+    background: rgba(251,191,36,.18);
+    color: #b45309;
+    border: 1px solid rgba(251,191,36,.3);
+    max-width: 100%;
+    white-space: normal;
+    line-height: 1.3;
+  }
+  .source-demo-tag {
+    display: inline-block;
+    margin-top: 4px;
+    font-size: 10.5px; font-weight: 650;
+    padding: 2px 7px;
+    border-radius: 6px;
+    background: rgba(251,191,36,.18);
+    color: #b45309;
+    border: 1px solid rgba(251,191,36,.3);
+  }
+  .hunt-truth {
+    margin: 0 0 16px;
+    padding: 10px 14px;
+    border-radius: 10px;
+    background: rgba(225,244,53,.18);
+    border: 1px solid rgba(225,244,53,.45);
+    font-size: 12.5px; font-weight: 550;
+    color: var(--ink);
+    line-height: 1.4;
+  }
+  .hunt-truth strong { font-weight: 700; }
 </style>
 </head>
 <body>
@@ -1075,11 +1170,12 @@
       <div class="home-wrap" id="homeWrap">
         <div class="kicker">Your AI desk</div>
         <h1>What should we finish today?</h1>
+        <p class="truth-micro"><strong>News only from real pages.</strong> Browser holds the source.</p>
 
         <div class="ask-box">
           <textarea id="headline" placeholder="Search news or drop a video…" rows="3"></textarea>
           <div class="ask-actions">
-            <span class="ask-hint">Wire → Still → Desk · you approve before ship</span>
+            <span class="ask-hint">Wire → Still → Desk · live URL required · you approve before ship</span>
             <button type="button" class="btn btn-lime" id="runBtn">Run</button>
           </div>
         </div>
@@ -1118,7 +1214,7 @@
             <div class="card">
               <h3>Still</h3>
               <div class="frame" id="frame"><div class="ph">No still yet</div></div>
-              <div class="ban" id="ban">bannedForPrint · gemini_gen · social only</div>
+              <div class="ban" id="ban">bannedForPrint · AI still · social only — story must stay URL-sourced</div>
             </div>
             <div class="card">
               <h3>Pack preview</h3>
@@ -1138,6 +1234,7 @@
       <div class="activity-wrap">
         <h1>Activity</h1>
         <p class="activity-sub">What needs you, and what moved.</p>
+        <p class="truth-micro" style="margin:-18px 0 22px"><strong>News only from real pages.</strong> Browser holds the source.</p>
 
         <div class="need-label" id="needLabel">2 items need your input</div>
         <div class="need-list" id="needList">
@@ -1188,6 +1285,7 @@
         <div class="kicker">Wire · Scout</div>
         <h1>Hunt latest</h1>
         <p class="hunt-sub">RSS + TinyFish across Cutline beats — same loop as DCN, productized here.</p>
+        <div class="hunt-truth"><strong>Truth lane:</strong> every hit needs a live sourceUrl · Browser shows the page · no AI-invented news</div>
 
         <div class="beat-chips" id="beatChips" role="group" aria-label="Beats">
           <button type="button" class="beat-chip active" data-beat="hyderabad">Hyderabad</button>
@@ -1253,11 +1351,16 @@
         <h3>No pack yet</h3>
         <p>Run a hunt or ask to fill the layers.</p>
       </div>
+      <div class="truth-banner" id="truthBanner" style="display:none" role="status">
+        <span class="tb-ico" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 3l8 4v5c0 5-3.5 8.5-8 10-4.5-1.5-8-5-8-10V7l8-4z"/><path d="M9 12l2 2 4-4"/></svg></span>
+        Truth lane: live URL required · no AI-invented news
+      </div>
+      <div class="wedge-chip" id="wedgeChip">No live URL — pasted headline (demo)</div>
       <div class="layer-tree" id="layerTree" style="display:none" aria-label="Story layers">
         <div class="layer" data-id="still" id="layerStill">
           <div class="layer-head">
             <span class="layer-kind">Still</span>
-            <span class="layer-ban" id="layerStillBan" style="display:none">bannedForPrint</span>
+            <span class="layer-ban ai-still" id="layerStillBan" style="display:none">bannedForPrint · AI still · social only — story must stay URL-sourced</span>
             <span class="layer-chip" data-chip>updated</span>
           </div>
           <div class="layer-thumb" id="layerStillThumb"><div class="ph">No still</div></div>
@@ -1307,7 +1410,7 @@
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M3 12h18"/></svg>
         </div>
         <h3>No source yet</h3>
-        <p>Run a hunt or ask — live URLs open here.</p>
+        <p>Hunt a real page — this pane holds the live URL (no AI fake news).</p>
       </div>
       <div id="browserLive" style="display:none; flex:1; min-height:0; flex-direction:column;">
         <div class="browser-bar">
@@ -1326,8 +1429,8 @@
         <div class="empty-ico" aria-hidden="true">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M4 7h16M4 12h10M4 17h14"/></svg>
         </div>
-        <h3>No live URL</h3>
-        <p>Wedge headline only — manual://wedge.</p>
+        <h3>No live URL — demo</h3>
+        <p>Pasted headline · <code style="font-size:11px">manual://wedge</code> · not a news URL</p>
       </div>
     </div>
   </aside>
@@ -1542,14 +1645,19 @@
   function paintStructure(run, { flash = true } = {}) {
     const empty = $("structureEmpty");
     const tree = $("layerTree");
+    const truthBan = $("truthBanner");
+    const wedgeChip = $("wedgeChip");
     if (!run) {
       empty.style.display = "";
       tree.style.display = "none";
+      if (truthBan) truthBan.style.display = "none";
+      if (wedgeChip) wedgeChip.classList.remove("show");
       layerSnapshot = {};
       return;
     }
     empty.style.display = "none";
     tree.style.display = "flex";
+    if (truthBan) truthBan.style.display = "flex";
 
     const next = {};
 
@@ -1586,22 +1694,26 @@
     const yt = [run.pack?.ytTitle, run.pack?.ytDescription].filter(Boolean).join("\n\n");
     next.yt = setLayerText($("layerYtText"), yt, "No YT pack");
 
-    // Source
+    // Source — truth lane: https only counts as news; manual://wedge = demo
     const src = resolveSourceUrl(run);
     next.source = src;
     const srcMeta = $("layerSourceMeta");
-    if (/^https?:\/\//i.test(src)) {
+    const isLive = /^https?:\/\//i.test(src);
+    const isWedge = !!(src && (src.startsWith("manual://") || src === "manual://wedge"));
+    if (wedgeChip) wedgeChip.classList.toggle("show", isWedge || (!isLive && !!run));
+    if (isLive) {
       srcMeta.classList.remove("muted");
       srcMeta.innerHTML = `<a class="layer-link" href="${escapeHtml(src)}" target="_blank" rel="noopener noreferrer">${escapeHtml(src)}</a>`;
-    } else if (src && src.startsWith("manual:")) {
+    } else if (isWedge) {
       srcMeta.classList.add("muted");
-      srcMeta.textContent = src + " · wedge headline only";
+      srcMeta.innerHTML = `${escapeHtml(src)} · demo · not sourced<span class="source-demo-tag">manual://wedge</span>`;
     } else if (src) {
       srcMeta.classList.remove("muted");
       srcMeta.textContent = src;
     } else {
       srcMeta.classList.add("muted");
       srcMeta.textContent = "No source URL";
+      if (wedgeChip) wedgeChip.classList.add("show");
     }
 
     // Clip
@@ -1625,6 +1737,34 @@
       }
     }
     layerSnapshot = next;
+  }
+
+
+  function isLiveSourceUrl(u) {
+    return /^https?:\/\//i.test(u || "");
+  }
+
+  function loadBrowserUrl(url, { switchTab = true } = {}) {
+    if (!isLiveSourceUrl(url)) return false;
+    pendingSourceUrl = url;
+    const empty = $("browserEmpty");
+    const live = $("browserLive");
+    const wedge = $("browserWedge");
+    empty.style.display = "none";
+    wedge.style.display = "none";
+    live.style.display = "flex";
+    $("browserUrl").textContent = url;
+    $("browserOpen").href = url;
+    $("browserBlockedLink").href = url;
+    const frame = $("browserFrame");
+    const blocked = $("browserBlocked");
+    blocked.style.display = "none";
+    if (frame.dataset.src !== url) {
+      frame.dataset.src = url;
+      frame.src = url;
+    }
+    if (switchTab) switchRightTab("browser");
+    return true;
   }
 
   function paintBrowser(run) {
@@ -1673,7 +1813,10 @@
   function fillMagicLayers(run, opts) {
     paintStructure(run, opts);
     paintBrowser(run);
-    if (run) switchRightTab("structure");
+    if (!run) return;
+    const src = resolveSourceUrl(run);
+    const preferBrowser = (opts && opts.preferBrowser) || /^https?:\/\//i.test(src);
+    switchRightTab(preferBrowser ? "browser" : "structure");
   }
 
   function clearMagicLayers({ keepSkeleton = true } = {}) {
@@ -1705,7 +1848,7 @@
     syncApproveBar(run);
     setSideRunReady();
     switchView("home");
-    fillMagicLayers(run, { flash: true });
+    fillMagicLayers(run, { flash: true, preferBrowser: isLiveSourceUrl(pendingSourceUrl) || isLiveSourceUrl(resolveSourceUrl(run)) });
   }
 
   async function doRun() {
@@ -1897,11 +2040,13 @@
 
   function renderHits(data) {
     const list = $("hitList");
-    lastHits = data.hits || [];
     const stub = !!data.stubTinyfish;
+    // Product rule: only show hits with a real openable sourceUrl
+    lastHits = (data.hits || []).filter((h) => isLiveSourceUrl(h.sourceUrl));
     const via = data.viaCounts || {};
-    let meta = (data.beat || selectedBeat) + " · " + lastHits.length + " hits";
+    let meta = (data.beat || selectedBeat) + " · " + lastHits.length + " sourced";
     if (via.rss || via.tinyfish) meta += " · rss " + (via.rss || 0) + " · tinyfish " + (via.tinyfish || 0);
+    if (data.truthLane) meta += " · truth lane on";
     if (stub) meta += " · No TinyFish key — RSS only";
     $("huntMeta").textContent = meta;
     $("huntMeta").classList.toggle("warn", stub);
@@ -1909,32 +2054,62 @@
     if (!lastHits.length) {
       list.innerHTML = `<div class="hunt-empty" id="huntEmpty">${
         stub
-          ? "No hits. No TinyFish key — RSS only. Add TINYFISH_API_KEY or try another beat."
-          : "No live hits for this beat right now. Try another beat or check feeds."
+          ? "No sourced hits. No TinyFish key — RSS only. Add TINYFISH_API_KEY or try another beat."
+          : "No sourced hits for this beat (every Wire/Hunt card needs a live URL)."
       }</div>`;
       return;
     }
     list.innerHTML = lastHits.map((h, i) => `
       <article class="hit-card" data-idx="${i}">
-        <div class="hit-title">${escapeHtml(h.title)}</div>
-        <div class="hit-meta">
-          <span>${escapeHtml(h.outlet || "")}</span>
+        <div class="hit-top">
+          <span class="sourced-pill" title="Real publisher URL required"><span class="dot" aria-hidden="true"></span> Sourced</span>
+          <span class="hit-outlet">${escapeHtml(h.outlet || "Outlet")}</span>
           <span class="via-badge ${escapeHtml(h.via || "")}">${escapeHtml(h.via || "")}</span>
         </div>
+        <div class="hit-title">${escapeHtml(h.title)}</div>
+        <div class="hit-meta">
+          <span style="font-family:var(--mono);font-size:11px;word-break:break-all">${escapeHtml(h.sourceUrl)}</span>
+        </div>
         <div class="hit-actions">
-          <a href="${escapeHtml(h.sourceUrl)}" target="_blank" rel="noopener noreferrer">Open source</a>
+          <button type="button" class="open-browser" data-idx="${i}">Open in Browser</button>
+          <a href="${escapeHtml(h.sourceUrl)}" target="_blank" rel="noopener noreferrer">Open tab</a>
           <button type="button" class="use-desk" data-idx="${i}">Use on desk</button>
         </div>
       </article>
     `).join("");
+    list.querySelectorAll(".open-browser").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        const idx = Number(btn.dataset.idx);
+        const hit = lastHits[idx];
+        if (!hit || !isLiveSourceUrl(hit.sourceUrl)) return;
+        loadBrowserUrl(hit.sourceUrl, { switchTab: true });
+        // Soft-fill Structure source layer preview without inventing a run
+        const srcMeta = $("layerSourceMeta");
+        if (srcMeta) {
+          $("structureEmpty").style.display = "none";
+          $("layerTree").style.display = "flex";
+          const tb = $("truthBanner");
+          if (tb) tb.style.display = "flex";
+          const wc = $("wedgeChip");
+          if (wc) wc.classList.remove("show");
+          srcMeta.classList.remove("muted");
+          srcMeta.innerHTML = `<a class="layer-link" href="${escapeHtml(hit.sourceUrl)}" target="_blank" rel="noopener noreferrer">${escapeHtml(hit.sourceUrl)}</a>`;
+        }
+      });
+    });
     list.querySelectorAll(".use-desk").forEach((btn) => {
       btn.addEventListener("click", () => {
         const idx = Number(btn.dataset.idx);
         const hit = lastHits[idx];
         if (!hit) return;
+        if (!isLiveSourceUrl(hit.sourceUrl)) {
+          setHuntErr("Every Hunt hit needs a real sourceUrl — no AI-invented news.");
+          return;
+        }
         $("headline").value = hit.title;
-        pendingSourceUrl = hit.sourceUrl || null;
+        pendingSourceUrl = hit.sourceUrl;
         setSideRunReady();
+        loadBrowserUrl(hit.sourceUrl, { switchTab: true });
         switchView("home");
         doRun();
       });

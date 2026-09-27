@@ -297,16 +297,22 @@ async function handleApi(req: IncomingMessage, res: ServerResponse, url: URL) {
     });
     try {
       const hits = await scoutBeat(beat, deps, 8);
-      const viaCounts = { rss: 0, tinyfish: 0, outlet_fetch: 0, manual: 0 };
-      for (const h of hits) {
-        if (h.via in viaCounts) viaCounts[h.via as keyof typeof viaCounts]++;
+      // Product rule: every Wire/Hunt hit MUST have a real openable sourceUrl
+      const sourced = hits.filter(
+        (h) => typeof h.sourceUrl === "string" && /^https?:\/\//i.test(h.sourceUrl)
+      );
+      const viaCountsSourced = { rss: 0, tinyfish: 0, outlet_fetch: 0, manual: 0 };
+      for (const h of sourced) {
+        if (h.via in viaCountsSourced) viaCountsSourced[h.via as keyof typeof viaCountsSourced]++;
       }
       return json(res, 200, {
         beat: beat.id,
         query: beat.tinyfishQuery || null,
-        hits,
-        viaCounts,
+        hits: sourced,
+        viaCounts: viaCountsSourced,
         stubTinyfish: !hasTinyfishKey(),
+        truthLane: "live URL required · no AI-invented news · Browser holds the source",
+        droppedUnsourced: hits.length - sourced.length,
       });
     } catch (e) {
       return json(res, 500, { error: (e as Error).message || "hunt_failed" });
