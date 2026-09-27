@@ -513,7 +513,8 @@
     color: var(--muted);
   }
   .style-url .btn { height: 32px; padding: 0 12px; font-size: 12px; }
-  .news-recs { width: 100%; margin: 16px 0 4px; text-align: left; }
+  /* Below-fold News list demoted — primary tips live in the ask box */
+  .news-recs { display: none !important; }
   .news-rec-list { display: flex; flex-direction: column; gap: 6px; }
   .news-rec {
     display: block;
@@ -528,6 +529,63 @@
   .news-rec:hover { border-color: var(--line-strong); background: var(--panel); }
   .news-rec .k { font-size: 11px; color: var(--dim); margin-bottom: 2px; }
   .news-rec .t { font-size: 13.5px; font-weight: 550; letter-spacing: -.015em; }
+  .ask-suggest {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    padding: 0 2px 12px;
+  }
+  .ask-suggest[hidden] { display: none !important; }
+  .ask-suggest-label {
+    flex: 0 0 100%;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: .04em;
+    text-transform: uppercase;
+    color: var(--dim);
+    margin: 0 0 2px;
+  }
+  .ask-chip {
+    display: inline-flex;
+    align-items: baseline;
+    gap: 6px;
+    max-width: 100%;
+    text-align: left;
+    padding: 8px 12px;
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    background: var(--bg);
+    cursor: pointer;
+    transition: border-color .12s ease, background .12s ease, transform .08s ease;
+  }
+  .ask-chip:hover {
+    border-color: var(--line-strong);
+    background: var(--card);
+  }
+  .ask-chip:active { transform: scale(.98); }
+  .ask-chip .k {
+    flex: 0 0 auto;
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--ink);
+    letter-spacing: .02em;
+  }
+  .ask-chip .t {
+    flex: 1 1 auto;
+    min-width: 0;
+    font-size: 12.5px;
+    font-weight: 500;
+    color: var(--muted);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 280px;
+  }
+  @media (max-width: 720px) {
+    .ask-chip { border-radius: 14px; max-width: 100%; }
+    .ask-chip .t { white-space: normal; max-width: none; }
+  }
+  .home-wrap.has-run .ask-suggest { display: none !important; }
   .ask-box {
     width: 100%;
     background: var(--panel);
@@ -1861,6 +1919,10 @@
           <div class="ask-attach" id="askAttach">
             <span class="name" id="askAttachName"></span>
             <button type="button" class="x" id="askAttachClear" aria-label="Remove file">×</button>
+          </div>
+          <div class="ask-suggest" id="askSuggest" aria-label="News suggestions">
+            <div class="ask-suggest-label">Try a story</div>
+            <!-- filled by paintNewsRecs: 1–3 rotating news-photo tips -->
           </div>
           <div class="ask-actions">
             <div class="ask-plus-wrap">
@@ -3702,43 +3764,59 @@
     return out;
   }
 
+  async function runNewsTip(t) {
+    if (!t) return;
+    selectedDesk = t.desk;
+    paintCityChips();
+    $("headline").value = t.title;
+    /* Keep tip URL in paste field so Copy this style is one click away */
+    if ($("pastePostUrl")) $("pastePostUrl").value = t.url;
+    pendingSourceUrl = t.url;
+    setStyleUrl(t.url);
+    /* Tips = news photo + editable text only — never Hyd chrome */
+    if (currentRun) {
+      currentRun._hydChrome = false;
+      if (currentRun.pack) delete currentRun.pack.templateChrome;
+    }
+    loadBrowserUrl(t.url, { switchTab: true });
+    switchView("home");
+    await doRun();
+    if (currentRun) {
+      currentRun._hydChrome = false;
+      if (currentRun.pack) delete currentRun.pack.templateChrome;
+      paintIgPost(currentRun);
+    }
+    switchRightTab("structure");
+  }
+
   function paintNewsRecs() {
-    const list = $("newsRecList");
-    if (!list) return;
     const tips = rotatedTips(3);
-    list.innerHTML = tips.map((t, i) =>
-      `<button type="button" class="news-rec" data-rec="${i}">
-        <div class="k">${escapeHtml(t.kicker)}</div>
-        <div class="t">${escapeHtml(t.title)}</div>
-      </button>`
-    ).join("");
-    list.querySelectorAll("[data-rec]").forEach((btn) => {
-      btn.addEventListener("click", async () => {
-        const t = tips[Number(btn.dataset.rec)];
-        if (!t) return;
-        selectedDesk = t.desk;
-        paintCityChips();
-        $("headline").value = t.title;
-        /* Keep tip URL in paste field so Copy this style is one click away */
-        if ($("pastePostUrl")) $("pastePostUrl").value = t.url;
-        pendingSourceUrl = t.url;
-        setStyleUrl(t.url);
-        /* Tips = news photo + editable text only — never Hyd chrome */
-        if (currentRun) {
-          currentRun._hydChrome = false;
-          if (currentRun.pack) delete currentRun.pack.templateChrome;
-        }
-        loadBrowserUrl(t.url, { switchTab: true });
-        switchView("home");
-        await doRun();
-        if (currentRun) {
-          currentRun._hydChrome = false;
-          if (currentRun.pack) delete currentRun.pack.templateChrome;
-          paintIgPost(currentRun);
-        }
-        switchRightTab("structure");
+    const ask = $("askSuggest");
+    if (ask) {
+      ask.hidden = tips.length === 0;
+      ask.innerHTML = `<div class="ask-suggest-label">Try a story</div>` + tips.map((t, i) =>
+        `<button type="button" class="ask-chip" data-ask-rec="${i}" title="${escapeHtml(t.title)}">
+          <span class="k">${escapeHtml(t.kicker)}</span>
+          <span class="t">${escapeHtml(t.title)}</span>
+        </button>`
+      ).join("");
+      ask.querySelectorAll("[data-ask-rec]").forEach((btn) => {
+        btn.addEventListener("click", () => runNewsTip(tips[Number(btn.dataset.askRec)]));
       });
-    });
+    }
+    /* Legacy below-fold list kept in DOM but hidden — chips in ask box are primary */
+    const list = $("newsRecList");
+    if (list) {
+      list.innerHTML = tips.map((t, i) =>
+        `<button type="button" class="news-rec" data-rec="${i}">
+          <div class="k">${escapeHtml(t.kicker)}</div>
+          <div class="t">${escapeHtml(t.title)}</div>
+        </button>`
+      ).join("");
+      list.querySelectorAll("[data-rec]").forEach((btn) => {
+        btn.addEventListener("click", () => runNewsTip(tips[Number(btn.dataset.rec)]));
+      });
+    }
   }
 
   async function doHunt() {

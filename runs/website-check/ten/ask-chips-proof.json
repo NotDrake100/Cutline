@@ -1,0 +1,21 @@
+{
+  "chipInfo": {
+    "askExists": true,
+    "askHidden": false,
+    "chipCount": 3,
+    "chips": [
+      "Mumbai Marine Drive stretch marked for Sunday cycle hours.",
+      "Bengaluru Whitefield feeder buses add a late last trip.",
+      "Delhi Yellow Line weekend work shifts to early Monday."
+    ],
+    "belowNewsDisplay": "none",
+    "copyStyle": true
+  },
+  "after": {
+    "src": "/assets/demo/mumbai.jpg",
+    "chromeHidden": true,
+    "noChrome": true,
+    "headline": "Marine Drive stretch marked for Sunday cycle hours.",
+    "ask": "Marine Drive stretch marked for Sunday cycle hours."
+  }
+}

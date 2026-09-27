@@ -11,17 +11,13 @@ Landing **Open the desk** → `/studio?demo=1`. Public traffic is Demo: fixtures
 5. **Photo** — Magic Layer **Photo** (or click the still) cycles credit-safe stills: baked DCN card → Pexels/source still → alt. Demo never calls Gemini image gen.
 6. **Approve** — human gate. Then **Canva** or ZIP.
 
-## DCN Hyderabad card path (demo truth)
+## DCN Hyderabad template (style-copy only)
 
-Instagram-style posts use the **real** DCN template (`apps/web/assets/demo/templates/template_post.png`): green chroma center, real logo + footer chrome kept. Bake (`scripts/bake_dcn_cards.py`, mirrors Hyd `auto_post.py`):
+**Copy this style** (button next to Analyze, or paste URL + ask “copy this style”) layers the real Hyd DCN chrome (`template_post_chrome_hyderabad.png`: logo + footer) over a city/Pexels still with an editable on-card headline. Tips / news recommendations stay **news-photo only** (`city.jpg`) — no DCN logo overlay unless the user chooses style-copy.
 
-1. Cover-crop photo (Pexels first; RSS/article images on the owner desk)
-2. Dark bottom plate
-3. Chroma-key green `(0,122,63)` on the template
-4. Composite photo under keyed template
-5. Draw ALL CAPS headline + deck only — **do not** redraw the logo/footer
+Bake chrome + optional cards via `scripts/bake_dcn_cards.py` (chroma-key green `(0,122,63)` on `template_post.png`).
 
-Sample tips serve `*-card.jpg`. Owner desk (Settings → Owner key) may later Gemini-judge still quality and gen a replacement; public Demo stays on baked cards.
+`?demo=1` sets `cutline_force_demo` cookie + `x-cutline-demo: 1` so the API never opens Gemini `generateContent` (also `CUTLINE_FORCE_DEMO=1`). Canva without OAuth returns **connect_required** — never a fake Published toast.
 
 Owner desk (Settings → Owner key) is the only path that may call Gemini. See README “Demo vs owner AI”.
 
