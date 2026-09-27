@@ -105,6 +105,16 @@ export const DESKS: Record<string, BeatConfig> = {
       "https://www.hindustantimes.com/cities/bengaluru-news",
     ],
   },
+  hyderabad: {
+    id: "hyderabad",
+    label: "Hyderabad",
+    keywords: ["Hyderabad"],
+    sources: [
+      "https://indianexpress.com/section/cities/hyderabad/",
+      "https://timesofindia.indiatimes.com/city/hyderabad",
+      "https://www.hindustantimes.com/cities/hyderabad-news",
+    ],
+  },
 };
 
 export const BEATS = DESKS;

@@ -585,6 +585,49 @@
     .ask-chip { border-radius: 14px; max-width: 100%; }
     .ask-chip .t { white-space: normal; max-width: none; }
   }
+
+  .project-home {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    align-items: center;
+    width: 100%;
+    margin: 0 0 14px;
+    padding: 0 2px;
+  }
+  .project-home[hidden] { display: none !important; }
+  .home-wrap.has-run .project-home { display: none !important; }
+  .project-home .ask-suggest-label { flex: 0 0 100%; margin: 0 0 2px; }
+  .ask-chip.project-chip.active,
+  .ask-chip.project-new:hover {
+    border-color: var(--ink);
+    background: var(--ink);
+    color: #fff;
+  }
+  .ask-chip.project-chip.active .k,
+  .ask-chip.project-chip.active .t,
+  .ask-chip.project-new:hover .k,
+  .ask-chip.project-new:hover .t { color: #fff; }
+  .ask-chip.project-new {
+    border-style: dashed;
+    color: var(--ink);
+  }
+  .ask-chip.project-new .k { color: var(--ink); }
+  .nav-item[data-project].active {
+    background: var(--card);
+    box-shadow: 0 1px 0 var(--line);
+  }
+  .nav-item.nav-project-new {
+    color: var(--muted);
+    font-weight: 500;
+  }
+  .nav-item.nav-project-new .label { font-size: 13px; }
+  .workspace-sub.project-on {
+    text-transform: none;
+    letter-spacing: -.01em;
+    font-weight: 550;
+    color: var(--ink);
+  }
   .home-wrap.has-run .ask-suggest { display: none !important; }
   .ask-box {
     width: 100%;
@@ -924,6 +967,111 @@
   }
   .approve-bar .msg strong { color: var(--ink); font-weight: 600; }
 
+
+  .need-card .kind .chip.ok {
+    background: rgba(34,197,94,.2);
+    color: #166534;
+  }
+  .need-card .kind .chip.paused {
+    background: rgba(10,10,10,.08);
+    color: var(--muted);
+  }
+  .need-card.is-approved { opacity: .92; }
+  .sched-bar {
+    display: flex; flex-wrap: wrap; gap: 10px; align-items: center;
+    margin: 0 0 22px;
+    padding: 14px 14px 14px;
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+  }
+  .sched-bar input, .sched-bar select {
+    height: 38px; padding: 0 14px;
+    border-radius: var(--radius-pill); border: 1px solid var(--line);
+    background: var(--bg); font-size: 13.5px; font-weight: 500; color: var(--ink);
+    min-width: 0;
+  }
+  .sched-bar input[type="text"] { flex: 1 1 200px; }
+  .sched-bar select { flex: 0 1 auto; }
+  .sched-list { display: flex; flex-direction: column; gap: 12px; }
+  .sched-card, .need-card, .lib-card {
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    padding: 18px 18px 14px;
+    box-shadow: 0 1px 0 var(--line);
+    transition: border-color .12s ease, box-shadow .12s ease;
+  }
+  .sched-card:hover, .need-card:hover, .lib-card:hover {
+    border-color: var(--line-strong);
+    box-shadow: var(--shadow);
+  }
+  .sched-card .sched-top {
+    display: flex; flex-wrap: wrap; align-items: center; gap: 8px;
+    margin-bottom: 10px;
+  }
+  .sched-card h3, .need-card h3, .lib-card h3 {
+    margin: 0 0 6px;
+    font-size: 16px; font-weight: 600; letter-spacing: -.02em;
+  }
+  .sched-card p, .need-card p, .lib-card p {
+    margin: 0 0 14px;
+    font-size: 13.5px; color: var(--muted); line-height: 1.45;
+  }
+  .sched-actions, .need-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+  .sched-card .kind .chip.on {
+    background: rgba(225,244,53,.55);
+    color: var(--lime-ink);
+  }
+  .explore-extras {
+    margin: 32px 0 8px;
+    display: flex; flex-direction: column; gap: 22px;
+  }
+  .explore-block h2 {
+    margin: 0 0 12px;
+    font-size: 11px; font-weight: 650; color: var(--muted);
+    letter-spacing: .08em; text-transform: uppercase;
+  }
+  .explore-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 12px;
+  }
+  .explore-tile {
+    text-align: left;
+    padding: 16px 16px 14px;
+    border-radius: var(--radius);
+    border: 1px solid var(--line);
+    background: var(--card);
+    box-shadow: 0 1px 0 var(--line);
+    transition: border-color .12s ease, box-shadow .12s ease, transform .08s ease;
+  }
+  .explore-tile:hover {
+    border-color: var(--line-strong);
+    box-shadow: var(--shadow);
+    transform: translateY(-1px);
+  }
+  .explore-tile .k {
+    display: inline-flex; align-items: center;
+    font-size: 11px; font-weight: 700; color: var(--ink);
+    letter-spacing: .04em; text-transform: uppercase;
+    background: rgba(225,244,53,.4);
+    padding: 2px 8px; border-radius: 6px;
+    margin-bottom: 10px;
+  }
+  .explore-tile .t { display: block; font-size: 14.5px; font-weight: 600; letter-spacing: -.02em; }
+  .explore-tile .d { display: block; margin-top: 6px; font-size: 12.5px; color: var(--muted); line-height: 1.4; }
+  .lib-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 12px; }
+  .lib-card .kind { font-size: 11px; color: var(--dim); font-family: var(--mono); margin-bottom: 8px; }
+  .lib-card .lib-media { display: flex; flex-wrap: wrap; gap: 8px; margin: 10px 0 8px; }
+  .lib-thumb {
+    width: 88px; height: 88px; border-radius: 12px; overflow: hidden;
+    background: #111; flex-shrink: 0;
+  }
+  .lib-thumb img { width: 100%; height: 100%; object-fit: cover; }
+  .lib-card .lib-actions-row { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 4px; }
+
   /* Activity */
   .activity-wrap {
     padding: 36px 40px 48px;
@@ -945,10 +1093,11 @@
   }
   .need-list { display: flex; flex-direction: column; gap: 10px; margin-bottom: 32px; }
   .need-card {
-    background: var(--panel);
+    background: var(--card);
     border: 1px solid var(--line);
     border-radius: var(--radius);
     padding: 18px 18px 14px;
+    box-shadow: 0 1px 0 var(--line);
   }
   .need-card .kind {
     display: inline-flex; align-items: center; gap: 6px;
@@ -1788,12 +1937,13 @@
   }
   .hunt-truth strong { font-weight: 700; }
   .lib-actions { display: flex; gap: 8px; margin: 0 0 16px; flex-wrap: wrap; }
-  .lib-list { display: flex; flex-direction: column; gap: 10px; }
+  .lib-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 12px; }
   .lib-card {
-    background: var(--panel);
+    background: var(--card);
     border: 1px solid var(--line);
     border-radius: var(--radius);
-    padding: 14px 16px;
+    padding: 18px 18px 14px;
+    box-shadow: 0 1px 0 var(--line);
   }
   .lib-card .kind { font-size: 11px; color: var(--dim); font-family: var(--mono); margin-bottom: 6px; }
   .lib-card h3 { margin: 0 0 6px; font-size: 15px; font-weight: 600; }
@@ -1857,6 +2007,11 @@
       </button>
     </nav>
 
+    <div class="section-label">Projects</div>
+    <nav class="nav" aria-label="Projects" id="projectList">
+      <div class="side-empty">No projects yet</div>
+    </nav>
+
     <div class="section-label">Recents</div>
     <nav class="nav" aria-label="Recents" id="recentList">
       <div class="side-empty">No recent stories</div>
@@ -1914,6 +2069,11 @@
           Paste a post URL or find news → Browser → edit → Approve. Public demo never calls Gemini.
         </div>
 
+        <div class="project-home" id="projectHome" aria-label="Projects">
+          <div class="ask-suggest-label">Projects</div>
+          <!-- filled by paintProjectChips -->
+        </div>
+
         <div class="ask-box">
           <textarea id="headline" placeholder="Finish a news post…" rows="4"></textarea>
           <div class="ask-attach" id="askAttach">
@@ -1948,7 +2108,7 @@
           <div class="paste-url-row">
             <input id="pastePostUrl" type="url" placeholder="Instagram, X, YouTube, or any post link" autocomplete="off" spellcheck="false"/>
             <button type="button" class="btn btn-lime" id="analyzeBtn">Analyze</button>
-            <button type="button" class="btn btn-ink" id="copyStyleBtn" title="Build a Hyderabad-style DCN card from this URL">Copy this style</button>
+            <button type="button" class="btn btn-ink" id="copyStyleBtn" title="Build a DCN-style card from this URL">Copy this style</button>
           </div>
           <p class="paste-style-hint">Have a post URL? <button type="button" class="linkish" id="copyStyleLink">Copy this style</button> → real template chrome + photo + editable headline.</p>
           <div class="assign-chips" id="socialChips">
@@ -1979,6 +2139,7 @@
           <p class="assign-label">City</p>
           <div class="assign-chips" id="assignCities">
             <button type="button" class="assign-chip active" data-desk="pune">Pune</button>
+            <button type="button" class="assign-chip" data-desk="hyderabad">Hyderabad</button>
             <button type="button" class="assign-chip" data-desk="mumbai">Mumbai</button>
             <button type="button" class="assign-chip" data-desk="delhi">Delhi</button>
             <button type="button" class="assign-chip" data-desk="bengaluru">Bengaluru</button>
@@ -2022,18 +2183,38 @@
     <section class="view" id="viewActivity" aria-label="Approvals">
       <div class="activity-wrap">
         <h1>Approvals</h1>
-        <p class="activity-sub">Stories waiting to post.</p>
+        <p class="activity-sub">Pending and approved packs. Approve unlocks Plugins.</p>
 
         <div class="need-label" id="needLabel">Nothing waiting to post</div>
         <div class="need-list" id="needList"></div>
+        <div class="need-label" id="approvedLabel" style="margin-top:8px">Approved</div>
+        <div class="need-list" id="approvedList"></div>
       </div>
     </section>
 
     <section class="view" id="viewScheduled" aria-label="Scheduled">
       <div class="activity-wrap">
         <h1>Scheduled</h1>
-        <p class="activity-sub">Stories you set to post later.</p>
-        <div class="hunt-empty">Nothing scheduled yet.</div>
+        <p class="activity-sub">Automation jobs — hunt a city on a cadence. Demo-safe on this desk.</p>
+        <div class="sched-bar" id="schedBar">
+          <input type="text" id="schedName" placeholder="e.g. Morning Pune hunt" maxlength="80"/>
+          <select id="schedCity" aria-label="City">
+            <option value="pune">Pune</option>
+            <option value="hyderabad">Hyderabad</option>
+            <option value="mumbai">Mumbai</option>
+            <option value="delhi">Delhi</option>
+            <option value="bengaluru">Bengaluru</option>
+          </select>
+          <select id="schedWhen" aria-label="When">
+            <option value="every_morning">Every morning · 8:00</option>
+            <option value="every_evening">Every evening · 18:00</option>
+            <option value="weekdays_morning">Weekdays · 8:00</option>
+            <option value="hourly">Hourly</option>
+          </select>
+          <button type="button" class="btn btn-lime" id="schedAddBtn">Add job</button>
+        </div>
+        <div class="need-label" id="schedLabel">No jobs yet</div>
+        <div class="sched-list" id="schedList"></div>
       </div>
     </section>
 
@@ -2046,6 +2227,7 @@
 
         <div class="beat-chips" id="beatChips" role="group" aria-label="Cities">
           <button type="button" class="beat-chip active" data-desk="pune">Pune</button>
+          <button type="button" class="beat-chip" data-desk="hyderabad">Hyderabad</button>
           <button type="button" class="beat-chip" data-desk="mumbai">Mumbai</button>
           <button type="button" class="beat-chip" data-desk="delhi">Delhi</button>
           <button type="button" class="beat-chip" data-desk="bengaluru">Bengaluru</button>
@@ -2058,6 +2240,21 @@
         <div class="err" id="huntErr"></div>
         <div id="hitList" class="hit-list">
           <div class="hunt-empty" id="huntEmpty">No news yet. Choose a city and find news.</div>
+        </div>
+
+        <div class="explore-extras" id="exploreExtras">
+          <div class="explore-block">
+            <h2>Projects</h2>
+            <div class="explore-grid" id="exploreProjects"></div>
+          </div>
+          <div class="explore-block">
+            <h2>Sample sources</h2>
+            <div class="explore-grid" id="exploreSamples"></div>
+          </div>
+          <div class="explore-block">
+            <h2>Styles</h2>
+            <div class="explore-grid" id="exploreStyles"></div>
+          </div>
         </div>
       </div>
     </section>
@@ -2086,7 +2283,7 @@
       <div class="connect-wrap">
         <div class="kicker">Images</div>
         <h1>Library</h1>
-        <p class="connect-sub">Images and videos from your stories.</p>
+        <p class="connect-sub">Saved stills, clips, and posts from your desk. Demo seeds show when the shelf is empty.</p>
         <div class="lib-actions">
           <button type="button" class="plugin-btn" id="libAddClip">Add video URL</button>
           <button type="button" class="plugin-btn lime" id="libUploadClip">Upload video</button>
@@ -2423,6 +2620,746 @@
       b.classList.toggle("active", b.dataset.desk === selectedDesk);
     });
   }
+
+  /* ——— Projects (Codex-style spaces: outlet + city + style) ——— */
+  const PROJECTS_KEY = "cutline.projects";
+  let activeProjectId = null;
+
+  function demoProjectSeeds() {
+    const origin = location.origin;
+    return [
+      {
+        id: "dcn-pune",
+        name: "DCN Pune",
+        city: "pune",
+        outlet: "DCN",
+        styleUrl: "https://www.instagram.com/p/DdwHjcpId9B/",
+        chrome: "pune",
+        recentRunIds: [],
+        recents: [
+          { runId: "", title: "DCN Pune on Instagram", sourceUrl: "https://www.instagram.com/p/DdwHjcpId9B/" },
+          { runId: "", title: "Overnight bus routes go to a vote in Pune.", sourceUrl: origin + "/sample-pune.html" },
+        ],
+      },
+      {
+        id: "dcn-hyderabad",
+        name: "DCN Hyderabad",
+        city: "hyderabad",
+        outlet: "DCN",
+        styleUrl: "https://www.instagram.com/p/DdwHjcpId9B/",
+        chrome: "hyderabad",
+        recentRunIds: [],
+        recents: [
+          { runId: "", title: "DCN Hyderabad on Instagram", sourceUrl: "https://www.instagram.com/p/DdwHjcpId9B/" },
+          { runId: "", title: "HITEC City feeder buses add late trips.", sourceUrl: origin + "/sample-hyderabad.html" },
+        ],
+      },
+    ];
+  }
+
+  function readProjectsStore() {
+    try {
+      const raw = JSON.parse(localStorage.getItem(PROJECTS_KEY) || "null");
+      if (raw && Array.isArray(raw.projects) && raw.projects.length) return raw;
+    } catch (_) { /* ignore */ }
+    const seeds = demoProjectSeeds();
+    return { activeId: null, projects: seeds };
+  }
+
+  function writeProjectsStore(store) {
+    try {
+      localStorage.setItem(PROJECTS_KEY, JSON.stringify({
+        activeId: store.activeId || null,
+        projects: (store.projects || []).map((p) => ({
+          id: p.id,
+          name: p.name,
+          city: p.city,
+          outlet: p.outlet || "DCN",
+          styleUrl: p.styleUrl || "",
+          chrome: p.chrome || p.city || "pune",
+          recentRunIds: Array.isArray(p.recentRunIds) ? p.recentRunIds.slice(0, 20) : [],
+          recents: Array.isArray(p.recents) ? p.recents.slice(0, 8) : [],
+        })),
+      }));
+    } catch (_) { /* ignore */ }
+  }
+
+  function ensureProjects() {
+    const store = readProjectsStore();
+    const seeds = demoProjectSeeds();
+    const byId = new Map(store.projects.map((p) => [p.id, p]));
+    for (const s of seeds) {
+      if (!byId.has(s.id)) {
+        store.projects.push(s);
+        byId.set(s.id, s);
+      } else {
+        /* keep user recents/styleUrl; refresh demo seed titles if empty */
+        const cur = byId.get(s.id);
+        if (!cur.recents || !cur.recents.length) cur.recents = s.recents;
+        if (!cur.chrome) cur.chrome = s.chrome;
+        if (!cur.styleUrl) cur.styleUrl = s.styleUrl;
+      }
+    }
+    writeProjectsStore(store);
+    activeProjectId = store.activeId || null;
+    return store;
+  }
+
+  function listProjects() {
+    return ensureProjects().projects;
+  }
+
+  function activeProject() {
+    const store = ensureProjects();
+    if (!store.activeId) return null;
+    return store.projects.find((p) => p.id === store.activeId) || null;
+  }
+
+  function projectChromeCity(proj) {
+    const p = proj || activeProject();
+    const city = String(p?.chrome || p?.city || "").toLowerCase();
+    if (DCN_CITIES.includes(city)) return city;
+    return "pune";
+  }
+
+  function slugProjectId(name) {
+    return String(name || "project")
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, "-")
+      .replace(/^-|-$/g, "")
+      .slice(0, 40) || ("project-" + Date.now().toString(36));
+  }
+
+  function captureWorkIntoProject(proj, opts = {}) {
+    if (!proj) return proj;
+    const ask = ($("headline")?.value || "").trim();
+    const style = cleanPastedUrl(($("styleUrl")?.value || $("pastePostUrl")?.value || pendingSourceUrl || proj.styleUrl || "").trim());
+    if (style) proj.styleUrl = style;
+    /* Only adopt the desk city when creating a NEW project from current work */
+    if (opts.adoptDesk) {
+      proj.city = selectedDesk || proj.city || "pune";
+      if (!proj.chrome) proj.chrome = proj.city === "hyderabad" ? "hyderabad" : proj.city;
+    }
+    if (!proj.chrome) proj.chrome = proj.city || "pune";
+    proj.outlet = proj.outlet || "DCN";
+    const recents = Array.isArray(proj.recents) ? proj.recents.slice() : [];
+    const pushRecent = (r) => {
+      if (!r || !r.title) return;
+      const key = recentKey(r.title, r.sourceUrl);
+      const filtered = recents.filter((x) => recentKey(x.title, x.sourceUrl) !== key);
+      filtered.unshift({ runId: r.runId || "", title: r.title, sourceUrl: r.sourceUrl || "" });
+      proj.recents = filtered.slice(0, 8);
+    };
+    if (currentRun?.id) {
+      const title = currentRun.rewrite?.headline || currentRun.brief?.headline || ask || proj.name;
+      pushRecent({ runId: currentRun.id, title, sourceUrl: resolveSourceUrl(currentRun) || style });
+      const ids = Array.isArray(proj.recentRunIds) ? proj.recentRunIds.filter((id) => id !== currentRun.id) : [];
+      ids.unshift(currentRun.id);
+      proj.recentRunIds = ids.slice(0, 20);
+    } else if (ask) {
+      pushRecent({ runId: "", title: ask, sourceUrl: style || "" });
+    }
+    return proj;
+  }
+
+  function setActiveProject(id, { openHome = true } = {}) {
+    const store = ensureProjects();
+    const proj = store.projects.find((p) => p.id === id);
+    if (!proj) return null;
+    store.activeId = proj.id;
+    activeProjectId = proj.id;
+    writeProjectsStore(store);
+    selectedDesk = proj.city || "pune";
+    paintCityChips();
+    if (proj.styleUrl && $("pastePostUrl") && !($("pastePostUrl").value || "").trim()) {
+      $("pastePostUrl").value = proj.styleUrl;
+    }
+    if (proj.styleUrl) setStyleUrl(proj.styleUrl);
+    const cityLabel = (proj.city || "pune").replace(/^./, (c) => c.toUpperCase());
+    if ($("copyStyleBtn")) {
+      $("copyStyleBtn").title = `Build a ${cityLabel}-style ${proj.outlet || "DCN"} card from this URL`;
+    }
+    if ($("huntMeta")) {
+      $("huntMeta").textContent = "Find news · " + selectedDesk;
+      $("huntMeta").classList.remove("warn");
+    }
+    const mode = deskMode === "owner" ? "Owner desk" : "Demo";
+    if ($("workspaceMode")) {
+      $("workspaceMode").textContent = proj.name;
+      $("workspaceMode").classList.add("project-on");
+      $("workspaceMode").title = mode + " · " + proj.name;
+    }
+    if ($("homeKicker")) $("homeKicker").textContent = proj.name;
+    paintProjectNav();
+    paintProjectChips();
+    paintNewsRecs();
+    renderRecents([]);
+    if (openHome) switchView("home");
+    return proj;
+  }
+
+  function clearActiveProject() {
+    const store = ensureProjects();
+    store.activeId = null;
+    activeProjectId = null;
+    writeProjectsStore(store);
+    if ($("workspaceMode")) {
+      $("workspaceMode").classList.remove("project-on");
+      $("workspaceMode").removeAttribute("title");
+    }
+    paintMode(deskMode);
+    if ($("copyStyleBtn")) $("copyStyleBtn").title = "Build a DCN-style card from this URL";
+    paintProjectNav();
+    paintProjectChips();
+    paintNewsRecs();
+    renderRecents([]);
+  }
+
+  function createProjectFromWork(opts = {}) {
+    const store = ensureProjects();
+    const city = (opts.city || selectedDesk || "pune").toLowerCase();
+    const outlet = opts.outlet || "DCN";
+    const cityLabel = city.replace(/^./, (c) => c.toUpperCase());
+    let name = (opts.name || "").trim();
+    if (!name) {
+      const suggested = `${outlet} ${cityLabel}`;
+      name = (typeof window.prompt === "function"
+        ? window.prompt("New project name", suggested)
+        : suggested) || suggested;
+      name = String(name).trim() || suggested;
+    }
+    let id = opts.id || slugProjectId(name);
+    if (store.projects.some((p) => p.id === id)) id = id + "-" + Date.now().toString(36);
+    let proj = {
+      id,
+      name,
+      city,
+      outlet,
+      styleUrl: opts.styleUrl || "",
+      chrome: opts.chrome || (city === "hyderabad" ? "hyderabad" : city),
+      recentRunIds: [],
+      recents: [],
+    };
+    proj = captureWorkIntoProject(proj, { adoptDesk: true });
+    if (!proj.recents.length) {
+      const seed = demoProjectSeeds().find((s) => s.city === city);
+      if (seed) proj.recents = seed.recents.slice();
+    }
+    store.projects.unshift(proj);
+    writeProjectsStore(store);
+    return setActiveProject(proj.id);
+  }
+
+  function openOrCreateSeedProject(id) {
+    const store = ensureProjects();
+    let proj = store.projects.find((p) => p.id === id);
+    if (!proj) {
+      const seed = demoProjectSeeds().find((s) => s.id === id);
+      if (!seed) return null;
+      store.projects.push(seed);
+      writeProjectsStore(store);
+      proj = seed;
+    }
+    captureWorkIntoProject(proj, { adoptDesk: false });
+    const idx = store.projects.findIndex((p) => p.id === proj.id);
+    if (idx >= 0) store.projects[idx] = proj;
+    writeProjectsStore(store);
+    return setActiveProject(proj.id);
+  }
+
+  function paintProjectNav() {
+    const root = $("projectList");
+    if (!root) return;
+    const projects = listProjects();
+    const active = activeProjectId;
+    const folderSvg = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M4 8h16v11H4z"/><path d="M8 8V6h8v2"/></svg>`;
+    const plusSvg = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>`;
+    if (!projects.length) {
+      root.innerHTML = `<div class="side-empty">No projects yet</div>`;
+      return;
+    }
+    root.innerHTML = projects.map((p) =>
+      `<button type="button" class="nav-item${p.id === active ? " active" : ""}" data-project="${escapeHtml(p.id)}" title="${escapeHtml(p.outlet || "DCN")} · ${escapeHtml(p.city || "")}">
+        <span class="ico" aria-hidden="true">${folderSvg}</span>
+        <span class="label">${escapeHtml(p.name)}</span>
+      </button>`
+    ).join("") +
+      `<button type="button" class="nav-item nav-project-new" id="navNewProject" title="New project">
+        <span class="ico" aria-hidden="true">${plusSvg}</span>
+        <span class="label">New project</span>
+      </button>`;
+    root.querySelectorAll("[data-project]").forEach((btn) => {
+      btn.addEventListener("click", () => openOrCreateSeedProject(btn.dataset.project));
+    });
+    $("navNewProject")?.addEventListener("click", () => createProjectFromWork());
+  }
+
+  function paintProjectChips() {
+    const root = $("projectHome");
+    if (!root) return;
+    const projects = listProjects().filter((p) => p.id === "dcn-pune" || p.id === "dcn-hyderabad" || p.id === activeProjectId);
+    /* Always show the two demo seeds + any other active */
+    const seen = new Set();
+    const chips = [];
+    for (const id of ["dcn-pune", "dcn-hyderabad"]) {
+      const p = listProjects().find((x) => x.id === id);
+      if (p) { chips.push(p); seen.add(p.id); }
+    }
+    for (const p of listProjects()) {
+      if (!seen.has(p.id) && p.id === activeProjectId) chips.push(p);
+    }
+    const active = activeProjectId;
+    root.innerHTML = `<div class="ask-suggest-label">Projects</div>` +
+      chips.map((p) =>
+        `<button type="button" class="ask-chip project-chip${p.id === active ? " active" : ""}" data-project-chip="${escapeHtml(p.id)}" title="${escapeHtml(p.name)}">
+          <span class="k">${escapeHtml((p.outlet || "DCN").slice(0, 3))}</span>
+          <span class="t">${escapeHtml(p.name.replace(/^DCN\s+/i, "") || p.city)}</span>
+        </button>`
+      ).join("") +
+      `<button type="button" class="ask-chip project-new" id="newProjectBtn" title="Create a project from this desk">
+        <span class="k">+</span>
+        <span class="t">New project</span>
+      </button>`;
+    root.querySelectorAll("[data-project-chip]").forEach((btn) => {
+      btn.addEventListener("click", () => openOrCreateSeedProject(btn.dataset.projectChip));
+    });
+    $("newProjectBtn")?.addEventListener("click", () => createProjectFromWork());
+  }
+
+  function rememberRunInActiveProject(run) {
+    const proj = activeProject();
+    if (!proj || !run) return;
+    const store = ensureProjects();
+    const idx = store.projects.findIndex((p) => p.id === proj.id);
+    if (idx < 0) return;
+    const p = store.projects[idx];
+    const title = run.rewrite?.headline || run.brief?.headline || "";
+    const sourceUrl = resolveSourceUrl(run) || "";
+    if (run.id) {
+      const ids = (p.recentRunIds || []).filter((id) => id !== run.id);
+      ids.unshift(run.id);
+      p.recentRunIds = ids.slice(0, 20);
+    }
+    if (title) {
+      const key = recentKey(title, sourceUrl);
+      const recents = (p.recents || []).filter((x) => recentKey(x.title, x.sourceUrl) !== key);
+      recents.unshift({ runId: run.id || "", title, sourceUrl });
+      p.recents = recents.slice(0, 8);
+    }
+    if (p.styleUrl === undefined) p.styleUrl = "";
+    writeProjectsStore(store);
+  }
+
+  /* ——— Desk sections: Scheduled / Approvals / Explore / Library (demo-seeded) ——— */
+  const SCHED_KEY = "cutline.scheduled";
+  const APPROVALS_KEY = "cutline.approvals";
+
+  function schedWhenLabel(when) {
+    return ({
+      every_morning: "Every morning · 8:00",
+      every_evening: "Every evening · 18:00",
+      weekdays_morning: "Weekdays · 8:00",
+      hourly: "Hourly",
+    })[when] || when || "Custom";
+  }
+
+  function demoScheduledJobs() {
+    return [
+      { id: "job-pune-am", name: "Morning Pune hunt", city: "pune", when: "every_morning", enabled: true, createdAt: "2026-09-27T08:00:00+05:30" },
+      { id: "job-hyd-pm", name: "Evening Hyderabad hunt", city: "hyderabad", when: "every_evening", enabled: true, createdAt: "2026-09-27T18:00:00+05:30" },
+      { id: "job-mumbai-wd", name: "Weekday Mumbai scan", city: "mumbai", when: "weekdays_morning", enabled: false, createdAt: "2026-09-26T08:00:00+05:30" },
+    ];
+  }
+
+  function readScheduled() {
+    try {
+      const raw = JSON.parse(localStorage.getItem(SCHED_KEY) || "null");
+      if (raw && Array.isArray(raw.jobs) && raw.jobs.length) return raw;
+    } catch (_) { /* ignore */ }
+    return { jobs: demoScheduledJobs() };
+  }
+
+  function writeScheduled(store) {
+    try { localStorage.setItem(SCHED_KEY, JSON.stringify({ jobs: store.jobs || [] })); } catch (_) { /* ignore */ }
+  }
+
+  function ensureScheduled() {
+    const store = readScheduled();
+    writeScheduled(store);
+    return store;
+  }
+
+  function paintScheduled() {
+    const list = $("schedList");
+    const label = $("schedLabel");
+    if (!list) return;
+    const store = ensureScheduled();
+    const jobs = store.jobs || [];
+    const on = jobs.filter((j) => j.enabled).length;
+    if (label) label.textContent = jobs.length
+      ? (jobs.length + " job" + (jobs.length === 1 ? "" : "s") + " · " + on + " running")
+      : "No jobs yet";
+    if (!jobs.length) {
+      list.innerHTML = `<div class="hunt-empty">Add a hunt job — e.g. every morning for Pune.</div>`;
+      return;
+    }
+    list.innerHTML = jobs.map((j) => {
+      const city = (j.city || "pune").replace(/^./, (c) => c.toUpperCase());
+      const chip = j.enabled
+        ? `<span class="chip on">On</span>`
+        : `<span class="chip paused">Paused</span>`;
+      return `<article class="sched-card" data-sched="${escapeHtml(j.id)}">
+        <div class="sched-top kind">${chip}<span>${escapeHtml(schedWhenLabel(j.when))} · ${escapeHtml(city)}</span></div>
+        <h3>${escapeHtml(j.name || "Hunt job")}</h3>
+        <p>Finds live ${escapeHtml(city)} news on this cadence. Opens Explore with that city when you run it.</p>
+        <div class="sched-actions">
+          <button type="button" class="pill ${j.enabled ? "pill-adjust" : "pill-approve"}" data-sched-toggle="${escapeHtml(j.id)}">${j.enabled ? "Pause" : "Enable"}</button>
+          <button type="button" class="pill pill-adjust" data-sched-run="${escapeHtml(j.id)}">Run now</button>
+          <button type="button" class="pill pill-dismiss" data-sched-del="${escapeHtml(j.id)}">Remove</button>
+        </div>
+      </article>`;
+    }).join("");
+    list.querySelectorAll("[data-sched-toggle]").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        const store = ensureScheduled();
+        const job = store.jobs.find((x) => x.id === btn.dataset.schedToggle);
+        if (!job) return;
+        job.enabled = !job.enabled;
+        writeScheduled(store);
+        paintScheduled();
+      });
+    });
+    list.querySelectorAll("[data-sched-run]").forEach((btn) => {
+      btn.addEventListener("click", async () => {
+        const store = ensureScheduled();
+        const job = store.jobs.find((x) => x.id === btn.dataset.schedRun);
+        if (!job) return;
+        selectedDesk = job.city || "pune";
+        paintCityChips();
+        switchView("hunt");
+        await doHunt();
+      });
+    });
+    list.querySelectorAll("[data-sched-del]").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        const store = ensureScheduled();
+        store.jobs = store.jobs.filter((x) => x.id !== btn.dataset.schedDel);
+        writeScheduled(store);
+        paintScheduled();
+      });
+    });
+  }
+
+  function addScheduledJob() {
+    const name = ($("schedName")?.value || "").trim() || "Morning hunt";
+    const city = ($("schedCity")?.value || selectedDesk || "pune").toLowerCase();
+    const when = ($("schedWhen")?.value || "every_morning");
+    const store = ensureScheduled();
+    store.jobs.unshift({
+      id: "job-" + Date.now().toString(36),
+      name,
+      city,
+      when,
+      enabled: true,
+      createdAt: new Date().toISOString(),
+    });
+    writeScheduled(store);
+    if ($("schedName")) $("schedName").value = "";
+    paintScheduled();
+  }
+
+  function demoApprovals() {
+    const origin = location.origin;
+    return {
+      pending: [
+        {
+          id: "appr-pune-buses",
+          status: "needs_input",
+          title: "Overnight bus routes go to a vote in Pune.",
+          blurb: "Rewrite + Pune still ready. Approve, then open Plugins.",
+          sourceUrl: origin + "/sample-pune.html",
+          desk: "pune",
+          thumb: "/assets/demo/pune.jpg",
+        },
+        {
+          id: "appr-dcn-ig",
+          status: "needs_input",
+          title: "DCN Pune on Instagram",
+          blurb: "Analyzed IG post. Edit headline, then approve to unlock Canva / ZIP.",
+          sourceUrl: "https://www.instagram.com/p/DdwHjcpId9B/",
+          desk: "pune",
+          thumb: "/assets/demo/dcn-ig.jpg",
+        },
+      ],
+      approved: [
+        {
+          id: "appr-hyd-hitec",
+          status: "approved",
+          title: "HITEC City feeder buses add late trips.",
+          blurb: "Approved Hyderabad pack — ready for Canva or ZIP.",
+          sourceUrl: origin + "/sample-hyderabad.html",
+          desk: "hyderabad",
+          thumb: "/assets/demo/source.jpg",
+        },
+        {
+          id: "appr-mumbai-harbour",
+          status: "approved",
+          title: "Harbour line holds a late-night clearance window.",
+          blurb: "Approved Mumbai pack — post from Plugins anytime.",
+          sourceUrl: origin + "/sample-mumbai.html",
+          desk: "mumbai",
+          thumb: "/assets/demo/mumbai.jpg",
+        },
+      ],
+    };
+  }
+
+  function readApprovals() {
+    try {
+      const raw = JSON.parse(localStorage.getItem(APPROVALS_KEY) || "null");
+      if (raw && (raw.pending?.length || raw.approved?.length)) return raw;
+    } catch (_) { /* ignore */ }
+    return demoApprovals();
+  }
+
+  function writeApprovals(store) {
+    try { localStorage.setItem(APPROVALS_KEY, JSON.stringify(store)); } catch (_) { /* ignore */ }
+  }
+
+  function ensureApprovals() {
+    const store = readApprovals();
+    writeApprovals(store);
+    return store;
+  }
+
+  function paintApprovalsBoard() {
+    const pendingRoot = $("needList");
+    const approvedRoot = $("approvedList");
+    if (!pendingRoot) return;
+    const store = ensureApprovals();
+    const live = pendingRoot.querySelector(".need-card[data-live]");
+    const liveHtml = live ? live.outerHTML : "";
+
+    const pending = store.pending || [];
+    pendingRoot.innerHTML = liveHtml + pending.map((item) => `
+      <article class="need-card" data-appr="${escapeHtml(item.id)}">
+        <div class="kind"><span class="chip">Pending</span> Waiting to post · ${escapeHtml((item.desk || "").replace(/^./, (c) => c.toUpperCase()))}</div>
+        <h3>${escapeHtml(item.title)}</h3>
+        <p>${escapeHtml(item.blurb || "Pack ready for your eye.")}</p>
+        ${item.thumb ? `<div class="lib-media"><div class="lib-thumb"><img src="${escapeHtml(item.thumb)}" alt=""/></div></div>` : ""}
+        <div class="need-actions">
+          <button type="button" class="pill pill-approve" data-appr-approve="${escapeHtml(item.id)}">Approve</button>
+          <button type="button" class="pill pill-adjust" data-appr-open="${escapeHtml(item.id)}">Open on desk</button>
+          <button type="button" class="pill pill-dismiss" data-appr-dismiss="${escapeHtml(item.id)}">Dismiss</button>
+        </div>
+      </article>`).join("");
+
+    if (live) {
+      pendingRoot.querySelector("#liveApproveBtn")?.addEventListener("click", () => doApprove());
+      pendingRoot.querySelector("#liveAdjustBtn")?.addEventListener("click", () => {
+        switchView("home");
+        const hl = ($("headline").value || "").trim() || currentRun?.rewrite?.headline || currentRun?.brief?.headline || "";
+        if (hl) $("headline").value = hl;
+        setSideRunReady();
+        doRun();
+      });
+      pendingRoot.querySelector("#liveDismissBtn")?.addEventListener("click", () => {
+        pendingRoot.querySelector(".need-card[data-live]")?.remove();
+        updateNeedLabel();
+      });
+    }
+
+    pendingRoot.querySelectorAll("[data-appr-approve]").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        const store = ensureApprovals();
+        const item = (store.pending || []).find((x) => x.id === btn.dataset.apprApprove);
+        if (!item) return;
+        store.pending = store.pending.filter((x) => x.id !== item.id);
+        item.status = "approved";
+        store.approved = [item, ...(store.approved || [])].slice(0, 12);
+        writeApprovals(store);
+        paintApprovalsBoard();
+      });
+    });
+    pendingRoot.querySelectorAll("[data-appr-open]").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        const store = ensureApprovals();
+        const item = [...(store.pending || []), ...(store.approved || [])].find((x) => x.id === btn.dataset.apprOpen);
+        if (!item) return;
+        if (item.desk) { selectedDesk = item.desk; paintCityChips(); }
+        if (item.sourceUrl) {
+          pendingSourceUrl = item.sourceUrl;
+          if ($("pastePostUrl")) $("pastePostUrl").value = item.sourceUrl;
+          setStyleUrl(item.sourceUrl);
+          loadBrowserUrl(item.sourceUrl, { switchTab: true });
+        }
+        if ($("headline")) $("headline").value = item.title || "";
+        switchView("home");
+        doRun();
+      });
+    });
+    pendingRoot.querySelectorAll("[data-appr-dismiss]").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        const store = ensureApprovals();
+        store.pending = (store.pending || []).filter((x) => x.id !== btn.dataset.apprDismiss);
+        writeApprovals(store);
+        paintApprovalsBoard();
+      });
+    });
+
+    if (approvedRoot) {
+      const approved = store.approved || [];
+      const alabel = $("approvedLabel");
+      if (alabel) alabel.textContent = approved.length ? ("Approved · " + approved.length) : "Approved";
+      approvedRoot.innerHTML = approved.length ? approved.map((item) => `
+        <article class="need-card is-approved" data-appr="${escapeHtml(item.id)}">
+          <div class="kind"><span class="chip ok">Approved</span> Ready to post · ${escapeHtml((item.desk || "").replace(/^./, (c) => c.toUpperCase()))}</div>
+          <h3>${escapeHtml(item.title)}</h3>
+          <p>${escapeHtml(item.blurb || "Open Plugins to ship.")}</p>
+          ${item.thumb ? `<div class="lib-media"><div class="lib-thumb"><img src="${escapeHtml(item.thumb)}" alt=""/></div></div>` : ""}
+          <div class="need-actions">
+            <button type="button" class="pill pill-approve" data-appr-plugins="${escapeHtml(item.id)}">Open Plugins</button>
+            <button type="button" class="pill pill-adjust" data-appr-open2="${escapeHtml(item.id)}">Open on desk</button>
+          </div>
+        </article>`).join("") : `<div class="hunt-empty">Nothing approved yet.</div>`;
+      approvedRoot.querySelectorAll("[data-appr-plugins]").forEach((btn) => {
+        btn.addEventListener("click", () => switchView("connect"));
+      });
+      approvedRoot.querySelectorAll("[data-appr-open2]").forEach((btn) => {
+        btn.addEventListener("click", () => {
+          const store = ensureApprovals();
+          const item = (store.approved || []).find((x) => x.id === btn.dataset.apprOpen2);
+          if (!item) return;
+          if (item.desk) { selectedDesk = item.desk; paintCityChips(); }
+          if (item.sourceUrl) {
+            pendingSourceUrl = item.sourceUrl;
+            if ($("pastePostUrl")) $("pastePostUrl").value = item.sourceUrl;
+            setStyleUrl(item.sourceUrl);
+            loadBrowserUrl(item.sourceUrl, { switchTab: false });
+          }
+          if ($("headline")) $("headline").value = item.title || "";
+          switchView("home");
+        });
+      });
+    }
+    updateNeedLabel();
+  }
+
+  function paintExploreExtras() {
+    const projRoot = $("exploreProjects");
+    const sampleRoot = $("exploreSamples");
+    const styleRoot = $("exploreStyles");
+    if (projRoot) {
+      const projects = listProjects();
+      projRoot.innerHTML = projects.map((p) => `
+        <button type="button" class="explore-tile" data-ex-project="${escapeHtml(p.id)}">
+          <span class="k">${escapeHtml(p.outlet || "DCN")}</span>
+          <span class="t">${escapeHtml(p.name)}</span>
+          <span class="d">${escapeHtml((p.city || "").replace(/^./, (c) => c.toUpperCase()))} · ${escapeHtml(p.chrome || p.city || "style")} chrome</span>
+        </button>`).join("");
+      projRoot.querySelectorAll("[data-ex-project]").forEach((btn) => {
+        btn.addEventListener("click", () => openOrCreateSeedProject(btn.dataset.exProject));
+      });
+    }
+    if (sampleRoot) {
+      const origin = location.origin;
+      const samples = [
+        { k: "Pune", t: "Overnight buses", d: "Cached city page", url: origin + "/sample-pune.html", desk: "pune" },
+        { k: "Hyderabad", t: "HITEC feeders", d: "Cached city page", url: origin + "/sample-hyderabad.html", desk: "hyderabad" },
+        { k: "Mumbai", t: "Harbour line", d: "Cached city page", url: origin + "/sample-mumbai.html", desk: "mumbai" },
+        { k: "DCN", t: "Instagram post", d: "Live IG URL", url: "https://www.instagram.com/p/DdwHjcpId9B/", desk: "pune" },
+      ];
+      sampleRoot.innerHTML = samples.map((s, i) => `
+        <button type="button" class="explore-tile" data-ex-sample="${i}">
+          <span class="k">${escapeHtml(s.k)}</span>
+          <span class="t">${escapeHtml(s.t)}</span>
+          <span class="d">${escapeHtml(s.d)}</span>
+        </button>`).join("");
+      sampleRoot.querySelectorAll("[data-ex-sample]").forEach((btn) => {
+        btn.addEventListener("click", () => {
+          const s = samples[Number(btn.dataset.exSample)];
+          if (!s) return;
+          selectedDesk = s.desk;
+          paintCityChips();
+          pendingSourceUrl = s.url;
+          if ($("pastePostUrl")) $("pastePostUrl").value = s.url;
+          setStyleUrl(s.url);
+          loadBrowserUrl(s.url, { switchTab: true });
+          if ($("headline")) $("headline").value = s.t;
+          switchView("home");
+          if (/instagram\.com/i.test(s.url)) doAnalyze(s.url);
+          else doRun();
+        });
+      });
+    }
+    if (styleRoot) {
+      const styles = [
+        { id: "tight_news", t: "Tight news", d: "Short desk headline + caption" },
+        { id: "dcn_pune", t: "DCN Pune chrome", d: "Copy this style · Pune template" },
+        { id: "dcn_hyd", t: "DCN Hyd chrome", d: "Copy this style · Hyderabad template" },
+      ];
+      styleRoot.innerHTML = styles.map((s) => `
+        <button type="button" class="explore-tile" data-ex-style="${escapeHtml(s.id)}">
+          <span class="k">Style</span>
+          <span class="t">${escapeHtml(s.t)}</span>
+          <span class="d">${escapeHtml(s.d)}</span>
+        </button>`).join("");
+      styleRoot.querySelectorAll("[data-ex-style]").forEach((btn) => {
+        btn.addEventListener("click", () => {
+          const id = btn.dataset.exStyle;
+          if (id === "dcn_pune") openOrCreateSeedProject("dcn-pune");
+          else if (id === "dcn_hyd") openOrCreateSeedProject("dcn-hyderabad");
+          else {
+            selectedStyle = id || "tight_news";
+            switchView("home");
+            $("headline")?.focus();
+          }
+        });
+      });
+    }
+  }
+
+  function demoLibraryEntries() {
+    const origin = location.origin;
+    return [
+      {
+        item: { title: "DCN Pune on Instagram", sourceUrl: "https://www.instagram.com/p/DdwHjcpId9B/", desk: "pune", createdAt: "2026-09-28T02:00:00+05:30", runId: "" },
+        media: [
+          { kind: "still", url: "/assets/demo/dcn-ig.jpg" },
+          { kind: "caption", body: "Sourced IG still · demo shelf" },
+        ],
+      },
+      {
+        item: { title: "Overnight bus routes go to a vote in Pune.", sourceUrl: origin + "/sample-pune.html", desk: "pune", createdAt: "2026-09-28T01:40:00+05:30", runId: "" },
+        media: [
+          { kind: "still", url: "/assets/demo/pune.jpg" },
+          { kind: "caption", body: "Pune · overnight buses. Cached demo still." },
+        ],
+      },
+      {
+        item: { title: "HITEC City feeder buses add late trips.", sourceUrl: origin + "/sample-hyderabad.html", desk: "hyderabad", createdAt: "2026-09-28T01:20:00+05:30", runId: "" },
+        media: [
+          { kind: "still", url: "/assets/demo/source.jpg" },
+          { kind: "caption", body: "Hyderabad · HITEC feeders. Demo still." },
+        ],
+      },
+      {
+        item: { title: "Harbour line holds a late-night clearance window.", sourceUrl: origin + "/sample-mumbai.html", desk: "mumbai", createdAt: "2026-09-27T22:10:00+05:30", runId: "" },
+        media: [
+          { kind: "still", url: "/assets/demo/mumbai.jpg" },
+          { kind: "caption", body: "Mumbai · Harbour line. Cached demo still." },
+        ],
+      },
+      {
+        item: { title: "Alt still · photo cycle", sourceUrl: origin + "/sample-source.html", desk: "pune", createdAt: "2026-09-27T21:00:00+05:30", runId: "" },
+        media: [
+          { kind: "still", url: "/assets/demo/alt.jpg" },
+          { kind: "caption", body: "Alt still used in Photo cycle." },
+        ],
+      },
+    ];
+  }
+
   function ensureSession() {
     if (localStorage.getItem("cutline.signedOut") === "1") {
       applySession({ name: "You", desk: "pune", theme: "cream" });
@@ -2606,9 +3543,11 @@
   }
 
   function updateNeedLabel() {
-    const n = $("needList").querySelectorAll(".need-card").length;
-    $("needLabel").textContent = n === 0 ? "Nothing waiting to post" : (n + " waiting to post");
-    $("activityDot").style.display = n > 0 ? "" : "none";
+    const list = $("needList");
+    if (!list) return;
+    const n = list.querySelectorAll(".need-card").length;
+    if ($("needLabel")) $("needLabel").textContent = n === 0 ? "Nothing waiting to post" : (n + " waiting to post");
+    if ($("activityDot")) $("activityDot").style.display = n > 0 ? "" : "none";
   }
 
 
@@ -2792,6 +3731,7 @@
     if (/(^|\.)x\.com|twitter\.com|sample-dcn-x/i.test(u)) return "/assets/demo/dcn-x.jpg";
     if (/youtube\.com|youtu\.be|sample-dcn-yt/i.test(u)) return "/assets/demo/dcn-yt.jpg";
     if (/sample-pune/i.test(u)) return "/assets/demo/pune.jpg";
+    if (/sample-hyderabad/i.test(u)) return "/assets/demo/source.jpg";
     if (/sample-mumbai/i.test(u)) return "/assets/demo/mumbai.jpg";
     if (/sample-delhi/i.test(u)) return "/assets/demo/delhi.jpg";
     if (/sample-bengaluru/i.test(u)) return "/assets/demo/bengaluru.jpg";
@@ -2963,8 +3903,9 @@
 
   function wantsHydChrome(run) {
     if (!run) return false;
-    if (run.pack?.templateChrome === "dcn_hyd") return true;
-    if (run._hydChrome) return true;
+    if (run._hydChrome || run._styleChrome) return true;
+    const chrome = run.pack?.templateChrome || "";
+    if (/^dcn_/i.test(chrome)) return true;
     const note = (run.stillNote || "") + " " + (run.pack?.canvaNotes || "");
     if (/style copy|template chrome|Same type as/i.test(note)) return true;
     const logs = run.log || [];
@@ -2973,9 +3914,10 @@
   }
 
   function chromeUrlFor(run) {
-    /* Hyderabad DCN chrome ONLY for Copy this style / style-match — never default tip click */
+    /* Project/outlet DCN chrome ONLY for Copy this style / style-match — never default tip click */
     if (!wantsHydChrome(run)) return null;
-    return `/assets/demo/templates/template_post_chrome_hyderabad.png?v=${DCN_CHROME_VER}`;
+    const city = projectChromeCity();
+    return `/assets/demo/templates/template_post_chrome_${city}.png?v=${DCN_CHROME_VER}`;
   }
 
   function placeEditors(chromeOn) {
@@ -3209,6 +4151,7 @@
       currentRun.photos.unshift({ url: pendingAskPhoto.url, credit: pendingAskPhoto.credit || "Photo" });
       setPostPhoto({ url: pendingAskPhoto.url, credit: pendingAskPhoto.credit || "Photo" });
     }
+    if (typeof rememberRunInActiveProject === "function") rememberRunInActiveProject(currentRun);
   }
 
   function looksLikePostUrl(u) {
@@ -3290,8 +4233,10 @@
       });
       const data = await res.json().catch(() => ({}));
       if (data.run) {
-        data.run._hydChrome = true;
-        if (data.run.pack) data.run.pack.templateChrome = "dcn_hyd";
+        const city = projectChromeCity();
+        data.run._hydChrome = city === "hyderabad";
+        data.run._styleChrome = true;
+        if (data.run.pack) data.run.pack.templateChrome = city === "hyderabad" ? "dcn_hyd" : ("dcn_" + city);
         applyRun(data.run, { preferBrowser: false });
       } else {
         setStatus("needs_input");
@@ -3308,7 +4253,7 @@
     setErr("");
     const pasted = ($("pastePostUrl")?.value || "").trim();
     const headline = $("headline").value.trim();
-    const samplePending = isLiveSourceUrl(pendingSourceUrl) && /sample-(pune|mumbai|bengaluru|delhi|source)\.html/i.test(pendingSourceUrl || "");
+    const samplePending = isLiveSourceUrl(pendingSourceUrl) && /sample-(pune|mumbai|bengaluru|delhi|hyderabad|source)\.html/i.test(pendingSourceUrl || "");
     const refUrl = looksLikePostUrl(resolveSourceUrl(currentRun))
       ? resolveSourceUrl(currentRun)
       : (looksLikePostUrl(pasted) ? pasted : (looksLikePostUrl(pendingSourceUrl) ? pendingSourceUrl : ""));
@@ -3412,14 +4357,21 @@
     if (name === "activity" || name === "approvals") {
       $("viewActivity").classList.add("active");
       $("navApprovals")?.classList.add("active");
+      if (typeof paintApprovalsBoard === "function") paintApprovalsBoard();
     } else if (name === "scheduled") {
       $("viewScheduled")?.classList.add("active");
       $("navScheduled")?.classList.add("active");
+      if (typeof paintScheduled === "function") paintScheduled();
     } else if (name === "hunt" || name === "explore") {
       $("viewHunt").classList.add("active");
       $("navExplore")?.classList.add("active");
       $("toolNews")?.classList.add("active-tool");
       paintCityChips();
+      if (typeof paintExploreExtras === "function") paintExploreExtras();
+      /* Auto-fill Explore so the view never looks empty */
+      if (typeof doHunt === "function" && !lastHits.length) {
+        doHunt().catch(() => {});
+      }
     } else if (name === "library") {
       $("viewLibrary").classList.add("active");
       $("navLibrary")?.classList.add("active");
@@ -3744,10 +4696,12 @@
 
   function newsTips() {
     const origin = location.origin;
-    /* Pool rotates so recommendations feel different across sessions — plain news photos, no Hyd chrome */
+    /* Pool rotates so recommendations feel different across sessions — plain news photos, no DCN chrome */
     return [
       { desk: "pune", kicker: "Pune", title: "Overnight bus routes go to a vote in Pune.", url: origin + "/sample-pune.html" },
       { desk: "pune", kicker: "Pune", title: "Metro Phase 2 stations get weekend trial hours.", url: origin + "/sample-pune.html" },
+      { desk: "hyderabad", kicker: "Hyderabad", title: "HITEC City feeder buses add late trips.", url: origin + "/sample-hyderabad.html" },
+      { desk: "hyderabad", kicker: "Hyderabad", title: "Tank Bund stretch marked for Sunday cycle hours.", url: origin + "/sample-hyderabad.html" },
       { desk: "mumbai", kicker: "Mumbai", title: "Harbour line holds a late-night clearance window.", url: origin + "/sample-mumbai.html" },
       { desk: "mumbai", kicker: "Mumbai", title: "Marine Drive stretch marked for Sunday cycle hours.", url: origin + "/sample-mumbai.html" },
       { desk: "bengaluru", kicker: "Bengaluru", title: "Whitefield feeder buses add a late last trip.", url: origin + "/sample-bengaluru.html" },
@@ -3757,10 +4711,23 @@
 
   function rotatedTips(n) {
     const all = newsTips();
+    const proj = activeProject();
+    const prefer = (proj?.city || selectedDesk || "").toLowerCase();
     const seed = Math.floor(Date.now() / 3600000); /* rotate hourly */
-    const start = seed % all.length;
+    if (prefer) {
+      const hit = all.filter((t) => t.desk === prefer);
+      if (hit.length) {
+        const out = [];
+        for (let i = 0; i < Math.min(n, hit.length); i++) out.push(hit[(seed + i) % hit.length]);
+        if (out.length < n) {
+          const rest = all.filter((t) => t.desk !== prefer);
+          for (let i = 0; out.length < n && i < rest.length; i++) out.push(rest[(seed + i) % rest.length]);
+        }
+        return out;
+      }
+    }
     const out = [];
-    for (let i = 0; i < Math.min(n, all.length); i++) out.push(all[(start + i) % all.length]);
+    for (let i = 0; i < Math.min(n, all.length); i++) out.push(all[(seed + i) % all.length]);
     return out;
   }
 
@@ -4104,11 +5071,15 @@
   function renderLibrary(entries) {
     const list = $("libList");
     if (!list) return;
-    if (!entries || !entries.length) {
+    let rows = entries || [];
+    if (!rows.length && typeof demoLibraryEntries === "function") {
+      rows = demoLibraryEntries();
+    }
+    if (!rows.length) {
       list.innerHTML = `<div class="hunt-empty">No images yet. Finish a story or add a photo.</div>`;
       return;
     }
-    list.innerHTML = entries.map((entry) => {
+    list.innerHTML = rows.map((entry) => {
       const item = entry.item || {};
       const media = entry.media || [];
       const kinds = media.map((m) => m.kind).join(" · ") || "item";
@@ -4122,24 +5093,56 @@
         return `<p><a href="${escapeHtml(m.url)}" target="_blank" rel="noopener noreferrer">${escapeHtml(m.kind)} · open</a></p>`;
       }).join("");
       const captions = media.filter((m) => m.kind === "caption" && m.body).map((m) => `<p>${escapeHtml(m.body)}</p>`).join("");
+      const desk = item.desk ? String(item.desk).replace(/^./, (c) => c.toUpperCase()) : "";
       return `<article class="lib-card">
-        <div class="kind">${escapeHtml(kinds)}${item.desk ? " · " + escapeHtml(item.desk) : ""} · ${escapeHtml((item.createdAt || "").slice(0, 16))}</div>
+        <div class="kind">${escapeHtml(kinds)}${desk ? " · " + escapeHtml(desk) : ""} · ${escapeHtml((item.createdAt || "").slice(0, 16))}</div>
         <h3>${escapeHtml(item.title || "Untitled")}</h3>
-        ${thumbs}${captions}${src}
+        <div class="lib-media">${thumbs}</div>
+        ${captions}${src}
+        <div class="lib-actions-row">
+          <button type="button" class="pill pill-adjust" data-lib-open="${escapeHtml(item.sourceUrl || "")}" data-lib-title="${escapeHtml(item.title || "")}" data-lib-desk="${escapeHtml(item.desk || "")}">Open on desk</button>
+        </div>
       </article>`;
     }).join("");
+    list.querySelectorAll("[data-lib-open]").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        const url = btn.dataset.libOpen || "";
+        const title = btn.dataset.libTitle || "";
+        const desk = btn.dataset.libDesk || "";
+        if (desk) { selectedDesk = desk; paintCityChips(); }
+        if (url) {
+          pendingSourceUrl = url;
+          if ($("pastePostUrl")) $("pastePostUrl").value = url;
+          setStyleUrl(url);
+          loadBrowserUrl(url, { switchTab: true });
+        }
+        if (title && $("headline")) $("headline").value = title;
+        switchView("home");
+        if (/instagram\.com/i.test(url)) doAnalyze(url);
+        else if (url) doRun();
+      });
+    });
   }
 
   async function refreshLibrary() {
     setLibErr("");
     try {
       const res = await fetch("/api/library");
-      const data = await res.json();
+      const data = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(data.error || "library failed");
-      renderLibrary(data.entries || []);
-      renderRecents(data.entries || []);
+      const entries = data.entries || [];
+      /* Demo shelf: seed Ace cards when the API shelf is empty */
+      renderLibrary(entries);
+      renderRecents(entries);
     } catch (e) {
-      setLibErr(e.message || String(e));
+      /* SQLite / native module failures are common in demo — seed the shelf anyway */
+      const msg = e.message || String(e);
+      if (!/better-sqlite3|self-register|ECONN|library failed|Module did not/i.test(msg)) {
+        setLibErr(msg);
+      } else {
+        setLibErr("");
+      }
+      renderLibrary([]);
       renderRecents([]);
     }
   }
@@ -4178,12 +5181,31 @@
   }
 
   function tidyRecentTitle(title, src) {
-    if (storyFamily(title, src) === "ig:ddwhjcpid9b") return "DCN Pune on Instagram";
+    if (storyFamily(title, src) === "ig:ddwhjcpid9b") {
+      const proj = activeProject();
+      if (proj?.city === "hyderabad") return "DCN Hyderabad on Instagram";
+      if (proj?.name) return proj.name + " on Instagram";
+      return "DCN Pune on Instagram";
+    }
     return (title || "").trim();
   }
 
   function seedRecents() {
     const origin = location.origin;
+    const proj = activeProject();
+    if (proj && Array.isArray(proj.recents) && proj.recents.length) {
+      return proj.recents.map((r) => ({
+        runId: r.runId || "",
+        title: r.title,
+        sourceUrl: r.sourceUrl || "",
+      }));
+    }
+    if (proj?.city === "hyderabad") {
+      return [
+        { runId: "", title: "DCN Hyderabad on Instagram", sourceUrl: "https://www.instagram.com/p/DdwHjcpId9B/" },
+        { runId: "", title: "HITEC City feeder buses add late trips.", sourceUrl: origin + "/sample-hyderabad.html" },
+      ];
+    }
     return [
       { runId: "", title: "DCN Pune on Instagram", sourceUrl: "https://www.instagram.com/p/DdwHjcpId9B/" },
       { runId: "", title: "Overnight bus routes go to a vote in Pune.", sourceUrl: origin + "/sample-pune.html" },
@@ -4603,8 +5625,27 @@
     $("toolPhoto")?.click();
   });
 
+  ensureProjects();
+  ensureScheduled();
+  ensureApprovals();
+  paintProjectNav();
+  paintProjectChips();
+  try {
+    const st = readProjectsStore();
+    if (st.activeId) setActiveProject(st.activeId, { openHome: false });
+  } catch (_) { /* ignore */ }
+  $("schedAddBtn")?.addEventListener("click", () => addScheduledJob());
+  $("schedName")?.addEventListener("keydown", (e) => {
+    if (e.key === "Enter") { e.preventDefault(); addScheduledJob(); }
+  });
   refreshLibrary();
   paintNewsRecs();
+  /* Prefill activity dot from seeded approvals */
+  try {
+    const ap = ensureApprovals();
+    const n = (ap.pending || []).length;
+    if ($("activityDot")) $("activityDot").style.display = n > 0 ? "" : "none";
+  } catch (_) { /* ignore */ }
 </script>
 </body>
 </html>

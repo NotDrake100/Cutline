@@ -1,0 +1,76 @@
+{
+  "homeInfo": {
+    "projects": [
+      "DCN Pune",
+      "DCN Hyderabad"
+    ],
+    "chips": [
+      "DCN Pune",
+      "DCN Hyderabad",
+      "+ New project"
+    ]
+  },
+  "hyd": {
+    "mode": "DCN Hyderabad",
+    "city": [
+      "Hyderabad"
+    ],
+    "recents": [
+      "DCN Hyderabad on Instagram",
+      "HITEC City feeder buses add late trips."
+    ],
+    "tips": [
+      "Hyderabad Tank Bund stretch marked for Sunday cycle hours.",
+      "Hyderabad HITEC City feeder buses add late trips.",
+      "Mumbai Marine Drive stretch marked for Sunday cycle hours."
+    ],
+    "copy": "Build a Hyderabad-style DCN card from this URL",
+    "store": {
+      "activeId": "dcn-hyderabad",
+      "projects": [
+        {
+          "id": "dcn-pune",
+          "name": "DCN Pune",
+          "city": "pune",
+          "outlet": "DCN",
+          "styleUrl": "https://www.instagram.com/p/DdwHjcpId9B/",
+          "chrome": "pune",
+          "recentRunIds": [],
+          "recents": [
+            {
+              "runId": "",
+              "title": "DCN Pune on Instagram",
+              "sourceUrl": "https://www.instagram.com/p/DdwHjcpId9B/"
+            },
+            {
+              "runId": "",
+              "title": "Overnight bus routes go to a vote in Pune.",
+              "sourceUrl": "http://127.0.0.1:8787/sample-pune.html"
+            }
+          ]
+        },
+        {
+          "id": "dcn-hyderabad",
+          "name": "DCN Hyderabad",
+          "city": "hyderabad",
+          "outlet": "DCN",
+          "styleUrl": "https://www.instagram.com/p/DdwHjcpId9B/",
+          "chrome": "hyderabad",
+          "recentRunIds": [],
+          "recents": [
+            {
+              "runId": "",
+              "title": "DCN Hyderabad on Instagram",
+              "sourceUrl": "https://www.instagram.com/p/DdwHjcpId9B/"
+            },
+            {
+              "runId": "",
+              "title": "HITEC City feeder buses add late trips.",
+              "sourceUrl": "http://127.0.0.1:8787/sample-hyderabad.html"
+            }
+          ]
+        }
+      ]
+    }
+  }
+}
