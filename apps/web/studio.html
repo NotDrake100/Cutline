@@ -348,10 +348,11 @@
     display: flex; flex-direction: column;
     align-items: center;
     justify-content: center;
-    padding: 48px 24px 32px;
-    max-width: 720px;
+    padding: 48px 32px 40px; /* equal L/R — optical center in main pane */
+    max-width: 680px;
     width: 100%;
     margin: 0 auto;
+    box-sizing: border-box;
   }
   .home-wrap.has-run {
     justify-content: flex-start;
@@ -360,7 +361,7 @@
   .kicker {
     font-size: 13px; font-weight: 500; color: var(--muted);
     margin-bottom: 10px;
-    display: flex; align-items: center; gap: 8px;
+    display: flex; align-items: center; justify-content: center; gap: 8px;
   }
   .kicker::before {
     content: "";
@@ -421,11 +422,12 @@
     font-weight: 450;
   }
   .purpose-line {
-    margin: 0 0 14px;
-    max-width: 52ch;
+    margin: 0 auto 16px;
+    max-width: 46ch;
     font-size: 14px;
     line-height: 1.5;
     color: var(--muted);
+    text-align: center;
   }
   .showcase-rail {
     display: none;
@@ -439,6 +441,7 @@
     font-size: 12px;
     font-weight: 400;
     line-height: 1.4;
+    text-align: center;
   }
   body.is-showcase .showcase-rail { display: block; }
   .showcase-rail strong { color: var(--muted); font-weight: 500; }
@@ -533,7 +536,8 @@
     display: flex;
     flex-wrap: wrap;
     gap: 8px;
-    padding: 0 2px 12px;
+    justify-content: center; /* tips evenly under ask box */
+    padding: 4px 4px 12px;
   }
   .ask-suggest[hidden] { display: none !important; }
   .ask-suggest-label {
@@ -544,6 +548,7 @@
     text-transform: uppercase;
     color: var(--dim);
     margin: 0 0 2px;
+    text-align: center;
   }
   .ask-chip {
     display: inline-flex;
@@ -591,13 +596,14 @@
     flex-wrap: wrap;
     gap: 8px;
     align-items: center;
+    justify-content: center;
     width: 100%;
     margin: 0 0 14px;
     padding: 0 2px;
   }
   .project-home[hidden] { display: none !important; }
   .home-wrap.has-run .project-home { display: none !important; }
-  .project-home .ask-suggest-label { flex: 0 0 100%; margin: 0 0 2px; }
+  .project-home .ask-suggest-label { flex: 0 0 100%; margin: 0 0 2px; text-align: center; }
   .ask-chip.project-chip.active,
   .ask-chip.project-new:hover {
     border-color: var(--ink);
@@ -1876,26 +1882,44 @@
   .browser-stage {
     flex: 1;
     min-height: 0;
-    overflow: auto;
+    overflow: hidden; /* fit card to stage — no scroll to read the still */
     background: var(--bg);
     display: flex;
     justify-content: center;
-    align-items: flex-start;
-    padding: 20px 20px 36px;
+    align-items: center;
+    padding: 16px;
   }
   #rpBrowser { background: var(--bg); }
   .browser-preview {
     width: min(480px, 100%);
+    max-width: 100%;
+    max-height: 100%;
     background: var(--panel);
     border: 1px solid var(--line);
     border-radius: 16px;
     box-shadow: var(--shadow);
     overflow: hidden;
-    flex: 0 0 auto;
+    flex: 0 1 auto;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
   }
   .browser-preview[data-kind="youtube"],
   .browser-preview[data-kind="page"] {
     width: min(720px, 100%);
+  }
+  /* Cached IG/X stills: scale the full post card into the cream stage */
+  .browser-preview[data-kind="instagram"],
+  .browser-preview[data-kind="x"] {
+    width: min(480px, 100%);
+    height: 100%;
+    max-height: 100%;
+    background: transparent;
+    border: none;
+    box-shadow: none;
+    overflow: visible;
+    align-items: center;
+    justify-content: center;
   }
   .browser-poster { display: none; }
   .browser-frame-wrap {
@@ -1920,22 +1944,58 @@
     flex-direction: column;
     background: var(--panel);
     color: var(--ink);
+    min-height: 0;
+    max-height: 100%;
   }
   .browser-fallback.show { display: flex; }
+  .browser-preview[data-kind="instagram"] .browser-fallback.show,
+  .browser-preview[data-kind="x"] .browser-fallback.show {
+    width: 100%;
+    height: 100%;
+    max-height: 100%;
+    align-items: center;
+    justify-content: center;
+    background: transparent;
+    overflow: hidden;
+  }
   .browser-fallback img {
     width: 100%;
     height: auto;
-    max-width: none;
-    object-fit: cover;
+    max-width: 100%;
+    object-fit: contain;
     background: var(--panel);
     display: block;
   }
-  .browser-preview[data-kind="youtube"] .browser-fallback img { aspect-ratio: 16 / 9; object-fit: cover; }
+  .browser-preview[data-kind="instagram"] .browser-fallback img,
+  .browser-preview[data-kind="x"] .browser-fallback img {
+    width: auto;
+    height: auto;
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
+    object-position: center center;
+    border-radius: 14px;
+    box-shadow: var(--shadow);
+    border: 1px solid var(--line);
+  }
+  .browser-preview[data-kind="youtube"] .browser-fallback img {
+    width: 100%;
+    height: auto;
+    max-height: 100%;
+    aspect-ratio: 16 / 9;
+    object-fit: contain;
+  }
+  /* Hint above the stage already explains the cached still — keep card readable */
+  .browser-preview[data-kind="instagram"] .browser-fallback-body,
+  .browser-preview[data-kind="x"] .browser-fallback-body {
+    display: none;
+  }
   .browser-fallback-body {
     display: flex;
     flex-direction: column;
     gap: 8px;
     padding: 14px 16px 16px;
+    flex-shrink: 0;
   }
   .browser-fallback-url {
     margin: 0;
