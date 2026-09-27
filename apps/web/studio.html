@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="white">
 <head>
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
@@ -15,6 +15,7 @@
     --panel: #FFFEFB;
     --card: #FFFEFB;
     --cream-dark: #EDE6D9;
+    --on-ink: #FFFFFF;
     --ink: #0A0A0A;
     --muted: rgba(10,10,10,0.55);
     --dim: rgba(10,10,10,0.38);
@@ -37,7 +38,23 @@
     --right-w: 360px;
     --shadow: 0 12px 40px rgba(10,10,10,0.06);
   }
-  html[data-theme="paper"] { --bg: #FFFEFB; --sidebar: #F6F1E8; }
+  html[data-theme="white"] { /* default Ace cream + lime — labeled White in Settings */ }
+  html[data-theme="black"] {
+    --bg: #0A0A0A;
+    --sidebar: #111111;
+    --panel: #161616;
+    --card: #1A1A1A;
+    --cream-dark: #1A1A1A;
+    --ink: #F5F5F4;
+    --on-ink: #0A0A0A;
+    --muted: rgba(245,245,244,0.58);
+    --dim: rgba(245,245,244,0.38);
+    --line: rgba(255,255,255,.10);
+    --line-strong: rgba(255,255,255,.16);
+    --nav-hover: rgba(255,255,255,.06);
+    --nav-active: rgba(255,255,255,.10);
+    --shadow: 0 16px 48px rgba(0,0,0,0.45);
+  }
   html[data-density="compact"] { --sidebar-w: 228px; }
   * { box-sizing: border-box; }
   html, body { margin: 0; height: 100%; background: var(--bg); color: var(--ink); font-family: var(--font); -webkit-font-smoothing: antialiased; }
@@ -169,7 +186,36 @@
   }
   .nav-item.active .ico { color: var(--ink); }
   .nav-item .ico svg { width: 16px; height: 16px; }
-  .nav-item .label { flex: 1; text-align: left; }
+  .nav-item .label { flex: 1; text-align: left; min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+  .nav-item.has-actions { padding-right: 6px; }
+  .nav-item-main {
+    display: flex; align-items: center; gap: 10px;
+    flex: 1; min-width: 0;
+    text-align: left;
+    background: none; border: none;
+    color: inherit; font: inherit;
+    padding: 0;
+  }
+  .item-actions {
+    display: flex; align-items: center; gap: 2px;
+    margin-left: auto; flex-shrink: 0;
+    opacity: .55;
+  }
+  .nav-item:hover .item-actions,
+  .nav-item:focus-within .item-actions,
+  .nav-item.active .item-actions { opacity: 1; }
+  .item-act {
+    width: 26px; height: 26px;
+    border-radius: 8px;
+    display: grid; place-items: center;
+    color: var(--muted);
+    background: transparent;
+  }
+  .item-act:hover { background: var(--nav-hover); color: var(--ink); }
+  .item-act.danger:hover { background: rgba(255,59,48,.12); color: var(--red); }
+  .item-act svg { width: 13px; height: 13px; }
+  .side-archived { margin-top: 6px; }
+  .side-archived .nav-item { opacity: .78; }
   .nav-dot {
     width: 7px; height: 7px; border-radius: 50%;
     background: var(--red); flex-shrink: 0;
@@ -330,6 +376,29 @@
     background: var(--card); font-size: 15px; font-weight: 500;
     text-transform: none; letter-spacing: 0;
     color: var(--ink);
+  }
+  .settings-help {
+    margin: -6px 0 0;
+    font-size: 12.5px; font-weight: 500; color: var(--dim);
+    letter-spacing: 0; text-transform: none; line-height: 1.4;
+  }
+  .theme-toggle {
+    display: grid; grid-template-columns: 1fr 1fr;
+    height: 44px; padding: 4px;
+    border: 1px solid var(--line); border-radius: 12px;
+    background: var(--bg);
+    text-transform: none; letter-spacing: 0;
+  }
+  .theme-opt {
+    border-radius: 9px;
+    font-size: 14px; font-weight: 650;
+    color: var(--muted);
+  }
+  .theme-opt:hover { color: var(--ink); }
+  .theme-opt.active {
+    background: var(--card);
+    color: var(--ink);
+    box-shadow: 0 1px 0 var(--line);
   }
 
   /* ——— Main ——— */
@@ -602,12 +671,12 @@
   .ask-chip.project-new:hover {
     border-color: var(--ink);
     background: var(--ink);
-    color: #fff;
+    color: var(--on-ink);
   }
   .ask-chip.project-chip.active .k,
   .ask-chip.project-chip.active .t,
   .ask-chip.project-new:hover .k,
-  .ask-chip.project-new:hover .t { color: #fff; }
+  .ask-chip.project-new:hover .t { color: var(--on-ink); }
   .ask-chip.project-new {
     border-style: dashed;
     color: var(--ink);
@@ -718,7 +787,7 @@
   .btn:disabled { opacity: .4; cursor: not-allowed; }
   .btn-lime { background: var(--lime); color: var(--lime-ink); }
   .btn-lime:hover:not(:disabled) { filter: brightness(1.04); }
-  .btn-ink { background: var(--ink); color: #fff; }
+  .btn-ink { background: var(--ink); color: var(--on-ink); }
   .btn-ink:hover:not(:disabled) { background: #222; }
   .btn-ghost {
     background: transparent;
@@ -1129,7 +1198,7 @@
     border: 1px solid transparent;
     transition: background .12s ease, opacity .12s ease;
   }
-  .pill-approve { background: var(--ink); color: #fff; }
+  .pill-approve { background: var(--ink); color: var(--on-ink); }
   .pill-approve:hover:not(:disabled) { background: #222; }
   .pill-adjust { background: var(--nav-active); color: var(--ink); }
   .pill-adjust:hover:not(:disabled) { background: rgba(0,0,0,.1); }
@@ -1407,10 +1476,10 @@
   .gemini-toast { display: none !important; }
   .ig-post {
     margin: 8px 10px 12px;
-    background: #fff;
+    background: var(--panel);
     border: 1px solid var(--line);
     border-radius: 16px;
-    overflow: auto;
+    overflow: visible;
     flex: 1 1 auto;
     min-height: 0;
     display: flex;
@@ -1432,14 +1501,13 @@
   .ig-handle { font-size: 13px; font-weight: 650; letter-spacing: -.01em; }
   .ig-handle-sub { font-size: 11px; color: var(--dim); }
   .ig-frame {
-    position: sticky;
-    top: 0;
-    z-index: 2;
+    position: relative;
+    z-index: 1;
     display: block;
     width: 100%;
     aspect-ratio: 4 / 5;
-    min-height: 320px;
-    max-height: 460px;
+    min-height: 240px;
+    max-height: min(42vh, 400px);
     flex: 0 0 auto;
     background: #0A0A0A;
     background-size: cover;
@@ -1584,26 +1652,37 @@
     color: var(--ink);
   }
   .photo-strip-label {
-    padding: 0 12px 6px;
+    padding: 8px 12px 6px;
     font-size: 11px; font-weight: 650;
     letter-spacing: .04em; text-transform: uppercase;
     color: var(--dim);
+    flex: 0 0 auto;
   }
   .photo-strip {
-    display: flex; gap: 6px; overflow-x: auto;
-    padding: 0 12px 10px;
+    display: flex; gap: 10px; overflow-x: auto;
+    padding: 0 12px 14px;
+    flex: 0 0 auto;
+    min-height: 72px;
+    scroll-margin-bottom: 72px;
   }
   .photo-strip button {
-    width: 56px; height: 56px; border-radius: 8px;
+    width: 64px; height: 64px; border-radius: 50%;
     overflow: hidden; flex-shrink: 0;
     border: 2px solid transparent;
-    padding: 0; background: #eee;
+    padding: 0; background: var(--nav-active);
   }
   .photo-strip button.active { border-color: var(--ink); }
   .photo-strip img { width: 100%; height: 100%; object-fit: cover; }
   .ig-actions {
     display: flex; gap: 8px;
-    padding: 0 12px 12px;
+    padding: 10px 12px 12px;
+    margin-top: auto;
+    flex: 0 0 auto;
+    position: sticky;
+    bottom: 0;
+    z-index: 4;
+    background: var(--panel);
+    border-top: 1px solid var(--line);
   }
   .ig-still-note {
     padding: 8px 12px 0;
@@ -2116,7 +2195,7 @@
         <div class="paste-url" id="pasteUrlWrap">
           <p class="assign-label">Paste a post URL</p>
           <div class="paste-url-row">
-            <input id="pastePostUrl" type="url" placeholder="Instagram, X, YouTube, or any post link" autocomplete="off" spellcheck="false"/>
+            <input id="pastePostUrl" type="url" value="https://www.instagram.com/p/DdwHjcpId9B/" placeholder="https://www.instagram.com/p/DdwHjcpId9B/" autocomplete="off" spellcheck="false"/>
             <button type="button" class="btn btn-lime" id="analyzeBtn">Analyze</button>
             <button type="button" class="btn btn-ink" id="copyStyleBtn" title="Build a DCN-style card from this URL">Copy this style</button>
           </div>
@@ -2309,20 +2388,22 @@
       <div class="connect-wrap">
         <div class="kicker">Account</div>
         <h1>Settings</h1>
-        <p class="connect-sub">Your desk. Name, cream theme, owner key for live Gemini.</p>
+        <p class="connect-sub">Your desk. Name, theme, and a desk API key for live AI.</p>
         <form class="settings-form" id="settingsForm">
           <label>Name
             <input type="text" id="settingsName" maxlength="40" autocomplete="name"/>
           </label>
           <label>Theme
-            <select id="settingsTheme">
-              <option value="cream">Ace cream</option>
-              <option value="paper">Paper cream</option>
-            </select>
+            <input type="hidden" id="settingsTheme" value="white"/>
+            <div class="theme-toggle" role="radiogroup" aria-label="Theme">
+              <button type="button" class="theme-opt active" data-theme-opt="white" aria-pressed="true">White</button>
+              <button type="button" class="theme-opt" data-theme-opt="black" aria-pressed="false">Black</button>
+            </div>
           </label>
-          <label>Owner key
-            <input type="password" id="settingsOwnerKey" autocomplete="off" placeholder="Unlock live Gemini"/>
+          <label>Desk API key
+            <input type="password" id="settingsOwnerKey" autocomplete="off" placeholder="Unlocks live AI generation for your desk"/>
           </label>
+          <p class="settings-help">Public demo stays on fixtures without a key. The key is never shown after you save.</p>
           <button type="submit" class="btn btn-lime">Save</button>
         </form>
       </div>
@@ -2492,9 +2573,9 @@
   <div class="gate-card">
     <div class="mark" aria-hidden="true"><span class="fallback">C</span></div>
     <h1>Demo is open.</h1>
-    <p>Public desk uses fixtures. Enter an owner key only for live Gemini.</p>
+    <p>Public desk uses fixtures. A desk API key unlocks live AI generation for your desk. Without a key, the demo stays fixture-only.</p>
     <input type="text" id="gateName" placeholder="Your name" maxlength="40"/>
-    <input type="password" id="gateOwnerKey" placeholder="Owner key (optional)" autocomplete="off"/>
+    <input type="password" id="gateOwnerKey" placeholder="Desk API key (optional)" autocomplete="off"/>
     <button type="button" class="btn btn-lime" id="gateOpen">Continue in demo</button>
   </div>
 </div>
@@ -2598,16 +2679,59 @@
   function setSideRunReady() { /* Run lives on the ask box only */ }
 
   const SESSION_KEY = "cutline.session";
+  const DCN_STYLE_URL = "https://www.instagram.com/p/DdwHjcpId9B/";
+  const ICON_ARCHIVE = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4 8h16v11H4z"/><path d="M4 8l2-3h12l2 3"/><path d="M10 12h4"/></svg>`;
+  const ICON_DELETE = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M5 8h14"/><path d="M9 8V6h6v2"/><path d="M8 8l1 11h6l1-11"/></svg>`;
+  const ICON_RESTORE = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M9 14H5l4 4"/><path d="M5 18v-6a7 7 0 1 1 2 5"/></svg>`;
+
+  function normalizeTheme(t) {
+    const v = String(t || "").toLowerCase();
+    if (v === "black" || v === "dark" || v === "ink") return "black";
+    return "white";
+  }
+  function isToySampleUrl(u) {
+    return /\/sample-[a-z0-9-]+\.html(\?|#|$)/i.test(String(u || ""));
+  }
+  function publicStyleUrl(u) {
+    const raw = cleanPastedUrl(u || "");
+    if (!raw || isToySampleUrl(raw) || !isLiveSourceUrl(raw)) return DCN_STYLE_URL;
+    return raw;
+  }
+  function seedPasteUrl() {
+    const el = $("pastePostUrl");
+    if (!el) return;
+    if (!el.value.trim() || isToySampleUrl(el.value)) {
+      el.value = DCN_STYLE_URL;
+    }
+    el.placeholder = DCN_STYLE_URL;
+  }
+  function paintThemeToggle(theme) {
+    const next = normalizeTheme(theme);
+    if ($("settingsTheme")) $("settingsTheme").value = next;
+    document.querySelectorAll("[data-theme-opt]").forEach((btn) => {
+      const on = btn.dataset.themeOpt === next;
+      btn.classList.toggle("active", on);
+      btn.setAttribute("aria-pressed", on ? "true" : "false");
+    });
+  }
   function readSession() {
     try { return JSON.parse(localStorage.getItem(SESSION_KEY) || "null"); } catch (_) { return null; }
   }
   function writeSession(next) {
-    localStorage.setItem(SESSION_KEY, JSON.stringify(next));
-    applySession(next);
+    const mapped = { ...next, theme: normalizeTheme(next?.theme) };
+    localStorage.setItem(SESSION_KEY, JSON.stringify(mapped));
+    applySession(mapped);
   }
   function applySession(session) {
-    const s = session || { name: "You", desk: "pune", theme: "cream" };
-    document.documentElement.dataset.theme = s.theme === "paper" ? "paper" : "cream";
+    const s = session || { name: "You", desk: "pune", theme: "white" };
+    const theme = normalizeTheme(s.theme);
+    if (s.theme !== theme) {
+      try {
+        const cur = readSession() || {};
+        localStorage.setItem(SESSION_KEY, JSON.stringify({ ...cur, ...s, theme }));
+      } catch (_) { /* ignore */ }
+    }
+    document.documentElement.dataset.theme = theme;
     if (s.desk) selectedDesk = s.desk;
     const ini = (s.name || "You").trim().slice(0, 1).toUpperCase() || "Y";
     const pic = $("profilePic");
@@ -2615,12 +2739,12 @@
       pic.innerHTML = `<span class="ini">${ini}</span>`;
     }
     if ($("settingsName")) $("settingsName").value = s.name || "You";
-    if ($("settingsTheme")) $("settingsTheme").value = s.theme || "cream";
+    paintThemeToggle(theme);
     paintCityChips();
   }
   function paintMode(mode) {
     deskMode = demoForced ? "demo" : (mode === "owner" ? "owner" : "demo");
-    const label = deskMode === "owner" ? "Owner desk" : "Demo";
+    const label = deskMode === "owner" ? "Live desk" : "Demo";
     if ($("workspaceMode")) $("workspaceMode").textContent = label;
     if ($("homeKicker")) $("homeKicker").textContent = label;
     if (demoForced) recentsReset = true;
@@ -2680,6 +2804,9 @@
     try {
       localStorage.setItem(PROJECTS_KEY, JSON.stringify({
         activeId: store.activeId || null,
+        removedIds: store.removedIds || [],
+        archivedRecentKeys: store.archivedRecentKeys || [],
+        deletedRecentKeys: store.deletedRecentKeys || [],
         projects: (store.projects || []).map((p) => ({
           id: p.id,
           name: p.name,
@@ -2687,6 +2814,7 @@
           outlet: p.outlet || "DCN",
           styleUrl: p.styleUrl || "",
           chrome: p.chrome || p.city || "pune",
+          archived: !!p.archived,
           recentRunIds: Array.isArray(p.recentRunIds) ? p.recentRunIds.slice(0, 20) : [],
           recents: Array.isArray(p.recents) ? p.recents.slice(0, 8) : [],
         })),
@@ -2696,9 +2824,14 @@
 
   function ensureProjects() {
     const store = readProjectsStore();
+    store.removedIds = Array.isArray(store.removedIds) ? store.removedIds : [];
+    store.archivedRecentKeys = Array.isArray(store.archivedRecentKeys) ? store.archivedRecentKeys : [];
+    store.deletedRecentKeys = Array.isArray(store.deletedRecentKeys) ? store.deletedRecentKeys : [];
     const seeds = demoProjectSeeds();
+    const removed = new Set(store.removedIds);
     const byId = new Map(store.projects.map((p) => [p.id, p]));
     for (const s of seeds) {
+      if (removed.has(s.id)) continue;
       if (!byId.has(s.id)) {
         store.projects.push(s);
         byId.set(s.id, s);
@@ -2713,6 +2846,96 @@
     writeProjectsStore(store);
     activeProjectId = store.activeId || null;
     return store;
+  }
+
+  function isBuiltInProject(id) {
+    return id === "dcn-pune" || id === "dcn-hyderabad";
+  }
+
+  function archiveProject(id) {
+    const store = ensureProjects();
+    const p = store.projects.find((x) => x.id === id);
+    if (!p) return;
+    p.archived = true;
+    if (store.activeId === id) store.activeId = null;
+    writeProjectsStore(store);
+    if (activeProjectId === id) clearActiveProject();
+    else {
+      paintProjectNav();
+      paintProjectChips();
+    }
+  }
+
+  function restoreProject(id) {
+    const store = ensureProjects();
+    const p = store.projects.find((x) => x.id === id);
+    if (!p) return;
+    p.archived = false;
+    writeProjectsStore(store);
+    paintProjectNav();
+    paintProjectChips();
+  }
+
+  function deleteProject(id) {
+    const store = ensureProjects();
+    const p = store.projects.find((x) => x.id === id);
+    if (!p) return;
+    const builtIn = isBuiltInProject(id);
+    const ok = window.confirm(builtIn
+      ? `Delete the built-in “${p.name}” project from this browser? This cannot be undone.`
+      : `Delete “${p.name}”? This cannot be undone.`);
+    if (!ok) return;
+    store.projects = store.projects.filter((x) => x.id !== id);
+    if (builtIn && !store.removedIds.includes(id)) store.removedIds.push(id);
+    if (store.activeId === id) store.activeId = null;
+    writeProjectsStore(store);
+    if (activeProjectId === id) clearActiveProject();
+    else {
+      paintProjectNav();
+      paintProjectChips();
+    }
+  }
+
+  function recentStateSets() {
+    const store = ensureProjects();
+    return {
+      store,
+      archived: new Set(store.archivedRecentKeys || []),
+      deleted: new Set(store.deletedRecentKeys || []),
+    };
+  }
+
+  function archiveRecentItem(title, sourceUrl) {
+    const key = recentKey(title, sourceUrl);
+    if (!key) return;
+    const store = ensureProjects();
+    store.archivedRecentKeys = Array.from(new Set([...(store.archivedRecentKeys || []), key]));
+    store.deletedRecentKeys = (store.deletedRecentKeys || []).filter((k) => k !== key);
+    writeProjectsStore(store);
+    renderRecents([]);
+  }
+
+  function restoreRecentItem(title, sourceUrl) {
+    const key = recentKey(title, sourceUrl);
+    if (!key) return;
+    const store = ensureProjects();
+    store.archivedRecentKeys = (store.archivedRecentKeys || []).filter((k) => k !== key);
+    writeProjectsStore(store);
+    renderRecents([]);
+  }
+
+  function deleteRecentItem(title, sourceUrl) {
+    if (!window.confirm("Remove this recent story? This cannot be undone.")) return;
+    const key = recentKey(title, sourceUrl);
+    if (!key) return;
+    const store = ensureProjects();
+    store.deletedRecentKeys = Array.from(new Set([...(store.deletedRecentKeys || []), key]));
+    store.archivedRecentKeys = (store.archivedRecentKeys || []).filter((k) => k !== key);
+    for (const p of store.projects || []) {
+      p.recents = (p.recents || []).filter((r) => recentKey(r.title, r.sourceUrl) !== key);
+    }
+    writeProjectsStore(store);
+    renderRecents([]);
   }
 
   function listProjects() {
@@ -2793,7 +3016,7 @@
       $("huntMeta").textContent = "Find news · " + selectedDesk;
       $("huntMeta").classList.remove("warn");
     }
-    const mode = deskMode === "owner" ? "Owner desk" : "Demo";
+    const mode = deskMode === "owner" ? "Live desk" : "Demo";
     if ($("workspaceMode")) {
       $("workspaceMode").textContent = proj.name;
       $("workspaceMode").classList.add("project-on");
@@ -2881,25 +3104,51 @@
     const root = $("projectList");
     if (!root) return;
     const projects = listProjects();
+    const live = projects.filter((p) => !p.archived);
+    const archived = projects.filter((p) => p.archived);
     const active = activeProjectId;
     const folderSvg = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M4 8h16v11H4z"/><path d="M8 8V6h8v2"/></svg>`;
     const plusSvg = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>`;
-    if (!projects.length) {
-      root.innerHTML = `<div class="side-empty">No projects yet</div>`;
-      return;
+    const row = (p, archivedRow) =>
+      `<div class="nav-item has-actions${p.id === active ? " active" : ""}" data-project="${escapeHtml(p.id)}" title="${escapeHtml(p.outlet || "DCN")} · ${escapeHtml(p.city || "")}">
+        <button type="button" class="nav-item-main" data-project-open="${escapeHtml(p.id)}">
+          <span class="ico" aria-hidden="true">${folderSvg}</span>
+          <span class="label">${escapeHtml(p.name)}</span>
+        </button>
+        <span class="item-actions">
+          ${archivedRow
+            ? `<button type="button" class="item-act" data-restore-project="${escapeHtml(p.id)}" title="Restore" aria-label="Restore">${ICON_RESTORE}</button>`
+            : `<button type="button" class="item-act" data-archive-project="${escapeHtml(p.id)}" title="Archive" aria-label="Archive">${ICON_ARCHIVE}</button>`}
+          <button type="button" class="item-act danger" data-delete-project="${escapeHtml(p.id)}" title="Delete" aria-label="Delete">${ICON_DELETE}</button>
+        </span>
+      </div>`;
+    if (!live.length && !archived.length) {
+      root.innerHTML = `<div class="side-empty">No projects yet</div>` +
+        `<button type="button" class="nav-item nav-project-new" id="navNewProject" title="New project">
+          <span class="ico" aria-hidden="true">${plusSvg}</span>
+          <span class="label">New project</span>
+        </button>`;
+    } else {
+      root.innerHTML = live.map((p) => row(p, false)).join("") +
+        `<button type="button" class="nav-item nav-project-new" id="navNewProject" title="New project">
+          <span class="ico" aria-hidden="true">${plusSvg}</span>
+          <span class="label">New project</span>
+        </button>` +
+        (archived.length
+          ? `<div class="side-archived"><div class="section-label">Archived</div>${archived.map((p) => row(p, true)).join("")}</div>`
+          : "");
     }
-    root.innerHTML = projects.map((p) =>
-      `<button type="button" class="nav-item${p.id === active ? " active" : ""}" data-project="${escapeHtml(p.id)}" title="${escapeHtml(p.outlet || "DCN")} · ${escapeHtml(p.city || "")}">
-        <span class="ico" aria-hidden="true">${folderSvg}</span>
-        <span class="label">${escapeHtml(p.name)}</span>
-      </button>`
-    ).join("") +
-      `<button type="button" class="nav-item nav-project-new" id="navNewProject" title="New project">
-        <span class="ico" aria-hidden="true">${plusSvg}</span>
-        <span class="label">New project</span>
-      </button>`;
-    root.querySelectorAll("[data-project]").forEach((btn) => {
-      btn.addEventListener("click", () => openOrCreateSeedProject(btn.dataset.project));
+    root.querySelectorAll("[data-project-open]").forEach((btn) => {
+      btn.addEventListener("click", () => openOrCreateSeedProject(btn.dataset.projectOpen));
+    });
+    root.querySelectorAll("[data-archive-project]").forEach((btn) => {
+      btn.addEventListener("click", (e) => { e.stopPropagation(); archiveProject(btn.dataset.archiveProject); });
+    });
+    root.querySelectorAll("[data-restore-project]").forEach((btn) => {
+      btn.addEventListener("click", (e) => { e.stopPropagation(); restoreProject(btn.dataset.restoreProject); });
+    });
+    root.querySelectorAll("[data-delete-project]").forEach((btn) => {
+      btn.addEventListener("click", (e) => { e.stopPropagation(); deleteProject(btn.dataset.deleteProject); });
     });
     $("navNewProject")?.addEventListener("click", () => createProjectFromWork());
   }
@@ -2907,7 +3156,7 @@
   function paintProjectChips() {
     const root = $("projectHome");
     if (!root) return;
-    const projects = listProjects().filter((p) => p.id === "dcn-pune" || p.id === "dcn-hyderabad" || p.id === activeProjectId);
+    const projects = listProjects().filter((p) => !p.archived && (p.id === "dcn-pune" || p.id === "dcn-hyderabad" || p.id === activeProjectId));
     /* Always show the two demo seeds + any other active */
     const seen = new Set();
     const chips = [];
@@ -3372,13 +3621,16 @@
 
   function ensureSession() {
     if (localStorage.getItem("cutline.signedOut") === "1") {
-      applySession({ name: "You", desk: "pune", theme: "cream" });
+      applySession({ name: "You", desk: "pune", theme: "white" });
       showSignedOut(true);
       return null;
     }
     let s = readSession();
     if (!s) {
-      s = { name: "You", desk: "pune", theme: "cream" };
+      s = { name: "You", desk: "pune", theme: "white" };
+      localStorage.setItem(SESSION_KEY, JSON.stringify(s));
+    } else if (s.theme !== normalizeTheme(s.theme)) {
+      s = { ...s, theme: normalizeTheme(s.theme) };
       localStorage.setItem(SESSION_KEY, JSON.stringify(s));
     }
     applySession(s);
@@ -3823,14 +4075,12 @@
     const row = $("styleUrlRow");
     const field = $("styleUrl");
     if (!row || !field) return;
-    if (!isLiveSourceUrl(url)) {
-      row.classList.remove("show");
-      field.value = "";
-      return;
-    }
-    field.value = url;
+    const shown = publicStyleUrl(url);
+    field.value = shown;
     row.classList.add("show");
-    if ($("pastePostUrl") && !$("pastePostUrl").value) $("pastePostUrl").value = url;
+    if ($("pastePostUrl") && (!$("pastePostUrl").value || isToySampleUrl($("pastePostUrl").value))) {
+      $("pastePostUrl").value = shown;
+    }
   }
 
   function paintBrowser(run) {
@@ -4082,21 +4332,21 @@
     }
     const strip = $("photoStrip");
     const label = $("photoStripLabel");
-    const uniqueThumbs = photos.filter((p) => p.url && p.url !== url && preferRaster(p.url) && !/\.svg(\?|$)/i.test(p.url));
+    const uniqueThumbs = photos.filter((p) => p.url && preferRaster(p.url) && !/\.svg(\?|$)/i.test(p.url));
     if (strip) {
-      /* Big Post still is the proof. Hide a one-thumb "From the page" strip. */
-      if (isIg || photos.length <= 1 || uniqueThumbs.length === 0) {
+      /* Always keep a reachable thumb row above Approve/ZIP when 2+ stills exist. */
+      if (uniqueThumbs.length < 2) {
         strip.hidden = true;
         strip.innerHTML = "";
         if (label) label.hidden = true;
       } else {
         strip.hidden = false;
         if (label) label.hidden = false;
-        strip.innerHTML = photos.map((p, i) =>
-          `<button type="button" data-photo="${i}" class="${p.url === url ? "active" : ""}"><img src="${escapeHtml(p.url)}" alt=""/></button>`
+        strip.innerHTML = uniqueThumbs.map((p, i) =>
+          `<button type="button" data-photo="${i}" class="${p.url === url ? "active" : ""}" title="${escapeHtml(p.credit || "Still")}"><img src="${escapeHtml(p.url)}" alt="${escapeHtml(p.credit || "Still")}"/></button>`
         ).join("");
         strip.querySelectorAll("button").forEach((btn) => {
-          btn.addEventListener("click", () => setPostPhoto(photos[Number(btn.dataset.photo)]));
+          btn.addEventListener("click", () => setPostPhoto(uniqueThumbs[Number(btn.dataset.photo)]));
         });
       }
       const live = resolveSourceUrl(run);
@@ -4155,7 +4405,8 @@
     const social = looksLikePostUrl(src);
     fillMagicLayers(run, { flash: true, preferBrowser: opts?.preferBrowser ?? social });
     setStyleUrl(src);
-    if (isLiveSourceUrl(src) && $("pastePostUrl")) $("pastePostUrl").value = src;
+    if (isLiveSourceUrl(src) && $("pastePostUrl") && !isToySampleUrl(src)) $("pastePostUrl").value = src;
+    else seedPasteUrl();
     if (pendingAskPhoto?.url) {
       currentRun.photos = currentRun.photos || [];
       currentRun.photos.unshift({ url: pendingAskPhoto.url, credit: pendingAskPhoto.credit || "Photo" });
@@ -4329,7 +4580,7 @@
 
   function newDesk() {
     $("headline").value = "";
-    if ($("pastePostUrl")) $("pastePostUrl").value = "";
+    seedPasteUrl();
     pendingSourceUrl = null;
     pendingAskPhoto = null;
     showAskAttach("");
@@ -4746,10 +4997,10 @@
     selectedDesk = t.desk;
     paintCityChips();
     $("headline").value = t.title;
-    /* Keep tip URL in paste field so Copy this style is one click away */
-    if ($("pastePostUrl")) $("pastePostUrl").value = t.url;
+    /* Tips run fixtures; keep the paste field on a real public style URL */
     pendingSourceUrl = t.url;
-    setStyleUrl(t.url);
+    seedPasteUrl();
+    setStyleUrl(DCN_STYLE_URL);
     /* Tips = news photo + editable text only — never Hyd chrome */
     if (currentRun) {
       currentRun._hydChrome = false;
@@ -5313,36 +5564,80 @@
       });
       seedRecents().forEach(push);
     }
-    const shown = rows.slice(0, 5);
-    root.innerHTML = shown.map((r) =>
-      `<button type="button" class="nav-item" data-recent-run="${escapeHtml(r.runId)}" data-recent-title="${escapeHtml(r.title)}" data-recent-src="${escapeHtml(r.sourceUrl)}">
-        <span class="label">${escapeHtml(r.title.length > 48 ? r.title.slice(0, 46) + "…" : r.title)}</span>
-      </button>`
-    ).join("");
-    root.querySelectorAll("[data-recent-run]").forEach((btn) => {
-      btn.addEventListener("click", async () => {
-        const runId = btn.dataset.recentRun;
-        const title = btn.dataset.recentTitle || "";
-        const src = btn.dataset.recentSrc || "";
-        switchView("home");
-        if (runId) {
-          try {
-            const res = await fetch("/api/runs/" + encodeURIComponent(runId));
-            const data = await res.json();
-            if (res.ok && data.run) {
-              applyRun(data.run);
-              return;
-            }
-          } catch (_) { /* open as ask */ }
-        }
-        if (looksLikePostUrl(src)) return doAnalyze(src);
-        if (title) $("headline").value = title;
-        if (isLiveSourceUrl(src)) {
-          pendingSourceUrl = src;
-          loadBrowserUrl(src, { switchTab: true });
-          setStyleUrl(src);
-        }
-        setSideRunReady();
+    const { archived, deleted } = recentStateSets();
+    const live = [];
+    const archivedRows = [];
+    for (const r of rows) {
+      const key = recentKey(r.title, r.sourceUrl);
+      if (deleted.has(key)) continue;
+      if (archived.has(key)) archivedRows.push(r);
+      else live.push(r);
+    }
+    const shown = live.slice(0, 5);
+    const recentRow = (r, archivedRow) =>
+      `<div class="nav-item has-actions" data-recent-run="${escapeHtml(r.runId)}" data-recent-title="${escapeHtml(r.title)}" data-recent-src="${escapeHtml(r.sourceUrl)}">
+        <button type="button" class="nav-item-main" data-recent-open="1">
+          <span class="label">${escapeHtml(r.title.length > 48 ? r.title.slice(0, 46) + "…" : r.title)}</span>
+        </button>
+        <span class="item-actions">
+          ${archivedRow
+            ? `<button type="button" class="item-act" data-restore-recent="1" title="Restore" aria-label="Restore">${ICON_RESTORE}</button>`
+            : `<button type="button" class="item-act" data-archive-recent="1" title="Archive" aria-label="Archive">${ICON_ARCHIVE}</button>`}
+          <button type="button" class="item-act danger" data-delete-recent="1" title="Delete" aria-label="Delete">${ICON_DELETE}</button>
+        </span>
+      </div>`;
+    root.innerHTML = (shown.length ? shown.map((r) => recentRow(r, false)).join("") : (archivedRows.length ? "" : `<div class="side-empty">No recent stories</div>`)) +
+      (archivedRows.length
+        ? `<div class="side-archived"><div class="section-label">Archived</div>${archivedRows.map((r) => recentRow(r, true)).join("")}</div>`
+        : "");
+    async function openRecent(btn) {
+      const row = btn.closest("[data-recent-title]");
+      if (!row) return;
+      const runId = row.dataset.recentRun;
+      const title = row.dataset.recentTitle || "";
+      const src = row.dataset.recentSrc || "";
+      switchView("home");
+      if (runId) {
+        try {
+          const res = await fetch("/api/runs/" + encodeURIComponent(runId));
+          const data = await res.json();
+          if (res.ok && data.run) {
+            applyRun(data.run);
+            return;
+          }
+        } catch (_) { /* open as ask */ }
+      }
+      if (looksLikePostUrl(src)) return doAnalyze(src);
+      if (title) $("headline").value = title;
+      if (isLiveSourceUrl(src)) {
+        pendingSourceUrl = src;
+        loadBrowserUrl(src, { switchTab: true });
+        setStyleUrl(isToySampleUrl(src) ? DCN_STYLE_URL : src);
+      }
+      setSideRunReady();
+    }
+    root.querySelectorAll("[data-recent-open]").forEach((btn) => {
+      btn.addEventListener("click", () => openRecent(btn));
+    });
+    root.querySelectorAll("[data-archive-recent]").forEach((btn) => {
+      btn.addEventListener("click", (e) => {
+        e.stopPropagation();
+        const row = btn.closest("[data-recent-title]");
+        if (row) archiveRecentItem(row.dataset.recentTitle, row.dataset.recentSrc);
+      });
+    });
+    root.querySelectorAll("[data-restore-recent]").forEach((btn) => {
+      btn.addEventListener("click", (e) => {
+        e.stopPropagation();
+        const row = btn.closest("[data-recent-title]");
+        if (row) restoreRecentItem(row.dataset.recentTitle, row.dataset.recentSrc);
+      });
+    });
+    root.querySelectorAll("[data-delete-recent]").forEach((btn) => {
+      btn.addEventListener("click", (e) => {
+        e.stopPropagation();
+        const row = btn.closest("[data-recent-title]");
+        if (row) deleteRecentItem(row.dataset.recentTitle, row.dataset.recentSrc);
       });
     });
   }
@@ -5565,7 +5860,7 @@
     const name = ($("gateName")?.value || "You").trim() || "You";
     const key = ($("gateOwnerKey")?.value || "").trim();
     localStorage.removeItem("cutline.signedOut");
-    writeSession({ name, desk: selectedDesk || "pune", theme: "cream" });
+    writeSession({ name, desk: selectedDesk || "pune", theme: normalizeTheme(readSession()?.theme) });
     if (key) await unlockOwner(key);
     else paintMode("demo");
     showSignedOut(false);
@@ -5576,7 +5871,7 @@
     writeSession({
       name: ($("settingsName")?.value || "You").trim() || "You",
       desk: selectedDesk || "pune",
-      theme: $("settingsTheme")?.value || "cream",
+      theme: normalizeTheme($("settingsTheme")?.value || "white"),
     });
     const key = ($("settingsOwnerKey")?.value || "").trim();
     if (key) await unlockOwner(key);
@@ -5701,7 +5996,9 @@
   paintProjectChips();
   try {
     const st = readProjectsStore();
-    if (st.activeId) setActiveProject(st.activeId, { openHome: false });
+    if (st.activeId && !(st.projects || []).find((p) => p.id === st.activeId)?.archived) {
+      setActiveProject(st.activeId, { openHome: false });
+    }
   } catch (_) { /* ignore */ }
   $("schedAddBtn")?.addEventListener("click", () => addScheduledJob());
   $("schedName")?.addEventListener("keydown", (e) => {
@@ -5709,6 +6006,14 @@
   });
   refreshLibrary();
   paintNewsRecs();
+  seedPasteUrl();
+  document.querySelectorAll("[data-theme-opt]").forEach((btn) => {
+    btn.addEventListener("click", (e) => {
+      e.preventDefault();
+      paintThemeToggle(btn.dataset.themeOpt);
+      document.documentElement.dataset.theme = normalizeTheme(btn.dataset.themeOpt);
+    });
+  });
   /* Prefill activity dot from seeded approvals */
   try {
     const ap = ensureApprovals();
