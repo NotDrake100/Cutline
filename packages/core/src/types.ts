@@ -64,6 +64,8 @@ export interface Pack {
   clipUrl?: string;
   /** When set (e.g. dcn_hyd), studio layers real template chrome + editable on-card headline. */
   templateChrome?: "dcn_hyd";
+  /** Post frame: IG and X are 4:5, YouTube is 16:9. Survives style-match beat rewrite. */
+  postPlatform?: "instagram" | "x" | "youtube";
 }
 
 export interface AgentLogEntry {

@@ -288,6 +288,7 @@ export async function analyzePostUrl(opts: {
   const pack = sourcedPack(rewrite, photo);
   pack.igCaption = rewrite.caption || pack.igCaption;
   pack.canvaNotes = `${PLATFORM_LABEL[kind]} post → Cutline pack.`;
+  pack.postPlatform = kind === "youtube" ? "youtube" : kind === "x" ? "x" : "instagram";
   const photos = [
     { url: still, credit: kind === "instagram" ? "Sourced still" : outlet },
     { url: fixtureStill, credit: "Sourced still" },
@@ -348,6 +349,7 @@ export async function styleMatchFromPost(opts: {
     run.pack.canvaNotes = note;
     /* Style-copy only: layer real DCN Hyderabad template chrome in studio */
     run.pack.templateChrome = "dcn_hyd";
+    run.pack.postPlatform = kind === "youtube" ? "youtube" : kind === "x" ? "x" : "instagram";
   }
   run.stillNote = "DCN template chrome · edit headline on the card (style copy)";
   run.log = [

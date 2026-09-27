@@ -1495,21 +1495,23 @@
     z-index: 3;
     display: flex;
     flex-direction: column;
-    align-items: center;
+    align-items: stretch;
     justify-content: center;
     text-align: center;
     gap: 8px;
-    /* Safe inset from frame edges — desktop + ~390px mobile */
-    padding: 0 max(18px, 9%);
+    /* Safe inset from frame edges — desktop + ~390px. min-width:0 so flex
+       children wrap instead of overflowing and center-clipping the left edge. */
+    padding: 0 max(24px, 11%);
     box-sizing: border-box;
     pointer-events: auto;
     cursor: text;
     overflow: hidden;
+    min-width: 0;
   }
   .ig-frame[data-aspect="yt"] .ig-card-text {
-    top: 46%;
-    bottom: 12%;
-    padding: 0 max(20px, 8%);
+    top: 42%;
+    bottom: 14%;
+    padding: 0 max(28px, 10%);
     gap: 6px;
   }
   .ig-frame .ig-card-text .ig-headline {
@@ -1517,30 +1519,33 @@
     margin: 0;
     width: 100%;
     max-width: 100%;
+    min-width: 0;
+    align-self: stretch;
     box-sizing: border-box;
     color: #fff;
-    font-size: clamp(14px, 3.8vw, 22px);
-    font-size: clamp(14px, 5.5cqw, 22px);
+    font-size: clamp(13px, 4.6cqw, 20px);
     font-weight: 800;
     letter-spacing: 0.02em;
     text-transform: uppercase;
-    line-height: 1.18;
+    line-height: 1.2;
     text-shadow: 0 2px 8px rgba(0,0,0,0.55);
     outline: none;
     white-space: normal;
     overflow-wrap: anywhere;
     word-break: break-word;
     hyphens: manual;
+    overflow: hidden;
   }
   .ig-frame .ig-card-text .ig-caption {
     padding: 0;
     margin: 0;
     width: 100%;
     max-width: 100%;
+    min-width: 0;
+    align-self: stretch;
     box-sizing: border-box;
     color: #fff;
-    font-size: clamp(11px, 2.5vw, 13px);
-    font-size: clamp(11px, 3.4cqw, 13px);
+    font-size: clamp(11px, 3.2cqw, 13px);
     font-weight: 500;
     letter-spacing: 0.01em;
     line-height: 1.35;
@@ -3941,13 +3946,14 @@
     if ($("browserFallbackUrl")) $("browserFallbackUrl").textContent = pretty;
     setBrowserTabUrl(url);
     paintBrowserPoster(url);
-    const kind = browserKind(url);
+    const embed = socialEmbedUrl(url);
+    const isLocalStyle = /sample-dcn-|sample-(pune|mumbai|delhi|bengaluru|hyderabad|source)\.html/i.test(url);
+    /* Local cream sample pages are full articles — don't crop them into a 4:5/16:9 void. */
+    const kind = isLocalStyle ? "page" : browserKind(url);
     const preview = $("browserPreview");
     if (preview) preview.dataset.kind = kind;
-    const embed = socialEmbedUrl(url);
     /* Official IG embed is a black full-page widget — never full-bleed it. Honest card instead. */
-    const useEmbed = !!embed && kind !== "instagram";
-    const isLocalStyle = /sample-dcn-|sample-(pune|mumbai|delhi|bengaluru|hyderabad|source)\.html/i.test(url);
+    const useEmbed = !!embed && kind !== "instagram" && !isLocalStyle;
     const mode = useEmbed ? "embed" : (kind === "instagram" || (!embed && !isLocalStyle && /instagram|x\.com|twitter|facebook|tiktok/i.test(url))) ? "card" : "page";
     const frameUrl = useEmbed ? embed : url;
     const hint = $("browserHint");
@@ -4149,6 +4155,26 @@
     frame.style.flex = "0 0 auto";
   }
 
+  function fitCardHeadline() {
+    const el = $("igHeadlineEdit");
+    const box = $("igCardText");
+    if (!el || !box || box.hidden) {
+      if (el) el.style.fontSize = "";
+      return;
+    }
+    el.style.fontSize = "";
+    const start = parseFloat(getComputedStyle(el).fontSize) || 18;
+    let size = start;
+    const floor = 12;
+    for (let i = 0; i < 24 && size > floor; i++) {
+      const tooWide = el.scrollWidth > el.clientWidth + 1;
+      const tooTall = box.scrollHeight > box.clientHeight + 1;
+      if (!tooWide && !tooTall) break;
+      size -= 1;
+      el.style.fontSize = size + "px";
+    }
+  }
+
   function paintIgPost(run) {
     const card = $("igPost");
     if (!card) return;
@@ -4253,14 +4279,16 @@
     const outlet = run.photo?.credit || run.hits?.[0]?.outlet || "cutline";
     if (handle) handle.textContent = outlet;
     if (handleSub) {
-      const beat = (run.beat || "").toLowerCase();
-      handleSub.textContent = beat === "x" ? "X post" : beat === "youtube" ? "YouTube" : "Instagram post";
+      const plat = postPlatform(run);
+      handleSub.textContent = plat === "x" ? "X post" : plat === "youtube" ? "YouTube" : "Instagram post";
     }
     const hl = $("igHeadlineEdit");
     if (hl && document.activeElement !== hl) {
       const raw = (run.rewrite?.headline || run.brief?.headline || "").trim();
       hl.textContent = chromeSrc ? raw.toUpperCase() : raw;
+      hl.style.fontSize = "";
     }
+    requestAnimationFrame(() => requestAnimationFrame(fitCardHeadline));
     const cap = $("igCaptionEdit");
     if (cap && document.activeElement !== cap) {
       cap.hidden = false;
@@ -5695,12 +5723,14 @@
   $("igCaptionEdit")?.addEventListener("blur", savePostEdits);
   $("igHeadlineEdit")?.addEventListener("blur", savePostEdits);
   $("igHeadlineEdit")?.addEventListener("input", () => {
+    fitCardHeadline();
     if (!currentRun) return;
     const headline = ($("igHeadlineEdit")?.innerText || "").trim();
     if (headline && currentRun.rewrite) currentRun.rewrite.headline = headline;
     if ($("layerHeadlineText")) setLayerText($("layerHeadlineText"), headline, "No headline");
     renderPack(currentRun);
   });
+  window.addEventListener("resize", () => requestAnimationFrame(fitCardHeadline));
   $("igCaptionEdit")?.addEventListener("input", () => {
     if (!currentRun) return;
     const caption = ($("igCaptionEdit")?.innerText || "").trim();
