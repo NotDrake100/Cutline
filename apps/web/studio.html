@@ -606,7 +606,8 @@
     display: flex;
     flex-wrap: wrap;
     gap: 8px;
-    padding: 0 2px 12px;
+    padding: 0 2px 14px;
+    width: 100%;
   }
   .ask-suggest[hidden] { display: none !important; }
   .ask-suggest-label {
@@ -2106,26 +2107,28 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      flex: 1;
+      flex: 0 1 260px;
+      margin: 0 auto;
       min-width: 0;
-      height: 36px;
+      height: 38px;
       padding: 3px;
       border-radius: var(--radius-pill);
       background: var(--nav-active);
+      border: 1px solid var(--line);
     }
     .phone-seg-btn {
       flex: 1;
       height: 100%;
       border-radius: var(--radius-pill);
-      font-size: 13px;
+      font-size: 13.5px;
       font-weight: 650;
-      color: var(--muted);
+      color: var(--dim);
       letter-spacing: -.01em;
     }
     .phone-seg-btn.active {
       background: var(--card);
       color: var(--ink);
-      box-shadow: 0 1px 2px rgba(10,10,10,.08);
+      box-shadow: 0 1px 2px rgba(10,10,10,.10);
     }
 
     .phone-backdrop {
@@ -2195,55 +2198,67 @@
 
     .home-wrap {
       justify-content: flex-start;
-      padding: 20px 16px 28px;
+      padding: 12px 18px 24px;
     }
-    .home-wrap h1 { margin-bottom: 12px; }
+    .home-wrap h1 { margin-bottom: 8px; font-size: 16px; }
+    .home-wrap .kicker { margin-bottom: 6px; }
     .purpose-line,
     .showcase-rail,
-    body.is-showcase .showcase-rail { display: none !important; }
+    body.is-showcase .showcase-rail,
+    .project-home { display: none !important; }
     .assign { display: none; }
     .item-actions { opacity: 1; }
     .item-act { width: 34px; height: 34px; }
     .paste-url-row { flex-wrap: wrap; }
     .paste-url-row input { flex: 1 1 100%; }
     .paste-url-row .btn { flex: 1 1 auto; min-width: 0; }
-    .ask-suggest {
+    .ask-suggest,
+    .ask-suggest.ask-tip-list {
+      display: flex;
       flex-direction: column;
       flex-wrap: nowrap;
-      gap: 2px;
-      padding: 4px 0 10px;
+      gap: 22px;
+      width: 100%;
+      padding: 22px 4px 28px;
+      margin: 0;
     }
+    .ask-suggest .ask-suggest-label { display: none; }
     .ask-chip.ask-tip {
       display: flex;
       align-items: center;
-      gap: 12px;
+      gap: 14px;
       width: 100%;
       max-width: none;
-      padding: 11px 6px;
+      padding: 0;
       border: none;
-      border-radius: 10px;
+      border-radius: 0;
       background: transparent;
     }
-    .ask-chip.ask-tip:hover { background: var(--nav-hover); }
-    .ask-chip.ask-tip .k { display: none; }
+    .ask-chip.ask-tip:hover,
+    .ask-chip.ask-tip:active { background: transparent; transform: none; }
+    .ask-chip.ask-tip .k { display: none !important; }
     .ask-chip.ask-tip .t {
-      white-space: nowrap;
+      white-space: nowrap !important;
       overflow: hidden;
       text-overflow: ellipsis;
-      max-width: none;
+      max-width: none !important;
       font-size: 15px;
-      font-weight: 450;
+      font-weight: 400;
+      letter-spacing: -.015em;
+      line-height: 1.35;
       color: var(--ink);
     }
     .ask-tip-ico {
-      width: 22px; height: 22px;
-      border-radius: 7px;
-      background: var(--nav-active);
+      width: 20px; height: 20px;
+      border-radius: 0;
+      background: transparent;
       color: var(--muted);
       display: grid; place-items: center;
       flex-shrink: 0;
     }
-    .ask-tip-ico svg { width: 13px; height: 13px; }
+    .ask-tip-ico svg { width: 18px; height: 18px; }
+    .ask-box { padding: 12px 14px 10px; border-radius: 18px; }
+    .ask-box textarea { min-height: 56px; font-size: 15px; }
     .shell.phone-pane-post .right-pane,
     .shell.phone-pane-browser .right-pane { overflow: hidden; }
     .shell.phone-pane-post .rp-body,
@@ -2412,15 +2427,16 @@
           <!-- filled by paintProjectChips -->
         </div>
 
+        <div class="ask-suggest" id="askSuggest" aria-label="News suggestions">
+          <div class="ask-suggest-label">Try a story</div>
+          <!-- filled by paintNewsRecs: 1–3 rotating news-photo tips -->
+        </div>
+
         <div class="ask-box">
           <textarea id="headline" placeholder="Finish a news post…" rows="4"></textarea>
           <div class="ask-attach" id="askAttach">
             <span class="name" id="askAttachName"></span>
             <button type="button" class="x" id="askAttachClear" aria-label="Remove file">×</button>
-          </div>
-          <div class="ask-suggest" id="askSuggest" aria-label="News suggestions">
-            <div class="ask-suggest-label">Try a story</div>
-            <!-- filled by paintNewsRecs: 1–3 rotating news-photo tips -->
           </div>
           <div class="ask-actions">
             <div class="ask-plus-wrap">
@@ -2942,7 +2958,11 @@
   const ICON_ARCHIVE = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4 8h16v11H4z"/><path d="M4 8l2-3h12l2 3"/><path d="M10 12h4"/></svg>`;
   const ICON_DELETE = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M5 8h14"/><path d="M9 8V6h6v2"/><path d="M8 8l1 11h6l1-11"/></svg>`;
   const ICON_RESTORE = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M9 14H5l4 4"/><path d="M5 18v-6a7 7 0 1 1 2 5"/></svg>`;
-  const TIP_ICO = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M5 7h14M5 12h10M5 17h12"/></svg>`;
+  const TIP_ICOS = [
+    `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M4 7h12v13H6a2 2 0 0 1-2-2V7z"/><path d="M16 9h3v9a2 2 0 0 1-2 2h-1"/><path d="M7 11h6M7 15h4"/></svg>`,
+    `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><circle cx="12" cy="12" r="8"/><path d="M12 8v5l3 2"/></svg>`,
+    `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M12 21s7-5.2 7-11a7 7 0 1 0-14 0c0 5.8 7 11 7 11z"/><circle cx="12" cy="10" r="2.2"/></svg>`,
+  ];
 
   function normalizeTheme(t) {
     const v = String(t || "").toLowerCase();
@@ -5258,9 +5278,10 @@
     const ask = $("askSuggest");
     if (ask) {
       ask.hidden = tips.length === 0;
+      ask.classList.add("ask-tip-list");
       ask.innerHTML = `<div class="ask-suggest-label">Try a story</div>` + tips.map((t, i) =>
         `<button type="button" class="ask-chip ask-tip" data-ask-rec="${i}" title="${escapeHtml(t.title)}">
-          <span class="ask-tip-ico" aria-hidden="true">${TIP_ICO}</span>
+          <span class="ask-tip-ico" aria-hidden="true">${TIP_ICOS[i % TIP_ICOS.length]}</span>
           <span class="k">${escapeHtml(t.kicker)}</span>
           <span class="t">${escapeHtml(t.title)}</span>
         </button>`
