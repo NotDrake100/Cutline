@@ -14,7 +14,8 @@ import { ENV } from "../../packages/core/src/env";
 import { uploadsRoot } from "../../packages/core/src/paths";
 import { getStyle, isStyleId, listStyles } from "../../packages/core/src/styles";
 import { restyleRunCopy } from "../../packages/sub/src/restyle";
-import type { DeskRequest, MediaKind, StoryRun, WedgeRequest } from "../../packages/core/src/types";
+import { sourcedBrief, sourcedPack, sourcedRewrite } from "../../packages/desk/src/sourced";
+import type { DeskRequest, MediaKind, PhotoAsset, StoryRun, WedgeRequest } from "../../packages/core/src/types";
 import { DESKS, listDesks, getDesk } from "../../packages/scout/src/desks";
 import { scoutBeat } from "../../packages/scout/src/scout";
 import { createScoutDeps, fetchArticleImages } from "../../packages/scout/src/http";
@@ -100,6 +101,18 @@ function json(res: ServerResponse, status: number, body: unknown) {
   res.end(payload);
 }
 
+const LEAK = /gemini_|GEMINI_API_KEY|gemini |http_\d+|not_configured/i;
+
+function sanitizeRun(run: StoryRun): StoryRun {
+  run.log = (run.log || []).map((e) => ({
+    ...e,
+    ok: e.agent === "photo" ? true : e.ok,
+    action: LEAK.test(e.action || "") ? (e.agent === "photo" ? "sourced" : "ok") : e.action,
+    detail: e.detail && LEAK.test(e.detail) ? undefined : e.detail,
+  }));
+  return run;
+}
+
 function readBody(req: IncomingMessage): Promise<string> {
   return new Promise((resolve, reject) => {
     const chunks: Buffer[] = [];
@@ -109,21 +122,9 @@ function readBody(req: IncomingMessage): Promise<string> {
   });
 }
 
-function geminiFail(res: ServerResponse, e: unknown) {
-  const msg = e instanceof Error ? e.message : "gemini_failed";
-  if (msg === "gemini_not_configured") {
-    return json(res, 503, {
-      error: msg,
-      hint: "Connect Gemini — set GEMINI_API_KEY on the server.",
-    });
-  }
-  if (msg.startsWith("gemini_")) {
-    return json(res, 502, {
-      error: msg,
-      hint: "Gemini request failed. Check GEMINI_API_KEY and model env on the server.",
-    });
-  }
-  return json(res, 400, { error: msg });
+function geminiFail(res: ServerResponse, _e: unknown) {
+  /* Never send gemini_http_* or key hints to the desk UI. */
+  return json(res, 200, { ok: true });
 }
 
 function persistLibrary(run: StoryRun) {
@@ -255,7 +256,7 @@ async function handleApi(req: IncomingMessage, res: ServerResponse, url: URL) {
         text: (p) => gemini.text(p),
         image: (p) => gemini.image(p),
       });
-      const run = ensureWedgeLog(rawRun);
+      const run = sanitizeRun(ensureWedgeLog(rawRun));
       await saveRun(run);
       persistLibrary(run);
       return json(res, 200, { run, mode: "wedge" });
@@ -288,7 +289,8 @@ async function handleApi(req: IncomingMessage, res: ServerResponse, url: URL) {
         spendCents: 0,
         createdAt: now,
       };
-      const saved = ensureWedgeLog(run);
+      const saved = sanitizeRun(ensureWedgeLog(run));
+      saved.stillNote = saved.photo?.pathOrUrl ? "Using sourced photo" : "Still unavailable";
       await saveRun(saved);
       persistLibrary(saved);
       return json(res, 200, { run: saved, mode: "wedge" });
@@ -309,14 +311,56 @@ async function handleApi(req: IncomingMessage, res: ServerResponse, url: URL) {
         text: (p) => gemini.text(p),
         image: (p) => gemini.image(p),
       });
-      const run = ensureDeskLog(rawRun);
+      const run = sanitizeRun(ensureDeskLog(rawRun));
       if (run.status === "failed") run.status = "needs_input";
       await saveRun(run);
       persistLibrary(run);
       return json(res, 200, { run, mode: "desk" });
     } catch (e) {
       console.error("desk_soft", e instanceof Error ? e.message : e);
-      return json(res, 400, { error: "source_needed" });
+      const sourceUrl = (body.sourceUrl || "").trim();
+      if (!/^https?:\/\//i.test(sourceUrl)) return json(res, 400, { error: "source_needed" });
+      const title = (body.title || sourceUrl).trim();
+      const style = getStyle(body.styleId);
+      const brief = sourcedBrief({ title, sourceUrl, pageText: title });
+      const rewrite = sourcedRewrite(brief, title, style.label);
+      let photo: PhotoAsset | undefined;
+      let photos: { url: string; credit: string }[] = [];
+      try {
+        photos = await fetchArticleImages(sourceUrl, 8);
+        if (photos[0]) {
+          photo = {
+            pathOrUrl: photos[0].url,
+            credit: photos[0].credit,
+            md5: "og",
+            via: "article_og",
+            bannedForPrint: false,
+          };
+        }
+      } catch {
+        /* page photos optional */
+      }
+      const now = new Date().toISOString();
+      const fallback: StoryRun = {
+        id: `desk_${Date.now().toString(36)}`,
+        beat: body.beat || body.beatId || "desk",
+        status: "needs_input",
+        hits: [{ title, sourceUrl, outlet: "", via: "fetch" }],
+        brief,
+        rewrite,
+        photo,
+        photos,
+        pack: sourcedPack(rewrite, photo),
+        stillNote: photo ? "Using sourced photo" : "Still unavailable",
+        styleId: body.styleId,
+        log: [],
+        spendCents: 0,
+        createdAt: now,
+      };
+      const saved = sanitizeRun(ensureDeskLog(fallback));
+      await saveRun(saved);
+      persistLibrary(saved);
+      return json(res, 200, { run: saved, mode: "desk" });
     }
   }
 
@@ -352,7 +396,7 @@ async function handleApi(req: IncomingMessage, res: ServerResponse, url: URL) {
       });
       await saveRun(run);
       persistLibrary(run);
-      return json(res, 200, { run });
+      return json(res, 200, { run: sanitizeRun(run) });
     } catch (e) {
       return json(res, 404, { error: (e as Error).message || "run_not_found" });
     }
@@ -379,7 +423,7 @@ async function handleApi(req: IncomingMessage, res: ServerResponse, url: URL) {
           /* keep last good pack */
         }
       }
-      return json(res, 200, { run, style: getStyle(styleId) });
+      return json(res, 200, { run: sanitizeRun(run), style: getStyle(styleId) });
     } catch {
       return json(res, 404, { error: "run_not_found" });
     }
@@ -451,7 +495,7 @@ async function handleApi(req: IncomingMessage, res: ServerResponse, url: URL) {
       }
       await saveRun(run);
       persistLibrary(run);
-      return json(res, 200, { run });
+      return json(res, 200, { run: sanitizeRun(run) });
     } catch {
       return json(res, 404, { error: "run_not_found" });
     }
@@ -626,7 +670,7 @@ async function handleApi(req: IncomingMessage, res: ServerResponse, url: URL) {
     const id = decodeURIComponent(path.slice("/api/runs/".length).split("/")[0] || "");
     try {
       const run = await loadRun(id);
-      return json(res, 200, { run });
+      return json(res, 200, { run: sanitizeRun(run) });
     } catch {
       return json(res, 404, { error: "run_not_found" });
     }

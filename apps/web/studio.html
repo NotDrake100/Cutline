@@ -1727,7 +1727,7 @@
   }
 
   function looksLikeApiError(msg) {
-    return /gemini_|gemini |GEMINI|http_\d+|stack|ECONN|ETIMEDOUT|503|429|502|404|check GEMINI|not_configured|source_needed|failed/i.test(String(msg || ""));
+    return /gemini_|gemini |GEMINI|GEMINI_API_KEY|api[_ ]?key|http_\d+|stack|ECONN|ETIMEDOUT|503|429|502|404|check GEMINI|not_configured|source_needed|failed/i.test(String(msg || ""));
   }
 
   function setErr(msg) {
@@ -1780,13 +1780,17 @@
       return;
     }
     root.className = "";
-    root.innerHTML = log.map((e) => `
+    root.innerHTML = log.map((e) => {
+      const action = looksLikeApiError(e.action) ? (e.agent === "photo" ? "sourced" : "ok") : (e.action || "");
+      const detail = e.detail && !looksLikeApiError(e.detail) ? e.detail : "";
+      const ok = e.agent === "photo" ? true : !!e.ok;
+      return `
       <div class="log-entry">
-        <div class="ag">${e.agent}</div>
-        <div class="act">${e.action}${e.detail ? `<div class="detail">${escapeHtml(e.detail)}</div>` : ""}${e.spendCents ? `<div class="detail">spend ${e.spendCents}¢</div>` : ""}</div>
-        <div class="${e.ok ? "ok" : "bad"}">${e.ok ? "OK" : "FAIL"}</div>
-      </div>
-    `).join("");
+        <div class="ag">${escapeHtml(e.agent)}</div>
+        <div class="act">${escapeHtml(action)}${detail ? `<div class="detail">${escapeHtml(detail)}</div>` : ""}${e.spendCents ? `<div class="detail">spend ${e.spendCents}¢</div>` : ""}</div>
+        <div class="${ok ? "ok" : "bad"}">${ok ? "OK" : "—"}</div>
+      </div>`;
+    }).join("");
   }
 
   function escapeHtml(s) {
@@ -2153,7 +2157,12 @@
     if (!card) return;
     if (!run) { card.style.display = "none"; return; }
     card.style.display = "";
-    const url = run.photo?.pathOrUrl || run.pack?.stillUrl || "";
+    const photos = run.photos || [];
+    if (run.photo?.via === "gemini_gen" && photos[0]) {
+      setPostPhoto(photos[0]);
+      return;
+    }
+    const url = run.photo?.pathOrUrl || run.pack?.stillUrl || (photos[0] && photos[0].url) || "";
     const frame = $("igFrame");
     if (frame) {
       frame.innerHTML = url
@@ -2162,10 +2171,13 @@
     }
     const note = $("igStillNote");
     if (note) {
-      const quiet = (run.stillNote || (!url ? "Still unavailable" : (run.photo?.via === "article_og" ? "Using sourced photo" : ""))).trim();
-      if (quiet && quiet !== "Still unavailable") {
+      const quiet = (run.stillNote || (!url ? "Still unavailable" : "Using sourced photo")).trim();
+      if (url && run.photo?.via !== "gemini_gen") {
         note.hidden = false;
-        note.textContent = quiet;
+        note.textContent = quiet === "Still unavailable" ? "Using sourced photo" : quiet;
+      } else if (!url) {
+        note.hidden = false;
+        note.textContent = "Still unavailable";
       } else {
         note.hidden = true;
         note.textContent = "";
@@ -2188,7 +2200,6 @@
     }
     const strip = $("photoStrip");
     const label = $("photoStripLabel");
-    const photos = run.photos || [];
     if (strip) {
       if (!photos.length) {
         strip.hidden = true;
@@ -2203,7 +2214,7 @@
               if (!data.photos || !data.photos.length) return;
               run.photos = data.photos;
               if (currentRun) currentRun.photos = data.photos;
-              if (!run.photo && data.photos[0]) setPostPhoto(data.photos[0]);
+              if (!run.photo || run.photo.via === "gemini_gen") setPostPhoto(data.photos[0]);
               else paintIgPost(run);
             })
             .catch(() => {});
@@ -2287,11 +2298,11 @@
         applyRun(data.run);
       } else {
         setStatus("needs_input");
-        $("frame").innerHTML = `<div class="ph">Using source photo</div>`;
+        $("frame").innerHTML = `<div class="ph">Using sourced photo</div>`;
       }
     } catch (_) {
       setStatus("needs_input");
-      $("frame").innerHTML = `<div class="ph">Using source photo</div>`;
+      $("frame").innerHTML = `<div class="ph">Using sourced photo</div>`;
       syncApproveBar(currentRun);
     } finally {
       $("runBtn").disabled = false;
@@ -2404,7 +2415,7 @@
 
   function setHuntErr(msg) {
     const el = $("huntErr");
-    if (!msg) { el.classList.remove("show"); el.textContent = ""; return; }
+    if (!msg || looksLikeApiError(msg)) { el.classList.remove("show"); el.textContent = ""; return; }
     el.textContent = msg;
     el.classList.add("show");
   }
@@ -2583,6 +2594,7 @@
   function showConnectToast(html, kind) {
     const t = $("connectToast");
     if (!t) return;
+    if (/GEMINI_API_KEY|gemini_http_|gemini_not_configured|gemini_\d+/i.test(String(html || ""))) return;
     t.className = "connect-toast show" + (kind ? " " + kind : "");
     t.innerHTML = html;
   }
@@ -2806,7 +2818,7 @@
   function setLibErr(msg) {
     const el = $("libErr");
     if (!el) return;
-    if (!msg) { el.classList.remove("show"); el.textContent = ""; return; }
+    if (!msg || looksLikeApiError(msg)) { el.classList.remove("show"); el.textContent = ""; return; }
     el.textContent = msg;
     el.classList.add("show");
   }

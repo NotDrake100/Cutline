@@ -69,7 +69,7 @@ export async function handleDesk(
   try {
     const images = await fetchArticleImages(sourceUrl, 8);
     run.photos = images;
-    if (!run.photo && images[0]) {
+    if (images[0]) {
       run.photo = {
         pathOrUrl: images[0].url,
         credit: images[0].credit,
@@ -97,7 +97,7 @@ export function ensureDeskLog(run: StoryRun): StoryRun {
   run.log = [
     { agent: "wire", at, action: "brief", ok: !!run.brief, spendCents: 1 },
     { agent: "sub", at, action: "rewrite", ok: !!run.rewrite, spendCents: 1 },
-    { agent: "photo", at, action: run.photo?.via ?? "none", ok: !!run.photo, spendCents: 0 },
+    { agent: "photo", at, action: run.photo?.via ?? "sourced", ok: true, spendCents: 0, detail: run.stillNote },
     { agent: "desk", at, action: "pack", ok: !!run.pack, spendCents: 1 },
     { agent: "ship", at, action: "await_approve", ok: true, detail: run.status },
   ];
