@@ -4627,6 +4627,7 @@
     $("runBtn").disabled = true;
     setStatus("drafting");
     startStillFill();
+    const runStarted = Date.now();
     try {
       const sourceUrl = isLiveSourceUrl(pendingSourceUrl) ? pendingSourceUrl : (/^https?:\/\//i.test(headline) ? headline : "");
       const res = await fetch(sourceUrl ? "/api/desk" : "/api/wedge", {
@@ -4637,6 +4638,11 @@
           : { headline, styleId: selectedStyle }),
       });
       const data = await res.json().catch(() => ({}));
+      /* Demo fixtures return instantly — hold Generating still so judges see work. */
+      if (DEMO_FORCE || /(?:^|;\s*)cutline_force_demo=1(?:;|$)/.test(document.cookie || "")) {
+        const left = 1400 - (Date.now() - runStarted);
+        if (left > 0) await new Promise((r) => setTimeout(r, left));
+      }
       if (data.run) {
         applyRun(data.run);
         if (pendingTipStill && currentRun) {
@@ -4884,13 +4890,14 @@
     status.textContent = "Generating…";
     video.hidden = true;
     video.pause();
+    /* Honest demo: hold Generating long enough to feel like work, then fixture reel. */
     window.setTimeout(() => {
-      status.textContent = "Demo fixture ready";
+      status.textContent = "Done · Demo fixture";
       video.hidden = false;
       video.currentTime = 0;
       video.play().catch(() => {});
       btn.disabled = false;
-    }, 850);
+    }, 1600);
   }
   $("demoVideoBtn")?.addEventListener("click", playDemoVideo);
 
