@@ -38,7 +38,7 @@
     --right-w: 360px;
     --shadow: 0 12px 40px rgba(10,10,10,0.06);
   }
-  html[data-theme="white"] { /* default Ace cream + lime — labeled White in Settings */ }
+  html[data-theme="white"] { /* White is the default desk theme */ }
   html[data-theme="black"] {
     --bg: #000000;
     --sidebar: #0D0D0D;
@@ -375,11 +375,8 @@
   .item-actions {
     display: flex; align-items: center; gap: 2px;
     margin-left: auto; flex-shrink: 0;
-    opacity: .55;
+    opacity: 1;
   }
-  .nav-item:hover .item-actions,
-  .nav-item:focus-within .item-actions,
-  .nav-item.active .item-actions { opacity: 1; }
   .item-act {
     width: 26px; height: 26px;
     border-radius: 8px;
@@ -1686,12 +1683,19 @@
     background: var(--panel);
     border: 1px solid var(--line);
     border-radius: 16px;
-    overflow: visible;
+    overflow: hidden;
     flex: 1 1 auto;
     min-height: 0;
     display: flex;
     flex-direction: column;
     box-shadow: 0 8px 24px rgba(0,0,0,.04);
+  }
+  .ig-post-scroll {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
   }
   .ig-post-head {
     display: flex; align-items: center; gap: 10px;
@@ -1883,7 +1887,7 @@
   .ig-actions {
     display: flex; gap: 8px;
     padding: 10px 12px 12px;
-    margin-top: auto;
+    margin-top: 0;
     flex: 0 0 auto;
     position: sticky;
     bottom: 0;
@@ -2709,6 +2713,7 @@
         <p>Find a page, then use it here.</p>
       </div>
       <div class="ig-post" id="igPost" style="display:none">
+        <div class="ig-post-scroll">
         <div class="ig-post-head">
           <div class="ig-ava" aria-hidden="true">C</div>
           <div>
@@ -2732,11 +2737,12 @@
         <div class="ig-editors-below" id="igEditorsBelow">
           <!-- headline/caption live here for plain tips; reparented into card for style-copy chrome -->
         </div>
+        <div class="ig-source" id="igSourceLine"></div>
+        </div>
         <div class="ig-actions">
           <button type="button" class="btn btn-ink btn-sm" id="igApproveBtn">Approve</button>
           <button type="button" class="btn btn-lime btn-sm" id="igZipBtn">ZIP</button>
         </div>
-        <div class="ig-source" id="igSourceLine"></div>
       </div>
       <div class="layer-tree" id="layerTree" style="display:none" aria-label="Story layers">
         <div class="layer" data-id="still" id="layerStill" hidden>
@@ -2939,6 +2945,7 @@
   function normalizeTheme(t) {
     const v = String(t || "").toLowerCase();
     if (v === "black" || v === "dark" || v === "ink") return "black";
+    /* cream / paper / light / anything else → White */
     return "white";
   }
   function isToySampleUrl(u) {
