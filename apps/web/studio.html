@@ -30,6 +30,7 @@
     --font: "Geist", Inter, ui-sans-serif, system-ui, sans-serif;
     --mono: "Geist Mono", ui-monospace, monospace;
     --sidebar-w: 220px;
+    --right-w: 340px;
   }
   * { box-sizing: border-box; }
   html, body { margin: 0; height: 100%; background: var(--bg); color: var(--ink); font-family: var(--font); -webkit-font-smoothing: antialiased; }
@@ -41,13 +42,17 @@
 
   .shell {
     display: grid;
-    grid-template-columns: var(--sidebar-w) 1fr;
+    grid-template-columns: var(--sidebar-w) 1fr var(--right-w);
     height: 100vh;
     min-height: 0;
   }
+  @media (max-width: 1100px) {
+    .shell { grid-template-columns: var(--sidebar-w) 1fr minmax(280px, 320px); }
+  }
   @media (max-width: 860px) {
-    .shell { grid-template-columns: 1fr; grid-template-rows: auto 1fr; }
+    .shell { grid-template-columns: 1fr; grid-template-rows: auto 1fr auto; }
     .sidebar { width: 100%; height: auto; border-right: none; border-bottom: 1px solid var(--line); }
+    .right-pane { width: 100%; max-height: 42vh; border-left: none; border-top: 1px solid var(--line); }
   }
 
   /* ——— Sidebar ——— */
@@ -620,6 +625,213 @@
     color: var(--lime-ink);
   }
   .tool-row.active-tool { background: var(--nav-active); }
+
+  /* ——— Right pane · Magic Layer / Browser ——— */
+  .right-pane {
+    background: var(--panel);
+    border-left: 1px solid var(--line);
+    display: flex;
+    flex-direction: column;
+    min-width: 0; min-height: 0;
+    overflow: hidden;
+  }
+  .rp-tabs {
+    display: flex; align-items: center; gap: 2px;
+    padding: 10px 10px 0;
+    border-bottom: 1px solid var(--line);
+    flex-shrink: 0;
+  }
+  .rp-tab {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 8px 12px 10px;
+    font-size: 12.5px; font-weight: 600;
+    color: var(--muted);
+    border-bottom: 2px solid transparent;
+    margin-bottom: -1px;
+    border-radius: 8px 8px 0 0;
+    transition: color .12s, background .12s;
+  }
+  .rp-tab:hover { color: var(--ink); background: var(--nav-hover); }
+  .rp-tab.active {
+    color: var(--ink);
+    border-bottom-color: var(--ink);
+  }
+  .rp-tab .ico { width: 14px; height: 14px; display: grid; place-items: center; }
+  .rp-tab .ico svg { width: 14px; height: 14px; }
+  .rp-magic {
+    padding: 8px 14px 6px;
+    font-size: 11px; font-weight: 550; color: var(--dim);
+    letter-spacing: .01em;
+    flex-shrink: 0;
+    display: flex; align-items: center; gap: 6px;
+  }
+  .rp-magic .dot {
+    width: 6px; height: 6px; border-radius: 50%;
+    background: var(--lime);
+    box-shadow: 0 0 0 3px rgba(225,244,53,.28);
+    flex-shrink: 0;
+  }
+  .rp-body {
+    flex: 1; min-height: 0; overflow: auto;
+    display: none;
+    flex-direction: column;
+  }
+  .rp-body.active { display: flex; }
+
+  .rp-empty {
+    flex: 1;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    text-align: center;
+    padding: 32px 24px;
+    gap: 8px;
+  }
+  .rp-empty .empty-ico {
+    width: 44px; height: 44px; border-radius: 12px;
+    background: var(--nav-active);
+    display: grid; place-items: center;
+    color: var(--muted);
+    margin-bottom: 6px;
+  }
+  .rp-empty .empty-ico svg { width: 22px; height: 22px; }
+  .rp-empty h3 {
+    margin: 0; font-size: 14px; font-weight: 600; letter-spacing: -.01em;
+  }
+  .rp-empty p {
+    margin: 0; font-size: 12.5px; color: var(--muted); line-height: 1.45;
+    max-width: 220px;
+  }
+
+  .layer-tree {
+    display: flex; flex-direction: column; gap: 8px;
+    padding: 10px 12px 20px;
+  }
+  .layer {
+    background: var(--bg);
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    padding: 10px 12px;
+    transition: border-color .15s, box-shadow .15s;
+    position: relative;
+  }
+  .layer.flash {
+    border-color: rgba(225,244,53,.85);
+    box-shadow: 0 0 0 3px rgba(225,244,53,.28);
+  }
+  .layer-head {
+    display: flex; align-items: center; gap: 8px;
+    margin-bottom: 8px;
+  }
+  .layer-kind {
+    font-size: 11px; font-weight: 650;
+    text-transform: uppercase; letter-spacing: .04em;
+    color: var(--dim);
+  }
+  .layer-chip {
+    font-size: 10px; font-weight: 650;
+    padding: 2px 7px;
+    border-radius: 999px;
+    background: var(--lime);
+    color: var(--lime-ink);
+    opacity: 0;
+    transform: translateY(-2px);
+    transition: opacity .2s, transform .2s;
+    margin-left: auto;
+  }
+  .layer-chip.show {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  .layer-ban {
+    font-size: 10px; font-weight: 600;
+    padding: 2px 7px;
+    border-radius: 6px;
+    background: rgba(251,191,36,.18);
+    color: #b45309;
+    border: 1px solid rgba(251,191,36,.3);
+  }
+  .layer-thumb {
+    width: 100%;
+    aspect-ratio: 16 / 10;
+    border-radius: 8px;
+    background: #F0F0EE;
+    border: 1px solid var(--line);
+    overflow: hidden;
+    display: grid; place-items: center;
+    margin-bottom: 8px;
+  }
+  .layer-thumb img { width: 100%; height: 100%; object-fit: cover; }
+  .layer-thumb .ph { font-size: 11.5px; color: var(--dim); }
+  .layer-meta {
+    font-size: 11.5px; color: var(--muted);
+    line-height: 1.4;
+  }
+  .layer-text {
+    font-size: 12.5px; line-height: 1.45; color: var(--ink);
+    white-space: pre-wrap; word-break: break-word;
+    max-height: 96px; overflow: auto;
+  }
+  .layer-text.muted, .layer-meta.muted { color: var(--dim); }
+  .layer-link {
+    font-size: 12px; color: #1d4ed8;
+    word-break: break-all;
+    display: inline-block;
+  }
+  .layer-link:hover { text-decoration: underline; }
+  .layer-clip-ph {
+    font-size: 12px; color: var(--dim);
+    padding: 10px;
+    border: 1px dashed var(--line-strong);
+    border-radius: 8px;
+    text-align: center;
+  }
+
+  .browser-bar {
+    display: flex; align-items: center; gap: 8px;
+    padding: 10px 12px;
+    border-bottom: 1px solid var(--line);
+    flex-shrink: 0;
+  }
+  .browser-url {
+    flex: 1; min-width: 0;
+    font-size: 11.5px; font-family: var(--mono);
+    color: var(--muted);
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  .browser-open {
+    font-size: 11.5px; font-weight: 600;
+    padding: 6px 10px;
+    border-radius: var(--radius-pill);
+    border: 1px solid var(--line-strong);
+    background: var(--bg);
+    flex-shrink: 0;
+  }
+  .browser-open:hover { background: var(--nav-hover); }
+  .browser-frame-wrap {
+    flex: 1; min-height: 0;
+    background: #FAFAF9;
+    position: relative;
+  }
+  .browser-frame-wrap iframe {
+    width: 100%; height: 100%; border: none;
+    background: #fff;
+  }
+  .browser-blocked {
+    position: absolute; inset: 0;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    gap: 10px;
+    padding: 24px;
+    text-align: center;
+    font-size: 13px; color: var(--muted);
+    background: var(--bg);
+  }
+  .browser-blocked a {
+    color: var(--ink); font-weight: 600;
+    padding: 8px 14px;
+    border-radius: var(--radius-pill);
+    background: var(--lime);
+  }
 </style>
 </head>
 <body>
@@ -862,10 +1074,116 @@
       </div>
     </section>
   </main>
+
+  <aside class="right-pane" id="rightPane" aria-label="Magic Layer">
+    <div class="rp-tabs" role="tablist">
+      <button type="button" class="rp-tab active" role="tab" aria-selected="true" data-rp="structure" id="tabStructure">
+        <span class="ico" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4 6h16M4 12h12M4 18h8"/></svg>
+        </span>
+        Structure
+      </button>
+      <button type="button" class="rp-tab" role="tab" aria-selected="false" data-rp="browser" id="tabBrowser">
+        <span class="ico" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c2.5 2.8 2.5 15.2 0 18M12 3c-2.5 2.8-2.5 15.2 0 18"/></svg>
+        </span>
+        Browser
+      </button>
+    </div>
+    <div class="rp-magic"><span class="dot" aria-hidden="true"></span> Magic Layer · keep structure, update layers</div>
+
+    <div class="rp-body active" id="rpStructure" role="tabpanel">
+      <div class="rp-empty" id="structureEmpty">
+        <div class="empty-ico" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M8 4h8a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z"/><path d="M12 10v4M10 12h4"/></svg>
+        </div>
+        <h3>No pack yet</h3>
+        <p>Run a hunt or ask to fill the layers.</p>
+      </div>
+      <div class="layer-tree" id="layerTree" style="display:none" aria-label="Story layers">
+        <div class="layer" data-id="still" id="layerStill">
+          <div class="layer-head">
+            <span class="layer-kind">Still</span>
+            <span class="layer-ban" id="layerStillBan" style="display:none">bannedForPrint</span>
+            <span class="layer-chip" data-chip>updated</span>
+          </div>
+          <div class="layer-thumb" id="layerStillThumb"><div class="ph">No still</div></div>
+          <div class="layer-meta muted" id="layerStillMeta">—</div>
+        </div>
+        <div class="layer" data-id="headline" id="layerHeadline">
+          <div class="layer-head">
+            <span class="layer-kind">Headline</span>
+            <span class="layer-chip" data-chip>updated</span>
+          </div>
+          <div class="layer-text muted" id="layerHeadlineText">—</div>
+        </div>
+        <div class="layer" data-id="ig" id="layerIg">
+          <div class="layer-head">
+            <span class="layer-kind">IG caption</span>
+            <span class="layer-chip" data-chip>updated</span>
+          </div>
+          <div class="layer-text muted" id="layerIgText">—</div>
+        </div>
+        <div class="layer" data-id="yt" id="layerYt">
+          <div class="layer-head">
+            <span class="layer-kind">YT title / description</span>
+            <span class="layer-chip" data-chip>updated</span>
+          </div>
+          <div class="layer-text muted" id="layerYtText">—</div>
+        </div>
+        <div class="layer" data-id="source" id="layerSource">
+          <div class="layer-head">
+            <span class="layer-kind">Source</span>
+            <span class="layer-chip" data-chip>updated</span>
+          </div>
+          <div class="layer-meta muted" id="layerSourceMeta">—</div>
+        </div>
+        <div class="layer" data-id="clip" id="layerClip">
+          <div class="layer-head">
+            <span class="layer-kind">Clip</span>
+            <span class="layer-chip" data-chip>updated</span>
+          </div>
+          <div class="layer-clip-ph" id="layerClipPh">upload / cut later</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="rp-body" id="rpBrowser" role="tabpanel">
+      <div class="rp-empty" id="browserEmpty">
+        <div class="empty-ico" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M3 12h18"/></svg>
+        </div>
+        <h3>No source yet</h3>
+        <p>Run a hunt or ask — live URLs open here.</p>
+      </div>
+      <div id="browserLive" style="display:none; flex:1; min-height:0; flex-direction:column;">
+        <div class="browser-bar">
+          <span class="browser-url" id="browserUrl">—</span>
+          <a class="browser-open" id="browserOpen" href="#" target="_blank" rel="noopener noreferrer">Open source</a>
+        </div>
+        <div class="browser-frame-wrap" id="browserFrameWrap">
+          <iframe id="browserFrame" sandbox="allow-scripts allow-same-origin allow-popups allow-forms" title="Source preview"></iframe>
+          <div class="browser-blocked" id="browserBlocked" style="display:none">
+            <span>Preview blocked by site headers.</span>
+            <a id="browserBlockedLink" href="#" target="_blank" rel="noopener noreferrer">Open source</a>
+          </div>
+        </div>
+      </div>
+      <div class="rp-empty" id="browserWedge" style="display:none">
+        <div class="empty-ico" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M4 7h16M4 12h10M4 17h14"/></svg>
+        </div>
+        <h3>No live URL</h3>
+        <p>Wedge headline only — manual://wedge.</p>
+      </div>
+    </div>
+  </aside>
 </div>
 
 <script>
   let currentRun = null;
+  let pendingSourceUrl = null; // from Hunt "Use on desk"
+  let layerSnapshot = {}; // hash of last painted layer values for flash
 
   const $ = (id) => document.getElementById(id);
   const agents = ["wire", "still", "desk", "ship"];
@@ -998,7 +1316,10 @@
       live.querySelector("#liveApproveBtn").addEventListener("click", () => doApprove());
       live.querySelector("#liveAdjustBtn").addEventListener("click", () => {
         switchView("home");
-        $("headline").focus();
+        const hl = ($("headline").value || "").trim() || currentRun?.rewrite?.headline || currentRun?.brief?.headline || "";
+        if (hl) $("headline").value = hl;
+        setSideRunReady();
+        doRun();
       });
       live.querySelector("#liveDismissBtn").addEventListener("click", () => {
         live.remove();
@@ -1016,6 +1337,207 @@
     $("activityDot").style.display = n > 0 ? "" : "none";
   }
 
+
+  function switchRightTab(name) {
+    document.querySelectorAll(".rp-tab").forEach((t) => {
+      const on = t.dataset.rp === name;
+      t.classList.toggle("active", on);
+      t.setAttribute("aria-selected", on ? "true" : "false");
+    });
+    $("rpStructure").classList.toggle("active", name === "structure");
+    $("rpBrowser").classList.toggle("active", name === "browser");
+  }
+
+  function resolveSourceUrl(run) {
+    const candidates = [
+      pendingSourceUrl,
+      run?.rewrite?.sourceUrl,
+      run?.brief?.sourceUrl,
+      run?.hits?.[0]?.sourceUrl,
+    ].filter(Boolean);
+    for (const u of candidates) {
+      if (/^https?:\/\//i.test(u)) return u;
+    }
+    return candidates[0] || "";
+  }
+
+  function flashLayer(el) {
+    if (!el) return;
+    el.classList.add("flash");
+    const chip = el.querySelector("[data-chip]");
+    if (chip) {
+      chip.classList.add("show");
+      clearTimeout(chip._t);
+      chip._t = setTimeout(() => chip.classList.remove("show"), 1600);
+    }
+    clearTimeout(el._ft);
+    el._ft = setTimeout(() => el.classList.remove("flash"), 900);
+  }
+
+  function setLayerText(node, value, emptyLabel) {
+    const v = (value || "").trim();
+    if (!v) {
+      node.textContent = emptyLabel || "—";
+      node.classList.add("muted");
+      return "";
+    }
+    node.textContent = v;
+    node.classList.remove("muted");
+    return v;
+  }
+
+  function paintStructure(run, { flash = true } = {}) {
+    const empty = $("structureEmpty");
+    const tree = $("layerTree");
+    if (!run) {
+      empty.style.display = "";
+      tree.style.display = "none";
+      layerSnapshot = {};
+      return;
+    }
+    empty.style.display = "none";
+    tree.style.display = "flex";
+
+    const next = {};
+
+    // Still
+    const photo = run.photo;
+    const thumb = $("layerStillThumb");
+    const ban = $("layerStillBan");
+    const stillKey = photo?.pathOrUrl || "";
+    next.still = stillKey + "|" + (photo?.via || "") + "|" + (!!photo?.bannedForPrint);
+    if (stillKey) {
+      thumb.innerHTML = `<img src="${escapeHtml(stillKey)}" alt="still"/>`;
+    } else {
+      thumb.innerHTML = `<div class="ph">No still</div>`;
+    }
+    const credit = photo
+      ? [photo.credit, photo.via ? "via " + photo.via : ""].filter(Boolean).join(" · ")
+      : "—";
+    $("layerStillMeta").textContent = credit;
+    $("layerStillMeta").classList.toggle("muted", !photo);
+    if (photo?.bannedForPrint || photo?.via === "gemini_gen") {
+      ban.style.display = "";
+    } else {
+      ban.style.display = "none";
+    }
+
+    // Headline
+    const hl = run.rewrite?.headline || run.brief?.headline || run.headline || ($("headline").value || "").trim();
+    next.headline = setLayerText($("layerHeadlineText"), hl, "No headline");
+
+    // IG
+    next.ig = setLayerText($("layerIgText"), run.pack?.igCaption, "No IG caption");
+
+    // YT
+    const yt = [run.pack?.ytTitle, run.pack?.ytDescription].filter(Boolean).join("\n\n");
+    next.yt = setLayerText($("layerYtText"), yt, "No YT pack");
+
+    // Source
+    const src = resolveSourceUrl(run);
+    next.source = src;
+    const srcMeta = $("layerSourceMeta");
+    if (/^https?:\/\//i.test(src)) {
+      srcMeta.classList.remove("muted");
+      srcMeta.innerHTML = `<a class="layer-link" href="${escapeHtml(src)}" target="_blank" rel="noopener noreferrer">${escapeHtml(src)}</a>`;
+    } else if (src && src.startsWith("manual:")) {
+      srcMeta.classList.add("muted");
+      srcMeta.textContent = src + " · wedge headline only";
+    } else if (src) {
+      srcMeta.classList.remove("muted");
+      srcMeta.textContent = src;
+    } else {
+      srcMeta.classList.add("muted");
+      srcMeta.textContent = "No source URL";
+    }
+
+    // Clip
+    const clipUrl = run.pack?.clipUrl || "";
+    next.clip = clipUrl;
+    $("layerClipPh").textContent = clipUrl ? clipUrl : "upload / cut later";
+
+    if (flash && Object.keys(layerSnapshot).length) {
+      const map = {
+        still: $("layerStill"),
+        headline: $("layerHeadline"),
+        ig: $("layerIg"),
+        yt: $("layerYt"),
+        source: $("layerSource"),
+        clip: $("layerClip"),
+      };
+      for (const k of Object.keys(map)) {
+        if (layerSnapshot[k] !== undefined && layerSnapshot[k] !== next[k]) {
+          flashLayer(map[k]);
+        }
+      }
+    }
+    layerSnapshot = next;
+  }
+
+  function paintBrowser(run) {
+    const empty = $("browserEmpty");
+    const live = $("browserLive");
+    const wedge = $("browserWedge");
+    const src = resolveSourceUrl(run);
+    empty.style.display = "none";
+    live.style.display = "none";
+    wedge.style.display = "none";
+
+    if (!run) {
+      empty.style.display = "";
+      $("browserFrame").removeAttribute("src");
+      return;
+    }
+    if (/^https?:\/\//i.test(src)) {
+      live.style.display = "flex";
+      $("browserUrl").textContent = src;
+      $("browserOpen").href = src;
+      $("browserBlockedLink").href = src;
+      const frame = $("browserFrame");
+      const blocked = $("browserBlocked");
+      blocked.style.display = "none";
+      if (frame.dataset.src !== src) {
+        frame.dataset.src = src;
+        frame.src = src;
+        // Show fallback after a beat if iframe likely blocked (XFO / CSP)
+        clearTimeout(frame._bt);
+        frame._bt = setTimeout(() => {
+          try {
+            // cross-origin access throws — treat as ok (loaded enough)
+            void frame.contentWindow.location.href;
+          } catch (_) { /* expected for cross-origin */ }
+          // Always offer Open source; keep iframe visible. If blank after load, soft-hint.
+        }, 1200);
+      }
+      return;
+    }
+    // manual:// or missing
+    wedge.style.display = "";
+    $("browserFrame").removeAttribute("src");
+    delete $("browserFrame").dataset.src;
+  }
+
+  function fillMagicLayers(run, opts) {
+    paintStructure(run, opts);
+    paintBrowser(run);
+    if (run) switchRightTab("structure");
+  }
+
+  function clearMagicLayers({ keepSkeleton = true } = {}) {
+    currentRun = null;
+    pendingSourceUrl = null;
+    if (keepSkeleton) {
+      // leave tree visible but empty-ish? Spec: leave empty structure skeleton optional
+      // Prefer soft empty state like Cursor
+      paintStructure(null);
+      paintBrowser(null);
+    } else {
+      paintStructure(null);
+      paintBrowser(null);
+    }
+    layerSnapshot = {};
+  }
+
   function applyRun(run, stub) {
     currentRun = run;
     setStatus(run.status);
@@ -1029,6 +1551,8 @@
     $("suggestions").style.display = "none";
     syncApproveBar(run);
     setSideRunReady();
+    switchView("home");
+    fillMagicLayers(run, { flash: true });
   }
 
   async function doRun() {
@@ -1095,9 +1619,27 @@
   $("runBtn").addEventListener("click", doRun);
   $("sideRunBtn").addEventListener("click", () => { switchView("home"); doRun(); });
   $("approveBtn").addEventListener("click", doApprove);
-  $("adjustBtn").addEventListener("click", () => { $("headline").focus(); });
+  $("adjustBtn").addEventListener("click", () => {
+    // Magic Layer: keep structure nodes, re-run same headline → patch layers in place
+    const hl = ($("headline").value || "").trim() || currentRun?.rewrite?.headline || currentRun?.brief?.headline || "";
+    if (hl) $("headline").value = hl;
+    setSideRunReady();
+    doRun();
+  });
   $("dismissBtn").addEventListener("click", () => {
     $("approveBar").style.display = "none";
+    $("result").classList.remove("show");
+    $("homeWrap").classList.remove("has-run");
+    $("suggestions").style.display = "";
+    setStatus("idle");
+    $("runMeta").textContent = "";
+    $("frame").innerHTML = '<div class="ph">No still yet</div>';
+    $("ban").classList.remove("show");
+    $("pack").textContent = "—";
+    $("log").className = "empty-log";
+    $("log").textContent = "Paste a headline. Wire → Still → Desk → needs_input. Approve unlocks ship.";
+    markRoster([]);
+    clearMagicLayers({ keepSkeleton: true });
   });
 
   $("headline").addEventListener("input", setSideRunReady);
@@ -1227,9 +1769,10 @@
         const hit = lastHits[idx];
         if (!hit) return;
         $("headline").value = hit.title;
+        pendingSourceUrl = hit.sourceUrl || null;
         setSideRunReady();
         switchView("home");
-        $("headline").focus();
+        doRun();
       });
     });
   }
@@ -1268,6 +1811,13 @@
     const el = $("geminiStatusText");
     if (el) el.textContent = "Gemini · unknown";
   });
+
+  document.querySelectorAll(".rp-tab").forEach((tab) => {
+    tab.addEventListener("click", () => switchRightTab(tab.dataset.rp));
+  });
+
+  // Soft empty Structure on load (Cursor-style)
+  clearMagicLayers({ keepSkeleton: true });
 
   updateNeedLabel();
   setSideRunReady();
