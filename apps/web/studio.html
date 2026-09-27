@@ -2657,20 +2657,23 @@
       } catch (_) { /* keep */ }
       return u;
     };
-    const photos = (run.photos || []).filter((p) => deskAsset(p.url));
-    if (isIg && !photos.some((p) => /dcn-ig\.svg/i.test(p.url || ""))) {
-      photos.unshift({ url: "/assets/demo/dcn-ig.svg", credit: "Demo still" });
+    const photos = (run.photos || []).filter((p) => deskAsset(p.url) && !/\.svg(\?|$)/i.test(p.url || ""));
+    if (isIg && !photos.some((p) => /dcn-ig\.(jpg|jpeg|png|webp)/i.test(p.url || ""))) {
+      photos.unshift({ url: "/assets/demo/dcn-ig.jpg", credit: "Post still" });
     }
     if (photos.length && (!run.photos || run.photos.length !== photos.length)) run.photos = photos;
     if (run.photo?.via === "gemini_gen" && photos[0]) {
       setPostPhoto(photos[0]);
       return;
     }
-    const svgStill = deskAsset((photos.find((p) => /\.svg(\?|$)/i.test(p.url || "")) || {}).url || "");
+    const preferRaster = (u) => /\.(jpg|jpeg|png|webp)(\?|$)/i.test(u || "");
+    const rasterStill = deskAsset((photos.find((p) => preferRaster(p.url)) || {}).url || "");
     const safeStill = deskAsset((photos.find((p) => p.url) || {}).url || "");
-    const current = deskAsset(run.photo?.pathOrUrl) || deskAsset(run.pack?.stillUrl);
-    let url = current || svgStill || safeStill || (isIg ? "/assets/demo/dcn-ig.svg" : "") || "/assets/demo/dcn-ig.svg";
-    const fallbacks = photos.map((p) => deskAsset(p.url)).filter((u) => u && u !== url);
+    let current = deskAsset(run.photo?.pathOrUrl) || deskAsset(run.pack?.stillUrl);
+    if (current && !preferRaster(current)) current = "";
+    let url = (current && preferRaster(current) ? current : "") || rasterStill || safeStill || (isIg ? "/assets/demo/dcn-ig.jpg" : "/assets/demo/alt.jpg");
+    const fallbacks = photos.map((p) => deskAsset(p.url)).filter((u) => u && u !== url && preferRaster(u));
+    if (!fallbacks.length) fallbacks.push("/assets/demo/dcn-ig.jpg", "/assets/demo/alt.jpg");
     if (url && run.photo && run.photo.pathOrUrl !== url) {
       run.photo.pathOrUrl = url;
       if (run.pack) run.pack.stillUrl = url;
@@ -2682,10 +2685,11 @@
       const img = frame.querySelector("img");
       if (img) {
         img.addEventListener("error", () => {
-          const next = fallbacks.find((u) => u && u !== img.getAttribute("src") && !/alt\.svg/i.test(u)) || "/assets/demo/dcn-ig.svg";
-          if (img.getAttribute("src") === next) return;
+          const next = fallbacks.shift() || "/assets/demo/dcn-ig.jpg";
           img.src = next;
           frame.style.backgroundImage = `url("${next}")`;
+          if (run.photo) run.photo.pathOrUrl = next;
+          if (run.pack) run.pack.stillUrl = next;
         });
       }
     }
@@ -3829,11 +3833,11 @@
       setErr("Run or Analyze a story first — Photo cycles sourced stills.");
       return;
     }
-    let photos = (currentRun.photos || []).filter((p) => p.url && !/cdninstagram\.com|fbcdn\.net/i.test(p.url));
+    let photos = (currentRun.photos || []).filter((p) => p.url && !/cdninstagram\.com|fbcdn\.net/i.test(p.url) && !/\.svg(\?|$)/i.test(p.url));
     if (photos.length < 2) {
-      const extra = { url: "/assets/demo/alt.svg", credit: "Alt still" };
+      const extra = { url: "/assets/demo/alt.jpg", credit: "Alt still" };
       if (!photos.some((p) => p.url === extra.url)) photos = photos.concat([extra]);
-      if (!photos.length) photos = [{ url: "/assets/demo/dcn-ig.svg", credit: "Demo still" }, extra];
+      if (!photos.length) photos = [{ url: "/assets/demo/dcn-ig.jpg", credit: "Post still" }, extra];
       currentRun.photos = photos;
     }
     const cur = currentRun.photo?.pathOrUrl;

@@ -18,7 +18,7 @@
   article { max-width: 520px; margin: 0 auto; padding: 40px 24px 80px; }
   .kicker { font-size: 12px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); margin-bottom: 12px; }
   h1 { font-family: Anton, sans-serif; font-size: 40px; line-height: .95; letter-spacing: -.02em; margin: 0 0 16px; }
-  .still { height: 220px; border-radius: 20px; background: linear-gradient(135deg, #d7e0ea, #c9d3de); margin: 0 0 20px; }
+  .still { display:block; width:100%; height:auto; max-height:420px; object-fit:cover; border-radius:20px; margin:0 0 24px; background:#EDE6D9; }
   p { font-size: 16px; line-height: 1.6; }
 </style>
 </head>
@@ -30,7 +30,7 @@
 <article>
   <div class="kicker">X · DCN</div>
   <h1>Harbour line late-night window.</h1>
-  <div class="still" aria-hidden="true"></div>
+  <img class="still" src="/assets/demo/dcn-x.jpg" alt="Article still" width="1080" height="720" loading="eager"/>
   <p>DCN posted the Harbour line clearance window. Cached source so Browser can show a real URL.</p>
 </article>
 </body>

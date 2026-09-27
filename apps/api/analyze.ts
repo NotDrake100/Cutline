@@ -100,7 +100,7 @@ export const SOCIAL_FIXTURES: Record<"instagram" | "x" | "youtube", SocialFixtur
     body: DCN_IG_CAPTION,
     caption: DCN_IG_CAPTION,
     page: DCN_INSTAGRAM_POST,
-    still: "/assets/demo/dcn-ig.svg",
+    still: "/assets/demo/dcn-ig.jpg",
     outlet: "DCN Pune",
   },
   x: {
@@ -109,7 +109,7 @@ export const SOCIAL_FIXTURES: Record<"instagram" | "x" | "youtube", SocialFixtur
     body: "DCN posted the Harbour line clearance window on X. Cached demo analysis — no Gemini.",
     caption: "DCN · X · Harbour line late-night window. Sourced from the pasted post URL.",
     page: "/sample-dcn-x.html",
-    still: "/assets/demo/dcn-x.svg",
+    still: "/assets/demo/dcn-x.jpg",
     outlet: "DCN",
   },
   youtube: {
@@ -118,7 +118,7 @@ export const SOCIAL_FIXTURES: Record<"instagram" | "x" | "youtube", SocialFixtur
     body: "DCN posted the Whitefield feeder update on YouTube. Cached demo analysis — no Gemini.",
     caption: "DCN · YouTube · late last trip on Whitefield feeders. Sourced from the pasted post URL.",
     page: "/sample-dcn-yt.html",
-    still: "/assets/demo/dcn-yt.svg",
+    still: "/assets/demo/dcn-yt.jpg",
     outlet: "DCN",
   },
 };
@@ -282,8 +282,8 @@ export async function analyzePostUrl(opts: {
   pack.igCaption = rewrite.caption || pack.igCaption;
   pack.canvaNotes = `${PLATFORM_LABEL[kind]} post → Cutline pack.`;
   const photos = [
-    { url: still, credit: kind === "instagram" ? "Demo still" : outlet },
-    { url: fixtureStill, credit: "Demo still" },
+    { url: still, credit: kind === "instagram" ? "Post still" : outlet },
+    { url: fixtureStill, credit: "Post still" },
   ].filter((p, i, arr) => p.url && arr.findIndex((x) => x.url === p.url) === i);
   if (image && image !== still && !/cdninstagram\.com|fbcdn\.net/i.test(image)) {
     photos.push({ url: image, credit: outlet });

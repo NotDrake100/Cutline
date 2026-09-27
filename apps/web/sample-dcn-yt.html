@@ -18,7 +18,7 @@
   article { max-width: 640px; margin: 0 auto; padding: 40px 24px 80px; }
   .kicker { font-size: 12px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); margin-bottom: 12px; }
   h1 { font-family: Anton, sans-serif; font-size: 40px; line-height: .95; letter-spacing: -.02em; margin: 0 0 16px; }
-  .still { height: 260px; border-radius: 20px; background: linear-gradient(135deg, #cfe3d7, #b9d0c3); margin: 0 0 20px; }
+  .still { display:block; width:100%; height:auto; max-height:420px; object-fit:cover; border-radius:20px; margin:0 0 24px; background:#EDE6D9; }
   p { font-size: 16px; line-height: 1.6; }
 </style>
 </head>
@@ -30,7 +30,7 @@
 <article>
   <div class="kicker">YouTube · DCN</div>
   <h1>Whitefield feeders add a late last trip.</h1>
-  <div class="still" aria-hidden="true"></div>
+  <img class="still" src="/assets/demo/dcn-yt.jpg" alt="Article still" width="1080" height="720" loading="eager"/>
   <p>DCN posted the feeder update. Cached source so Browser can open a real URL while the desk finishes the post.</p>
 </article>
 </body>

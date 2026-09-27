@@ -16,7 +16,7 @@
   .kicker { font-size: 12px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); margin-bottom: 12px; }
   h1 { font-family: Anton, sans-serif; font-size: 44px; line-height: .95; letter-spacing: -.02em; margin: 0 0 16px; }
   .lede { font-size: 18px; color: var(--muted); line-height: 1.5; margin: 0 0 24px; }
-  .still { height: 240px; border-radius: 20px; background: linear-gradient(135deg, #d7e0ea, #c9d3de); margin: 0 0 24px; }
+  .still { display:block; width:100%; height:auto; max-height:420px; object-fit:cover; border-radius:20px; margin:0 0 24px; background:#EDE6D9; }
   p { font-size: 16px; line-height: 1.6; color: var(--ink); }
 </style>
 </head>
@@ -29,7 +29,7 @@
   <div class="kicker">Transit · Mumbai</div>
   <h1>Harbour line holds a late-night clearance window.</h1>
   <p class="lede">A late-night clearance window is posted for the Harbour line. Cached demo source for Browser.</p>
-  <div class="still" aria-hidden="true"></div>
+  <img class="still" src="/assets/demo/mumbai.jpg" alt="Article still" width="1080" height="720" loading="eager"/>
   <p>Work trains take the window after last passenger service. The page stays here so Cutline can open the source the way a browser does.</p>
 </article>
 </body>
