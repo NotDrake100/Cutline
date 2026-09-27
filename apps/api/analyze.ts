@@ -81,6 +81,11 @@ const PLATFORM_LABEL: Record<SocialKind, string> = {
   web: "Source",
 };
 
+/** Post frame: IG and X share 4:5. YouTube is 16:9. */
+export function postFrameAspect(kind: SocialKind): "4 / 5" | "16 / 9" {
+  return kind === "youtube" ? "16 / 9" : "4 / 5";
+}
+
 export interface SocialFixture {
   kind: SocialKind;
   title: string;
