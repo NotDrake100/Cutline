@@ -386,6 +386,106 @@
   .frame .ph {
     font-size: 12.5px; color: var(--dim); text-align: center; padding: 16px;
   }
+  .still-fill {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    min-height: 160px;
+    overflow: hidden;
+    background: #e8e8e4;
+  }
+  .still-fill-shimmer {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(105deg, #e4e4e0 0%, #f4f4f1 38%, #ecece8 52%, #e4e4e0 100%);
+    background-size: 220% 100%;
+    animation: stillShimmer 1.5s ease-in-out infinite;
+  }
+  .still-fill-wash {
+    position: absolute;
+    left: 0; right: 0; bottom: 0;
+    height: 0;
+    background:
+      linear-gradient(180deg, rgba(225,244,53,.08), rgba(10,10,10,.07)),
+      repeating-linear-gradient(0deg, transparent, transparent 18px, rgba(255,255,255,.18) 18px, rgba(255,255,255,.18) 19px);
+    animation: stillFillUp 2.6s cubic-bezier(.22,.7,.2,1) forwards;
+  }
+  .still-fill-label {
+    position: absolute;
+    inset: 0;
+    display: grid;
+    place-items: center;
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: .01em;
+    color: var(--muted);
+    z-index: 2;
+  }
+  .still-fill.reveal .still-fill-shimmer,
+  .still-fill.reveal .still-fill-wash,
+  .still-fill.reveal .still-fill-label { display: none; }
+  .still-fill.reveal img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    animation: stillReveal .9s cubic-bezier(.22,.7,.2,1) forwards;
+  }
+  @keyframes stillShimmer {
+    0% { background-position: 100% 0; }
+    100% { background-position: -40% 0; }
+  }
+  @keyframes stillFillUp {
+    0% { height: 6%; }
+    100% { height: 100%; }
+  }
+  @keyframes stillReveal {
+    from { clip-path: inset(100% 0 0 0); filter: blur(10px); opacity: .55; }
+    to { clip-path: inset(0 0 0 0); filter: blur(0); opacity: 1; }
+  }
+  .style-row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+    width: 100%;
+    margin: 14px 0 0;
+  }
+  .style-label {
+    font-size: 11.5px;
+    font-weight: 650;
+    color: var(--dim);
+    letter-spacing: .04em;
+    text-transform: uppercase;
+  }
+  .style-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+  .style-chip {
+    height: 30px;
+    padding: 0 11px;
+    border-radius: var(--radius-pill);
+    border: 1px solid var(--line);
+    background: var(--panel);
+    font-size: 12.5px;
+    font-weight: 550;
+    color: var(--muted);
+    transition: background .12s, border-color .12s, color .12s;
+  }
+  .style-chip:hover { color: var(--ink); background: var(--nav-hover); }
+  .style-chip.active {
+    background: var(--ink);
+    border-color: var(--ink);
+    color: #fff;
+  }
+  .rp-style {
+    padding: 0 14px 10px;
+    border-bottom: 1px solid var(--line);
+    flex-shrink: 0;
+  }
+  .rp-style .style-row { margin: 0; }
+  .rp-style .style-chip { height: 28px; font-size: 12px; }
   .ban {
     margin-top: 10px;
     font-size: 11.5px; font-weight: 500;
@@ -1055,7 +1155,7 @@
     white-space: normal;
     line-height: 1.3;
   }
-  .source-demo-tag {
+  .source-tag {
     display: inline-block;
     margin-top: 4px;
     font-size: 10.5px; font-weight: 650;
@@ -1174,7 +1274,7 @@
         </span>
         <span class="label">News</span>
       </button>
-      <button type="button" class="tool-row t2" title="Still" aria-label="Still">
+      <button type="button" class="tool-row t2" title="Still" aria-label="Still" id="toolStill">
         <span class="tool-ico" aria-hidden="true">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="9" cy="11" r="2"/><path d="m3 17 5-4 3 2 4-5 6 7"/></svg>
         </span>
@@ -1210,10 +1310,19 @@
         <p class="truth-micro"><strong>News only from real pages.</strong> Browser holds the source.</p>
 
         <div class="ask-box">
-          <textarea id="headline" placeholder="Hunt a story or paste a headline (demo)…" rows="3"></textarea>
+          <textarea id="headline" placeholder="Hunt a story or paste a headline…" rows="3"></textarea>
           <div class="ask-actions">
-            <span class="ask-hint">Hunt a live page, then rewrite · pasted headline is demo · you approve before ship</span>
+            <span class="ask-hint">Hunt a live page, then rewrite · you approve before ship</span>
             <button type="button" class="btn btn-lime" id="runBtn">Run</button>
+          </div>
+          <div class="style-row" id="styleRow">
+            <span class="style-label">Voice</span>
+            <div class="style-chips" id="styleChips" role="group" aria-label="Writing style">
+              <button type="button" class="style-chip active" data-style="tight_news">Tight news</button>
+              <button type="button" class="style-chip" data-style="social_caption">Social caption</button>
+              <button type="button" class="style-chip" data-style="long_lede">Long lede</button>
+              <button type="button" class="style-chip" data-style="neutral_brief">Neutral brief</button>
+            </div>
           </div>
         </div>
         <div class="gemini-toast" id="geminiToast" role="status"></div>
@@ -1248,7 +1357,7 @@
           <div class="result-grid">
             <div class="card">
               <h3>Still</h3>
-              <div class="frame" id="frame"><div class="ph">No still yet</div></div>
+              <div class="frame" id="frame"><div class="ph">Still waits for a run</div></div>
               <div class="ban" id="ban">bannedForPrint · AI still · social only — story must stay URL-sourced</div>
             </div>
             <div class="card">
@@ -1257,7 +1366,7 @@
             </div>
             <div class="card log-card">
               <h3>Tool log</h3>
-              <div id="log" class="empty-log">Hunt a live URL or paste a demo headline. Gemini writes the pack. Approve unlocks ship.</div>
+              <div id="log" class="empty-log">Hunt a live URL or paste a headline. Gemini writes the pack. Approve unlocks ship.</div>
             </div>
           </div>
         </div>
@@ -1282,7 +1391,7 @@
           </div>
           <div class="changed-row">
             <div class="metric">Gemini</div>
-            <div class="note">Server key required — no stub pack</div>
+            <div class="note">One key lights rewrite, still, and pack</div>
           </div>
           <div class="changed-row">
             <div class="metric">Approve</div>
@@ -1374,6 +1483,18 @@
       </button>
     </div>
     <div class="rp-magic"><span class="dot" aria-hidden="true"></span> Magic Layer · keep structure, update layers</div>
+    <div class="rp-style">
+      <div class="style-row">
+        <span class="style-label">Voice</span>
+        <div class="style-chips" id="rpStyleChips" role="group" aria-label="Writing style">
+          <button type="button" class="style-chip active" data-style="tight_news">Tight news</button>
+          <button type="button" class="style-chip" data-style="social_caption">Social</button>
+          <button type="button" class="style-chip" data-style="long_lede">Long lede</button>
+          <button type="button" class="style-chip" data-style="neutral_brief">Neutral</button>
+        </div>
+        <button type="button" class="btn btn-ghost btn-sm" id="applyStyleBtn">Apply</button>
+      </div>
+    </div>
 
     <div class="rp-body active" id="rpStructure" role="tabpanel">
       <div class="rp-empty" id="structureEmpty">
@@ -1385,9 +1506,9 @@
       </div>
       <div class="truth-banner" id="truthBanner" style="display:none" role="status">
         <span class="tb-ico" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 3l8 4v5c0 5-3.5 8.5-8 10-4.5-1.5-8-5-8-10V7l8-4z"/><path d="M9 12l2 2 4-4"/></svg></span>
-        Truth lane: live URL required · no AI-invented news
+        Browser holds the source
       </div>
-      <div class="wedge-chip" id="wedgeChip">No live URL — pasted headline (demo)</div>
+      <div class="wedge-chip" id="wedgeChip">Pasted headline — no live source URL</div>
       <div class="layer-tree" id="layerTree" style="display:none" aria-label="Story layers">
         <div class="layer" data-id="still" id="layerStill">
           <div class="layer-head">
@@ -1395,7 +1516,7 @@
             <span class="layer-ban ai-still" id="layerStillBan" style="display:none">bannedForPrint · AI still · social only — story must stay URL-sourced</span>
             <span class="layer-chip" data-chip>updated</span>
           </div>
-          <div class="layer-thumb" id="layerStillThumb"><div class="ph">No still</div></div>
+          <div class="layer-thumb" id="layerStillThumb"><div class="ph">No still yet</div></div>
           <div class="layer-meta muted" id="layerStillMeta">—</div>
         </div>
         <div class="layer" data-id="headline" id="layerHeadline">
@@ -1446,7 +1567,7 @@
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M3 12h18"/></svg>
         </div>
         <h3>No source yet</h3>
-        <p>Hunt a real page — this pane holds the live URL (no AI fake news).</p>
+        <p>Hunt a page. This pane holds the live URL.</p>
       </div>
       <div id="browserLive" style="display:none; flex:1; min-height:0; flex-direction:column;">
         <div class="browser-bar">
@@ -1465,8 +1586,8 @@
         <div class="empty-ico" aria-hidden="true">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M4 7h16M4 12h10M4 17h14"/></svg>
         </div>
-        <h3>No live URL — demo</h3>
-        <p>Pasted headline · <code style="font-size:11px">manual://wedge</code> · not a news URL</p>
+        <h3>No live URL</h3>
+        <p>Pasted headline. Open a sourced page to put the URL here.</p>
       </div>
     </div>
   </aside>
@@ -1476,9 +1597,46 @@
   let currentRun = null;
   let pendingSourceUrl = null; // from Hunt "Use on desk"
   let layerSnapshot = {}; // hash of last painted layer values for flash
+  let selectedStyle = "tight_news";
 
   const $ = (id) => document.getElementById(id);
   const agents = ["wire", "still", "desk", "ship"];
+  const STILL_FILL_HTML = `<div class="still-fill" aria-busy="true" aria-label="Generating still">
+    <div class="still-fill-shimmer"></div>
+    <div class="still-fill-wash"></div>
+    <div class="still-fill-label">Generating still</div>
+  </div>`;
+
+  function startStillFill() {
+    const frame = $("frame");
+    if (frame) frame.innerHTML = STILL_FILL_HTML;
+    const thumb = $("layerStillThumb");
+    if (thumb) thumb.innerHTML = STILL_FILL_HTML;
+    $("structureEmpty") && ($("structureEmpty").style.display = "none");
+    $("layerTree") && ($("layerTree").style.display = "flex");
+  }
+
+  function stillRevealHtml(url) {
+    return `<div class="still-fill reveal"><img src="${escapeHtml(url)}" alt="still"/></div>`;
+  }
+
+  function paintStyleChips(id) {
+    selectedStyle = id || "tight_news";
+    document.querySelectorAll(".style-chip").forEach((btn) => {
+      btn.classList.toggle("active", btn.dataset.style === selectedStyle);
+    });
+  }
+
+  async function persistStyle(id) {
+    paintStyleChips(id);
+    try {
+      await fetch("/api/style", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ styleId: selectedStyle }),
+      });
+    } catch (_) { /* keep local selection */ }
+  }
 
   function setErr(msg) {
     const el = $("errBox");
@@ -1547,11 +1705,11 @@
     const ban = $("ban");
     const photo = run?.photo;
     if (!photo?.pathOrUrl) {
-      frame.innerHTML = `<div class="ph">No still yet</div>`;
+      frame.innerHTML = `<div class="ph">Still waits for a run</div>`;
       ban.classList.remove("show");
       return;
     }
-    frame.innerHTML = `<img src="${escapeHtml(photo.pathOrUrl)}" alt="still"/>`;
+    frame.innerHTML = stillRevealHtml(photo.pathOrUrl);
     if (photo.via === "gemini_gen" || photo.bannedForPrint) ban.classList.add("show");
     else ban.classList.remove("show");
   }
@@ -1704,9 +1862,9 @@
     const stillKey = photo?.pathOrUrl || "";
     next.still = stillKey + "|" + (photo?.via || "") + "|" + (!!photo?.bannedForPrint);
     if (stillKey) {
-      thumb.innerHTML = `<img src="${escapeHtml(stillKey)}" alt="still"/>`;
+      thumb.innerHTML = stillRevealHtml(stillKey);
     } else {
-      thumb.innerHTML = `<div class="ph">No still</div>`;
+      thumb.innerHTML = `<div class="ph">No still yet</div>`;
     }
     const credit = photo
       ? [photo.credit, photo.via ? "via " + photo.via : ""].filter(Boolean).join(" · ")
@@ -1730,19 +1888,18 @@
     const yt = [run.pack?.ytTitle, run.pack?.ytDescription].filter(Boolean).join("\n\n");
     next.yt = setLayerText($("layerYtText"), yt, "No YT pack");
 
-    // Source — truth lane: https only counts as news; manual://wedge = demo
     const src = resolveSourceUrl(run);
     next.source = src;
     const srcMeta = $("layerSourceMeta");
     const isLive = /^https?:\/\//i.test(src);
-    const isWedge = !!(src && (src.startsWith("manual://") || src === "manual://wedge"));
+    const isWedge = !!(src && src.startsWith("manual://"));
     if (wedgeChip) wedgeChip.classList.toggle("show", isWedge || (!isLive && !!run));
     if (isLive) {
       srcMeta.classList.remove("muted");
       srcMeta.innerHTML = `<a class="layer-link" href="${escapeHtml(src)}" target="_blank" rel="noopener noreferrer">${escapeHtml(src)}</a>`;
     } else if (isWedge) {
       srcMeta.classList.add("muted");
-      srcMeta.innerHTML = `${escapeHtml(src)} · demo · not sourced<span class="source-demo-tag">manual://wedge</span>`;
+      srcMeta.innerHTML = `Pasted headline · not sourced<span class="source-tag">headline</span>`;
     } else if (src) {
       srcMeta.classList.remove("muted");
       srcMeta.textContent = src;
@@ -1895,10 +2052,10 @@
   function geminiErr(data, fallback) {
     if (!data) return fallback;
     if (data.error === "gemini_not_configured") {
-      return data.hint || "Connect Gemini — GEMINI_API_KEY is not set on the server.";
+      return data.hint || "Connect Gemini to write the pack.";
     }
     if (data.error && String(data.error).startsWith("gemini_")) {
-      return data.hint || "Gemini request failed. Check GEMINI_API_KEY and model env on the server.";
+      return data.hint || "Gemini request failed. Check the desk key and try again.";
     }
     return data.hint || data.error || fallback;
   }
@@ -1907,10 +2064,11 @@
     currentRun = run;
     setStatus(run.status);
     const src = resolveSourceUrl(run);
-    const demo = !isLiveSourceUrl(src);
-    $("runMeta").textContent = (run.id || "") + (demo ? " · demo" : "");
+    const sourced = isLiveSourceUrl(src);
+    $("runMeta").textContent = (run.id || "") + (sourced ? "" : " · headline");
     const title = $("resultTitle");
-    if (title) title.textContent = demo ? "Demo run" : "Desk run";
+    if (title) title.textContent = sourced ? "Desk run" : "Headline run";
+    if (run.styleId) paintStyleChips(run.styleId);
     renderLog(run.log);
     markRoster(run.log);
     renderStill(run);
@@ -1934,14 +2092,15 @@
     setStatus("drafting");
     $("result").classList.add("show");
     $("homeWrap").classList.add("has-run");
+    startStillFill();
     try {
       const sourceUrl = isLiveSourceUrl(pendingSourceUrl) ? pendingSourceUrl : (/^https?:\/\//i.test(headline) ? headline : "");
       const res = await fetch(sourceUrl ? "/api/desk" : "/api/wedge", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(sourceUrl
-          ? { sourceUrl, title: headline || sourceUrl, beat: selectedDesk }
-          : { headline }),
+          ? { sourceUrl, title: headline || sourceUrl, beat: selectedDesk, styleId: selectedStyle }
+          : { headline, styleId: selectedStyle }),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(geminiErr(data, sourceUrl ? "desk failed" : "run failed"));
@@ -1971,7 +2130,7 @@
       const res = await fetch("/api/approve", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ runId: currentRun.id }),
+        body: JSON.stringify({ runId: currentRun.id, styleId: selectedStyle }),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "approve failed");
@@ -2002,8 +2161,35 @@
   $("runBtn").addEventListener("click", doRun);
   $("sideRunBtn").addEventListener("click", () => { switchView("home"); doRun(); });
   $("approveBtn").addEventListener("click", doApprove);
+  async function applyVoice() {
+    if (!currentRun?.id) {
+      setErr("Run a story first, then apply voice.");
+      return;
+    }
+    setErr("");
+    try {
+      const res = await fetch("/api/restyle", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ runId: currentRun.id, styleId: selectedStyle }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(geminiErr(data, "voice failed"));
+      applyRun(data.run);
+    } catch (e) {
+      const msg = e.message || String(e);
+      setErr(msg);
+      if (/Connect Gemini|gemini_not_configured/i.test(msg)) {
+        showGeminiToast("<strong>Connect Gemini.</strong> Voice needs the desk key.");
+      }
+    }
+  }
+
   $("adjustBtn").addEventListener("click", () => {
-    // Magic Layer: keep structure nodes, re-run same headline → patch layers in place
+    if (currentRun?.id) {
+      applyVoice();
+      return;
+    }
     const hl = ($("headline").value || "").trim() || currentRun?.rewrite?.headline || currentRun?.brief?.headline || "";
     if (hl) $("headline").value = hl;
     setSideRunReady();
@@ -2016,11 +2202,11 @@
     $("suggestions").style.display = "";
     setStatus("idle");
     $("runMeta").textContent = "";
-    $("frame").innerHTML = '<div class="ph">No still yet</div>';
+    $("frame").innerHTML = '<div class="ph">Still waits for a run</div>';
     $("ban").classList.remove("show");
     $("pack").textContent = "—";
     $("log").className = "empty-log";
-    $("log").textContent = "Hunt a live URL or paste a demo headline. Gemini writes the pack. Approve unlocks ship.";
+    $("log").textContent = "Hunt a live URL or paste a headline. Gemini writes the pack. Approve unlocks ship.";
     markRoster([]);
     clearMagicLayers({ keepSkeleton: true });
   });
@@ -2110,7 +2296,7 @@
         <div class="hit-top">
           <span class="sourced-pill" title="Real publisher URL required"><span class="dot" aria-hidden="true"></span> Sourced</span>
           <span class="hit-outlet">${escapeHtml(h.outlet || "Outlet")}</span>
-          <span class="via-badge ${escapeHtml(h.via || "")}">${escapeHtml(h.via || "")}</span>
+          <span class="via-badge ${escapeHtml(h.via || "")}">Live</span>
         </div>
         <div class="hit-title">${escapeHtml(h.title)}</div>
         <div class="hit-meta">
@@ -2149,7 +2335,7 @@
         const hit = lastHits[idx];
         if (!hit) return;
         if (!isLiveSourceUrl(hit.sourceUrl)) {
-          setHuntErr("Every Hunt hit needs a real sourceUrl — no AI-invented news.");
+          setHuntErr("This hit needs a live source URL.");
           return;
         }
         $("headline").value = hit.title;
@@ -2466,8 +2652,8 @@
       const src = item.sourceUrl
         ? `<p><a href="${escapeHtml(item.sourceUrl)}" target="_blank" rel="noopener noreferrer">${escapeHtml(item.sourceUrl)}</a></p>`
         : "";
-      const thumbs = media.filter((m) => m.url && (m.kind === "photo" || m.kind === "clip" || m.kind === "video")).map((m) => {
-        if (m.kind === "photo") {
+      const thumbs = media.filter((m) => m.url && (m.kind === "photo" || m.kind === "still" || m.kind === "clip" || m.kind === "video")).map((m) => {
+        if (m.kind === "photo" || m.kind === "still") {
           return `<div class="lib-thumb"><img src="${escapeHtml(m.url)}" alt=""/></div>`;
         }
         return `<p><a href="${escapeHtml(m.url)}" target="_blank" rel="noopener noreferrer">${escapeHtml(m.kind)} · open</a></p>`;
@@ -2570,11 +2756,23 @@
     }
   });
 
+  document.querySelectorAll(".style-chip").forEach((btn) => {
+    btn.addEventListener("click", () => persistStyle(btn.dataset.style));
+  });
+  $("applyStyleBtn")?.addEventListener("click", applyVoice);
+
+  fetch("/api/styles")
+    .then((r) => r.json())
+    .then((data) => {
+      if (data.selected) paintStyleChips(data.selected);
+    })
+    .catch(() => {});
+
   fetch("/api/health")
     .then((r) => r.json())
     .then((data) => {
-      if (!data.gemini) {
-        showGeminiToast("<strong>Connect Gemini.</strong> GEMINI_API_KEY is not set on the server. Hunt and Browser still work. Rewrite and still need the key.");
+      if (!data.geminiConfigured && !data.gemini) {
+        showGeminiToast("<strong>Connect Gemini.</strong> Hunt and Browser stay live. Rewrite and stills wait for the desk key.");
       }
     })
     .catch(() => {});
@@ -2607,7 +2805,27 @@
     } else if (view === "connect" || view === "activity" || view === "hunt" || view === "library") {
       switchView(view);
     }
+    const preview = (q.get("preview") || "").toLowerCase();
+    if (preview === "still-fill") {
+      switchView("home");
+      $("result").classList.add("show");
+      $("homeWrap").classList.add("has-run");
+      $("suggestions").style.display = "none";
+      setStatus("drafting");
+      $("resultTitle").textContent = "Desk run";
+      $("runMeta").textContent = "still · generating";
+      startStillFill();
+    } else if (preview === "styles") {
+      switchView("home");
+    }
   })();
+
+  $("toolStill")?.addEventListener("click", () => {
+    switchView("home");
+    $("result").classList.add("show");
+    $("homeWrap").classList.add("has-run");
+    startStillFill();
+  });
 </script>
 </body>
 </html>

@@ -1,8 +1,8 @@
 import type { PhotoAsset, WireBrief } from "../../core/src/types";
 
 /**
- * Hackathon Still — Gemini image only (bannedForPrint always true).
- * Photo lane (article OG) is Phase B; wedge skips it on purpose.
+ * Gemini still — generated image only (bannedForPrint always true).
+ * Photo lane (article OG) is the sourced path; pasted-headline runs use this.
  */
 export async function stillFromBrief(
   brief: WireBrief,

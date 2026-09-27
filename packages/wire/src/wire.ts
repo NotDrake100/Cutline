@@ -2,7 +2,7 @@ import type { WireBrief } from "../../core/src/types";
 import { parseGeminiJson } from "../../core/src/gemini";
 
 /**
- * Hackathon Wire — pasted headline → brief.
+ * Pasted headline → brief.
  * sourceUrl is always manual://wedge (never fake a publisher URL).
  * Requires a live Gemini response — no invented angle/facts.
  */
@@ -16,7 +16,7 @@ export async function wireFromHeadline(
   if (!h) throw new Error("headline required");
 
   const raw = await deps.geminiText(
-    `Return JSON only: {"headline","angle","cityLead","visualPrompt","facts":string[]} for a news desk still from this pasted headline (demo, not a sourced story): ${h}`
+    `Return JSON only: {"headline","angle","cityLead","visualPrompt","facts":string[]} for a news desk still from this pasted headline (not a sourced page): ${h}`
   );
   const parsed = parseGeminiJson<Partial<WireBrief>>(raw);
   if (!parsed.headline || !parsed.angle || !parsed.visualPrompt) {

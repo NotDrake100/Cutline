@@ -16,7 +16,7 @@ Optional: `PEXELS_API_KEY`, `CUTLINE_PUBLIC_URL`, and Connect app credentials in
 
 Missing `GEMINI_API_KEY` returns a clear error. The desk does not invent headlines, stills, or pack copy.
 
-Deploy: see `DEPLOY.md` (Cloud Run Dockerfile or Vercel). Health: `GET /api/health` → `{ gemini: true|false }`.
+Deploy: see `DEPLOY.md` (Cloud Run Dockerfile or Vercel). Health: `GET /api/health` → `{ geminiConfigured: true|false }`.
 
 ## Run
 
@@ -31,6 +31,7 @@ npm run dev
 ## Product rules
 
 - Hunt only keeps items with a live `sourceUrl`. Browser holds that URL.
-- Gemini rewrite/pack runs on sourced page text. A pasted headline is labeled demo (`manual://wedge`) and is not a sourced story.
+- Gemini rewrite/pack runs on sourced page text. A pasted headline is not a sourced story.
+- Writing styles (Tight news, Social caption, Long lede, Neutral brief) apply on Approve and Magic Layer.
 - Connect plugins stay `connect_required` until an account is linked. No fake publish.
-- Library stores clips, stills, videos, and captions in SQLite (`data/cutline.db`).
+- Library stores clips, stills, videos, and captions in SQLite.

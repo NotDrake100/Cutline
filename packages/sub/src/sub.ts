@@ -1,5 +1,6 @@
 import type { Rewrite, WireBrief } from "../../core/src/types";
 import { parseGeminiJson } from "../../core/src/gemini";
+import { getStyle } from "../../core/src/styles";
 
 /**
  * House-voice rewrite vs fetched page text.
@@ -14,9 +15,11 @@ export async function rewriteHouse(
     houseStyle?: string;
   }
 ): Promise<Rewrite> {
-  const style = deps.houseStyle || "Cutline";
+  const chosen = getStyle(deps.houseStyle);
+  const style = deps.houseStyle && deps.houseStyle !== chosen.id ? deps.houseStyle : chosen.label;
+  const voice = chosen.prompt;
   const raw = await deps.geminiText(
-    `Rewrite in house voice (${style}). Sentence-case headline. City lead. No invented quotes. JSON {"headline","body","caption"}. Source URL must stay ${brief.sourceUrl}.\n\nBRIEF:\n${JSON.stringify(brief)}\n\nPAGE:\n${pageText.slice(0, 8000)}`
+    `Rewrite in this voice: ${style}. ${voice} Sentence-case headline. No invented quotes. JSON {"headline","body","caption"}. Source URL must stay ${brief.sourceUrl}.\n\nBRIEF:\n${JSON.stringify(brief)}\n\nPAGE:\n${pageText.slice(0, 8000)}`
   );
   const parsed = parseGeminiJson<Partial<Rewrite>>(raw);
   if (!parsed.headline || !parsed.body) throw new Error("gemini_invalid_json");

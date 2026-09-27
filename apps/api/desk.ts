@@ -6,6 +6,8 @@ import { packCaptions } from "../../packages/desk/src/desk";
 import { fetchPageText, fetchArticleImage } from "../../packages/scout/src/http";
 import { downloadBytes, pexelsSearch } from "../../packages/photo/src/http";
 import type { DeskRequest, DeskResponse, StoryRun } from "../../packages/core/src/types";
+import { getStyle } from "../../packages/core/src/styles";
+import { getWritingStyleId } from "../../packages/library/src/db";
 
 function md5(buf: ArrayBuffer): string {
   return createHash("md5").update(Buffer.from(buf)).digest("hex");
@@ -36,6 +38,7 @@ export async function handleDesk(
   }
   const title = (body.title || sourceUrl).trim();
   const beat = (body.beat || body.beatId || "desk").trim();
+  const style = getStyle(body.styleId || getWritingStyleId());
 
   const run = await runSourcedDesk(
     {
@@ -53,14 +56,16 @@ export async function handleDesk(
         download: downloadBytes,
       },
       wire: (hit) => wireFromPage(hit, { geminiText: gemini.text }),
-      sub: (brief, pageText) => rewriteHouse(brief, pageText, { geminiText: gemini.text }),
+      sub: (brief, pageText) =>
+        rewriteHouse(brief, pageText, { geminiText: gemini.text, houseStyle: style.id }),
       desk: (rewrite, photo) => packCaptions(rewrite, photo, { geminiText: gemini.text }),
       fetchPageText,
       now: () => new Date().toISOString(),
       id: () => `desk_${Date.now().toString(36)}`,
     },
-    { beat, allowGeminiGen: false }
+    { beat, allowGeminiGen: false, styleId: style.id }
   );
+  run.styleId = style.id;
 
   return { run, mode: "desk" };
 }

@@ -1,15 +1,13 @@
 /**
- * Persist StoryRun under /workspace/cutline/runs/{id}/run.json
+ * Persist StoryRun under runs/{id}/run.json (or /tmp on Vercel).
  */
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import type { StoryRun } from "./types";
-
-const ROOT = join(import.meta.dirname, "../../..");
-const RUNS = join(ROOT, "runs");
+import { runsRoot as dataRunsRoot } from "./paths";
 
 export function runsRoot(): string {
-  return RUNS;
+  return dataRunsRoot();
 }
 
 export async function saveRun(run: StoryRun): Promise<string> {

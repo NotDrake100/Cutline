@@ -1,21 +1,22 @@
 /**
- * SQLite media library — clips, photos, videos, captions, linked desk items.
- * File-backed. Not in-memory. Not localStorage.
+ * SQLite media library — clips, photos, videos, captions, stills, style pref.
+ * File-backed. Vercel writes to /tmp. Not localStorage.
  */
 import { mkdirSync } from "node:fs";
-import { join } from "node:path";
+import { dirname } from "node:path";
 import { DatabaseSync } from "node:sqlite";
 import type { DeskItem, LibraryEntry, MediaKind, MediaRecord } from "../../core/src/types";
+import { dbFile } from "../../core/src/paths";
+import { DEFAULT_STYLE_ID, isStyleId } from "../../core/src/styles";
 
-const ROOT = join(import.meta.dirname, "../../..");
-const DATA = join(ROOT, "data");
-const DB_PATH = join(DATA, "cutline.db");
+const DB_PATH = dbFile();
+const KINDS: MediaKind[] = ["clip", "photo", "video", "caption", "still"];
 
 let db: DatabaseSync | null = null;
 
 function open(): DatabaseSync {
   if (db) return db;
-  mkdirSync(DATA, { recursive: true });
+  mkdirSync(dirname(DB_PATH), { recursive: true });
   db = new DatabaseSync(DB_PATH);
   db.exec(`
     CREATE TABLE IF NOT EXISTS desk_items (
@@ -36,6 +37,10 @@ function open(): DatabaseSync {
       mime TEXT,
       created_at TEXT NOT NULL,
       FOREIGN KEY (item_id) REFERENCES desk_items(id)
+    );
+    CREATE TABLE IF NOT EXISTS prefs (
+      key TEXT PRIMARY KEY,
+      value TEXT NOT NULL
     );
     CREATE INDEX IF NOT EXISTS media_created ON media(created_at);
     CREATE INDEX IF NOT EXISTS media_kind ON media(kind);
@@ -74,6 +79,32 @@ function rowMedia(r: Record<string, unknown>): MediaRecord {
 
 export function dbPath(): string {
   return DB_PATH;
+}
+
+export function getPref(key: string): string | null {
+  const row = open().prepare("SELECT value FROM prefs WHERE key = ?").get(key) as
+    | { value?: string }
+    | undefined;
+  return row?.value != null ? String(row.value) : null;
+}
+
+export function setPref(key: string, value: string): void {
+  open()
+    .prepare(
+      "INSERT INTO prefs (key, value) VALUES (?, ?) ON CONFLICT(key) DO UPDATE SET value = excluded.value"
+    )
+    .run(key, value);
+}
+
+export function getWritingStyleId(): string {
+  const stored = getPref("writing_style");
+  return isStyleId(stored) ? stored : DEFAULT_STYLE_ID;
+}
+
+export function setWritingStyleId(id: string): string {
+  if (!isStyleId(id)) throw new Error("unknown_style");
+  setPref("writing_style", id);
+  return id;
 }
 
 export function upsertDeskItem(input: {
@@ -122,7 +153,7 @@ export function addMedia(input: {
   mime?: string | null;
 }): MediaRecord {
   const database = open();
-  if (!["clip", "photo", "video", "caption"].includes(input.kind)) {
+  if (!KINDS.includes(input.kind)) {
     throw new Error("invalid_media_kind");
   }
   const id = nid(input.kind);
@@ -229,6 +260,8 @@ export function saveRunToLibrary(input: {
   sourceUrl?: string | null;
   photoUrl?: string | null;
   photoMime?: string | null;
+  stillUrl?: string | null;
+  stillMime?: string | null;
   caption?: string | null;
   clipUrl?: string | null;
 }): LibraryEntry {
@@ -238,7 +271,16 @@ export function saveRunToLibrary(input: {
     sourceUrl: input.sourceUrl,
     runId: input.runId,
   });
-  if (input.photoUrl) {
+  if (input.stillUrl) {
+    addMedia({
+      itemId: item.id,
+      kind: "still",
+      title: input.title,
+      url: input.stillUrl,
+      mime: input.stillMime || "image/*",
+    });
+  }
+  if (input.photoUrl && input.photoUrl !== input.stillUrl) {
     addMedia({
       itemId: item.id,
       kind: "photo",

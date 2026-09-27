@@ -82,6 +82,7 @@ export interface StoryRun {
   rewrite?: Rewrite;
   photo?: PhotoAsset;
   pack?: Pack;
+  styleId?: string;
   log: AgentLogEntry[];
   spendCents: number;
   createdAt: string;
@@ -97,12 +98,12 @@ export interface BeatConfig {
 
 export interface WedgeRequest {
   headline: string;
-  demoId?: string;
+  styleId?: string;
 }
 
 export interface WedgeResponse {
   run: StoryRun;
-  mode?: "demo";
+  mode?: "wedge";
 }
 
 export interface DeskRequest {
@@ -111,6 +112,7 @@ export interface DeskRequest {
   beat?: string;
   beatId?: string;
   outlet?: string;
+  styleId?: string;
 }
 
 export interface DeskResponse {
@@ -118,7 +120,7 @@ export interface DeskResponse {
   mode?: "desk";
 }
 
-export type MediaKind = "clip" | "photo" | "video" | "caption";
+export type MediaKind = "clip" | "photo" | "video" | "caption" | "still";
 
 export interface DeskItem {
   id: string;

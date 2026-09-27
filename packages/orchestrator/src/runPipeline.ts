@@ -8,6 +8,7 @@ export interface PipelineDeps {
   wire: (hit: { title: string; sourceUrl: string; pageText: string }) => Promise<import("../../core/src/types").WireBrief>;
   sub: (brief: import("../../core/src/types").WireBrief, pageText: string) => Promise<import("../../core/src/types").Rewrite>;
   desk: (rewrite: import("../../core/src/types").Rewrite, photo?: import("../../core/src/types").PhotoAsset) => Promise<import("../../core/src/types").Pack>;
+  houseStyle?: string;
   fetchPageText: (url: string) => Promise<string>;
   now: () => string;
   id: () => string;
@@ -85,7 +86,7 @@ export async function runDeskPipeline(
 export async function runSourcedDesk(
   hit: { title: string; sourceUrl: string; outlet?: string; via?: import("../../core/src/types").SourceHit["via"] },
   deps: Omit<PipelineDeps, "scout">,
-  opts: { allowGeminiGen?: boolean; autoApprove?: boolean; beat?: string } = {}
+  opts: { allowGeminiGen?: boolean; autoApprove?: boolean; beat?: string; styleId?: string } = {}
 ): Promise<StoryRun> {
   if (!hit.sourceUrl || !/^https?:\/\//i.test(hit.sourceUrl)) {
     throw new Error("sourceUrl must be a live http(s) URL");
@@ -105,6 +106,7 @@ export async function runSourcedDesk(
     log: [],
     spendCents: 0,
     createdAt: deps.now(),
+    styleId: opts.styleId,
   };
 
   const pageText = await deps.fetchPageText(hit.sourceUrl);
@@ -149,7 +151,7 @@ export async function runSourcedDesk(
   return run;
 }
 
-/** Demo wedge: pasted headline only — Gemini path, labeled manual://wedge, not a sourced story. */
+/** Pasted headline — Gemini path, labeled manual://wedge, not a sourced story. */
 export async function runWedge(
   headline: string,
   deps: {
@@ -158,6 +160,8 @@ export async function runWedge(
     desk: PipelineDeps["desk"];
     now: () => string;
     id: () => string;
+    styleId?: string;
+    houseStyle?: string;
   }
 ): Promise<StoryRun> {
   const run: StoryRun = {
@@ -168,6 +172,7 @@ export async function runWedge(
     log: [],
     spendCents: 0,
     createdAt: deps.now(),
+    styleId: deps.styleId,
   };
   run.brief = await deps.wireFromHeadline(headline);
   run.brief.sourceUrl = run.brief.sourceUrl || "manual://wedge";
@@ -177,7 +182,7 @@ export async function runWedge(
     headline: run.brief.headline,
     body: run.brief.angle,
     sourceUrl: run.brief.sourceUrl,
-    houseStyle: "cutline-wedge",
+    houseStyle: deps.houseStyle || "Tight news",
   };
   run.pack = await deps.desk(run.rewrite, run.photo);
   run.status = "needs_input";

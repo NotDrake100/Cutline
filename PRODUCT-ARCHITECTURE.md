@@ -29,4 +29,6 @@ Desks: Breaking · Business · Culture · Sports · Tech · World
 
 `GEMINI_API_KEY`, `GEMINI_TEXT_MODEL`, `GEMINI_IMAGE_MODEL`
 
-Missing key → honest error. No stub pack.
+Missing key → honest error. One env var — `GEMINI_API_KEY` — lights rewrite, still, and pack.
+
+Writing styles: Tight news · Social caption · Long lede · Neutral brief. Applied on Approve and Magic Layer.

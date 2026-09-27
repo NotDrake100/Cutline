@@ -10,8 +10,9 @@ export async function packCaptions(
   }
 ): Promise<Pack> {
   if (!deps?.geminiText) throw new Error("gemini_required");
+  const voice = rewrite.houseStyle ? ` Voice: ${rewrite.houseStyle}.` : "";
   const raw = await deps.geminiText(
-    `JSON only {"igCaption","ytTitle","ytDescription"} for: ${rewrite.headline}\n${rewrite.body}`
+    `JSON only {"igCaption","ytTitle","ytDescription"} for: ${rewrite.headline}\n${rewrite.body}.${voice}`
   );
   const p = parseGeminiJson<{ igCaption?: string; ytTitle?: string; ytDescription?: string }>(raw);
   if (!p.igCaption || !p.ytTitle || !p.ytDescription) {

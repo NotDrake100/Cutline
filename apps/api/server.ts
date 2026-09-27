@@ -1,5 +1,5 @@
 /**
- * Cutline HTTP — desk + demo wedge + library. Port 8787.
+ * Cutline HTTP — desk + pasted-headline wedge + library. Port 8787.
  * Serves apps/web + API. Never logs secrets.
  */
 import { createServer, type IncomingMessage, type ServerResponse } from "node:http";
@@ -11,6 +11,9 @@ import { ensureDeskLog, handleDesk } from "./desk";
 import { gemini } from "../../packages/core/src/gemini";
 import { loadRun, saveRun } from "../../packages/core/src/runs";
 import { ENV } from "../../packages/core/src/env";
+import { uploadsRoot } from "../../packages/core/src/paths";
+import { getStyle, isStyleId, listStyles } from "../../packages/core/src/styles";
+import { restyleRunCopy } from "../../packages/sub/src/restyle";
 import type { DeskRequest, MediaKind, StoryRun, WedgeRequest } from "../../packages/core/src/types";
 import { DESKS, listDesks, getDesk } from "../../packages/scout/src/desks";
 import { scoutBeat } from "../../packages/scout/src/scout";
@@ -28,8 +31,10 @@ import {
 import {
   addMedia,
   getLibraryEntry,
+  getWritingStyleId,
   listLibrary,
   saveRunToLibrary,
+  setWritingStyleId,
   upsertDeskItem,
 } from "../../packages/library/src/db";
 import { clipExt, readMultipart } from "./upload";
@@ -37,7 +42,7 @@ import { clipExt, readMultipart } from "./upload";
 const PORT = Number(process.env.PORT) || 8787;
 const ROOT = join(import.meta.dirname, "../..");
 const WEB = join(ROOT, "apps/web");
-const UPLOADS = join(ROOT, "data", "uploads");
+const UPLOADS = uploadsRoot();
 
 export async function loadDotEnv() {
   try {
@@ -124,19 +129,52 @@ function persistLibrary(run: StoryRun) {
   const title = run.rewrite?.headline || run.brief?.headline || run.id;
   const sourceUrl = run.brief?.sourceUrl || run.rewrite?.sourceUrl || null;
   const live = sourceUrl && /^https?:\/\//i.test(sourceUrl) ? sourceUrl : null;
+  const generated = run.photo?.via === "gemini_gen";
+  const imageUrl = run.photo?.pathOrUrl || run.pack?.stillUrl || null;
   try {
     saveRunToLibrary({
       runId: run.id,
       desk: run.beat,
       title,
       sourceUrl: live,
-      photoUrl: run.photo?.pathOrUrl || run.pack?.stillUrl,
+      stillUrl: generated ? imageUrl : null,
+      photoUrl: generated ? null : imageUrl,
       caption: run.pack?.igCaption || run.rewrite?.caption || null,
       clipUrl: run.pack?.clipUrl,
     });
   } catch {
     /* library write must not fail the run */
   }
+}
+
+function resolveStyleId(requested?: string): string {
+  if (requested && isStyleId(requested)) {
+    try {
+      setWritingStyleId(requested);
+    } catch {
+      /* keep going */
+    }
+    return requested;
+  }
+  return getWritingStyleId();
+}
+
+async function applyStyleToRun(run: StoryRun, styleId: string): Promise<StoryRun> {
+  const style = getStyle(styleId);
+  const { rewrite, pack } = await restyleRunCopy(run, style.id, (p) => gemini.text(p));
+  run.rewrite = rewrite;
+  run.pack = pack;
+  run.styleId = style.id;
+  run.log.push({
+    agent: "sub",
+    at: new Date().toISOString(),
+    action: "style",
+    ok: true,
+    detail: style.label,
+    spendCents: 1,
+  });
+  run.spendCents += 1;
+  return run;
 }
 
 function ensureWedgeLog(run: StoryRun): StoryRun {
@@ -205,6 +243,7 @@ async function handleApi(req: IncomingMessage, res: ServerResponse, url: URL) {
       });
     }
     try {
+      body.styleId = resolveStyleId(body.styleId);
       const { run: rawRun } = await handleWedge(body, {
         text: (p) => gemini.text(p),
         image: (p) => gemini.image(p),
@@ -212,7 +251,7 @@ async function handleApi(req: IncomingMessage, res: ServerResponse, url: URL) {
       const run = ensureWedgeLog(rawRun);
       await saveRun(run);
       persistLibrary(run);
-      return json(res, 200, { run, mode: "demo" });
+      return json(res, 200, { run, mode: "wedge" });
     } catch (e) {
       return geminiFail(res, e);
     }
@@ -233,6 +272,7 @@ async function handleApi(req: IncomingMessage, res: ServerResponse, url: URL) {
       });
     }
     try {
+      body.styleId = resolveStyleId(body.styleId);
       const { run: rawRun } = await handleDesk(body, {
         text: (p) => gemini.text(p),
         image: (p) => gemini.image(p),
@@ -248,9 +288,9 @@ async function handleApi(req: IncomingMessage, res: ServerResponse, url: URL) {
 
   if (method === "POST" && path === "/api/approve") {
     const raw = await readBody(req);
-    let body: { runId?: string };
+    let body: { runId?: string; styleId?: string };
     try {
-      body = JSON.parse(raw || "{}") as { runId?: string };
+      body = JSON.parse(raw || "{}") as { runId?: string; styleId?: string };
     } catch {
       return json(res, 400, { error: "invalid_json" });
     }
@@ -260,17 +300,83 @@ async function handleApi(req: IncomingMessage, res: ServerResponse, url: URL) {
       if (run.status !== "needs_input" && run.status !== "approved") {
         return json(res, 409, { error: `cannot_approve: status=${run.status}` });
       }
+      const styleId = resolveStyleId(body.styleId);
+      if (gemini.hasKey() && styleId && styleId !== run.styleId) {
+        try {
+          await applyStyleToRun(run, styleId);
+        } catch (e) {
+          return geminiFail(res, e);
+        }
+      }
       run.status = "approved";
       run.log.push({
         agent: "ship",
         at: new Date().toISOString(),
         action: "approved",
         ok: true,
+        detail: getStyle(run.styleId).label,
       });
       await saveRun(run);
+      persistLibrary(run);
       return json(res, 200, { run });
     } catch (e) {
       return json(res, 404, { error: (e as Error).message || "run_not_found" });
+    }
+  }
+
+  if (method === "POST" && path === "/api/restyle") {
+    const raw = await readBody(req);
+    let body: { runId?: string; styleId?: string };
+    try {
+      body = JSON.parse(raw || "{}") as { runId?: string; styleId?: string };
+    } catch {
+      return json(res, 400, { error: "invalid_json" });
+    }
+    if (!body.runId) return json(res, 400, { error: "runId required" });
+    if (!gemini.hasKey()) {
+      return json(res, 503, {
+        error: "gemini_not_configured",
+        hint: "Connect Gemini — set GEMINI_API_KEY on the server.",
+      });
+    }
+    try {
+      const run = await loadRun(body.runId);
+      const styleId = resolveStyleId(body.styleId);
+      await applyStyleToRun(run, styleId);
+      await saveRun(run);
+      persistLibrary(run);
+      return json(res, 200, { run, style: getStyle(styleId) });
+    } catch (e) {
+      if (e instanceof Error && (e.message.startsWith("gemini_") || e.message === "gemini_not_configured")) {
+        return geminiFail(res, e);
+      }
+      return json(res, 404, { error: (e as Error).message || "run_not_found" });
+    }
+  }
+
+  if (method === "GET" && path === "/api/styles") {
+    return json(res, 200, {
+      styles: listStyles().map((s) => ({ id: s.id, label: s.label, brief: s.brief })),
+      selected: getWritingStyleId(),
+    });
+  }
+
+  if ((method === "PUT" || method === "POST") && path === "/api/style") {
+    const raw = await readBody(req);
+    let body: { styleId?: string };
+    try {
+      body = JSON.parse(raw || "{}") as { styleId?: string };
+    } catch {
+      return json(res, 400, { error: "invalid_json" });
+    }
+    if (!isStyleId(body.styleId)) {
+      return json(res, 400, { error: "unknown_style", allowed: listStyles().map((s) => s.id) });
+    }
+    try {
+      const selected = setWritingStyleId(body.styleId);
+      return json(res, 200, { selected, style: getStyle(selected) });
+    } catch (e) {
+      return json(res, 400, { error: (e as Error).message || "style_failed" });
     }
   }
 
@@ -296,13 +402,13 @@ async function handleApi(req: IncomingMessage, res: ServerResponse, url: URL) {
       return json(res, 400, { error: "invalid_json" });
     }
     const kind = (body.kind || "").trim() as MediaKind;
-    if (!["clip", "photo", "video", "caption"].includes(kind)) {
-      return json(res, 400, { error: "kind required", allowed: ["clip", "photo", "video", "caption"] });
+    if (!["clip", "photo", "video", "caption", "still"].includes(kind)) {
+      return json(res, 400, { error: "kind required", allowed: ["clip", "photo", "video", "caption", "still"] });
     }
     if (kind === "caption" && !(body.body || "").trim()) {
       return json(res, 400, { error: "caption body required" });
     }
-    if ((kind === "clip" || kind === "video" || kind === "photo") && !(body.url || "").trim()) {
+    if ((kind === "clip" || kind === "video" || kind === "photo" || kind === "still") && !(body.url || "").trim()) {
       return json(res, 400, { error: "media url required" });
     }
     try {
@@ -450,9 +556,11 @@ async function handleApi(req: IncomingMessage, res: ServerResponse, url: URL) {
   }
 
   if (method === "GET" && (path === "/api/health" || path === "/api/status")) {
+    const geminiConfigured = gemini.hasKey();
     return json(res, 200, {
       ok: true,
-      gemini: gemini.hasKey(),
+      geminiConfigured,
+      gemini: geminiConfigured,
       oauth: {
         ig: missingEnv("ig").length === 0,
         yt: missingEnv("yt").length === 0,

@@ -1,25 +1,18 @@
 /**
  * Thin HTTP surface for Cloud Run / Vercel.
- * POST /api/wedge  { headline }           → demo (manual://wedge)
- * POST /api/desk   { sourceUrl, title? }  → sourced rewrite
- * POST /api/approve { runId }
+ * POST /api/wedge  { headline, styleId? } → pasted headline (manual://wedge)
+ * POST /api/desk   { sourceUrl, title?, styleId? }
+ * POST /api/approve { runId, styleId? }
+ * POST /api/restyle { runId, styleId }
  * POST /api/ship    { runId, channel }
- * GET  /api/plugins
- * GET  /api/connect/:channel
- * POST /api/connect/:channel/disconnect
- * GET  /api/oauth/callback/:channel
- * GET  /api/desks
- * GET  /api/hunt?desk=
- * GET  /api/library
- * POST /api/library
- * GET  /api/library/:id
- * POST /api/clip                       → raw video upload (cut pending)
- * GET  /api/status                     → { ok, gemini } boolean only for the key
+ * GET  /api/styles  PUT /api/style
+ * GET  /api/status  → { ok, geminiConfigured } boolean only for the key
  */
 export const ROUTES = [
   "POST /api/wedge",
   "POST /api/desk",
   "POST /api/approve",
+  "POST /api/restyle",
   "POST /api/ship",
   "POST /api/clip",
   "GET  /api/plugins",
@@ -35,4 +28,6 @@ export const ROUTES = [
   "GET  /api/library",
   "POST /api/library",
   "GET  /api/library/:id",
+  "GET  /api/styles",
+  "PUT  /api/style",
 ] as const;

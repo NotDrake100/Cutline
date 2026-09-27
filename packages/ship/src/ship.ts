@@ -156,7 +156,7 @@ export function buildSharePack(run: StoryRun): {
     pack?.ytTitle || run.rewrite?.headline || "",
     pack?.igCaption || "",
     run.brief?.sourceUrl === "manual://wedge"
-      ? "(demo / pasted headline)"
+      ? "(pasted headline)"
       : run.brief?.sourceUrl,
   ]
     .filter(Boolean)
