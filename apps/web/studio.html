@@ -1451,6 +1451,8 @@
     container-name: ig-frame;
   }
   .ig-frame[data-aspect="yt"] { aspect-ratio: 16 / 9; }
+  .ig-frame[data-aspect="x"],
+  .ig-frame[data-aspect="ig"] { aspect-ratio: 4 / 5; }
   .ig-frame > .ig-photo {
     position: absolute;
     inset: 0;
@@ -1499,8 +1501,8 @@
     justify-content: center;
     text-align: center;
     gap: 8px;
-    /* Safe inset from frame edges — desktop + ~390px mobile */
-    padding: 0 max(18px, 9%);
+    /* Safe inset — never let uppercase headlines kiss the crop edge */
+    padding: 0 max(28px, 12%);
     box-sizing: border-box;
     pointer-events: auto;
     cursor: text;
@@ -1509,22 +1511,22 @@
   .ig-frame[data-aspect="yt"] .ig-card-text {
     top: 46%;
     bottom: 12%;
-    padding: 0 max(20px, 8%);
+    padding: 0 max(32px, 10%);
     gap: 6px;
   }
   .ig-frame .ig-card-text .ig-headline {
-    padding: 0;
+    padding: 0 4px;
     margin: 0;
     width: 100%;
     max-width: 100%;
     box-sizing: border-box;
     color: #fff;
-    font-size: clamp(14px, 3.8vw, 22px);
-    font-size: clamp(14px, 5.5cqw, 22px);
+    font-size: clamp(13px, 3.6vw, 20px);
+    font-size: clamp(13px, 5cqw, 20px);
     font-weight: 800;
-    letter-spacing: 0.02em;
+    letter-spacing: 0.015em;
     text-transform: uppercase;
-    line-height: 1.18;
+    line-height: 1.2;
     text-shadow: 0 2px 8px rgba(0,0,0,0.55);
     outline: none;
     white-space: normal;
@@ -2485,7 +2487,7 @@
           </div>
         </div>
         <div class="ig-frame" id="igFrame" title="Click to cycle Pexels / source / demo stills">
-          <img class="ig-photo" id="igPhoto" alt="Sourced still" width="640" height="800" decoding="async" hidden />
+          <img class="ig-photo" id="igPhoto" alt="Sourced still" decoding="async" hidden />
           <div class="ig-plate" id="igPlate" aria-hidden="true" hidden></div>
           <img class="ig-chrome" id="igChrome" alt="" decoding="async" hidden />
           <div class="ig-card-text" id="igCardText" hidden>
@@ -3863,9 +3865,9 @@
 
   function posterForUrl(url) {
     const u = String(url || "");
-    if (/instagram\.com|instagr\.am|sample-dcn-ig/i.test(u)) return "/assets/demo/dcn-ig.jpg";
-    if (/(^|\.)x\.com|twitter\.com|sample-dcn-x/i.test(u)) return "/assets/demo/dcn-x.jpg";
-    if (/youtube\.com|youtu\.be|sample-dcn-yt/i.test(u)) return "/assets/demo/dcn-yt.jpg";
+    if (/instagram\.com|instagr\.am|sample-dcn-ig/i.test(u)) return bustDemoStill("/assets/demo/dcn-ig.jpg");
+    if (/(^|\.)x\.com|twitter\.com|sample-dcn-x/i.test(u)) return bustDemoStill("/assets/demo/dcn-x.jpg");
+    if (/youtube\.com|youtu\.be|sample-dcn-yt/i.test(u)) return bustDemoStill("/assets/demo/dcn-yt.jpg");
     if (/sample-pune/i.test(u)) return "/assets/demo/pune.jpg";
     if (/sample-hyderabad/i.test(u)) return "/assets/demo/source.jpg";
     if (/sample-mumbai/i.test(u)) return "/assets/demo/mumbai.jpg";
@@ -4081,7 +4083,24 @@
 
 
   const DCN_CHROME_VER = "20260928a";
+  /* Bust browser cache after rebaking dcn-x / dcn-yt safe-inset stills */
+  const DEMO_STILL_VER = "20260928d";
   const DCN_CITIES = ["pune", "mumbai", "delhi", "bengaluru", "hyderabad"];
+
+  function bustDemoStill(u) {
+    if (!u) return u;
+    const s = String(u);
+    if (!/\/assets\/demo\/dcn-(x|yt|ig)\.(jpg|jpeg|png|webp)/i.test(s)) return s;
+    if (/[?&]v=/.test(s)) return s;
+    return s + (s.includes("?") ? "&" : "?") + "v=" + DEMO_STILL_VER;
+  }
+
+  function platformStillFor(runOrPlat) {
+    const plat = typeof runOrPlat === "string" ? runOrPlat : postPlatform(runOrPlat);
+    if (plat === "youtube") return bustDemoStill("/assets/demo/dcn-yt.jpg");
+    if (plat === "x") return bustDemoStill("/assets/demo/dcn-x.jpg");
+    return bustDemoStill("/assets/demo/dcn-ig.jpg");
+  }
 
   function wantsHydChrome(run) {
     if (!run) return false;
@@ -4141,12 +4160,20 @@
     if (!frame) return;
     const plat = postPlatform(run);
     const yt = plat === "youtube";
-    frame.dataset.aspect = yt ? "yt" : (plat === "x" ? "x" : "ig");
+    const aspect = yt ? "yt" : (plat === "x" ? "x" : "ig");
+    frame.dataset.aspect = aspect;
+    frame.setAttribute("data-aspect", aspect);
     frame.style.aspectRatio = yt ? "16 / 9" : "4 / 5";
     frame.style.height = "";
     frame.style.minHeight = "";
     frame.style.maxHeight = "";
     frame.style.flex = "0 0 auto";
+    /* Drop any stale intrinsic size hint so YT can go landscape */
+    const photo = $("igPhoto");
+    if (photo) {
+      photo.removeAttribute("width");
+      photo.removeAttribute("height");
+    }
   }
 
   function paintIgPost(run) {
@@ -4154,18 +4181,20 @@
     if (!card) return;
     if (!run) { card.style.display = "none"; return; }
     card.style.display = "";
-    const isIg = looksLikePostUrl(resolveSourceUrl(run)) && /instagram/i.test(resolveSourceUrl(run));
-    const cachedIg = "/assets/demo/dcn-ig.jpg";
+    const plat = postPlatform(run);
+    const isIg = plat === "instagram";
+    const cachedIg = platformStillFor("instagram");
+    const cachedPlat = platformStillFor(plat);
     const deskAsset = (u) => {
       if (!u) return "";
       /* Signed Instagram CDN expires / 403s — never rewrite size params; use the cached JPG. */
       if (/cdninstagram\.com|fbcdn\.net/i.test(u)) return isIg ? cachedIg : "";
-      if (u.startsWith("/assets/")) return u;
+      if (u.startsWith("/assets/")) return bustDemoStill(u);
       try {
         const p = new URL(u, location.href);
-        if (p.origin === location.origin && p.pathname.indexOf("/assets/") === 0) return p.pathname;
+        if (p.origin === location.origin && p.pathname.indexOf("/assets/") === 0) return bustDemoStill(p.pathname);
       } catch (_) { /* keep */ }
-      return u;
+      return bustDemoStill(u);
     };
     const photos = (run.photos || []).map((p) => ({ ...p, url: deskAsset(p.url) })).filter((p) => p.url && !/\.svg(\?|$)/i.test(p.url));
     if (isIg && !photos.some((p) => /dcn-ig\.(jpg|jpeg|png|webp)/i.test(p.url || ""))) {
@@ -4182,9 +4211,11 @@
     let current = deskAsset(run.photo?.pathOrUrl) || deskAsset(run.pack?.stillUrl);
     if (current && !preferRaster(current)) current = "";
     /* Prefer the selected still (Photo tool cycle). Only fall back to the cached IG JPG. */
-    let url = (current && preferRaster(current) ? current : "") || (isIg ? cachedIg : "") || rasterStill || safeStill || cachedIg;
+    let url = (current && preferRaster(current) ? current : "") || cachedPlat || rasterStill || safeStill || cachedPlat;
+    /* Never show Instagram still for X/YouTube — keep each platform's own DCN card */
+    if (!isIg && /dcn-ig\.(jpg|jpeg|png|webp)/i.test(url || "")) url = cachedPlat;
     const fallbacks = photos.map((p) => deskAsset(p.url)).filter((u) => u && u !== url && preferRaster(u));
-    if (isIg && !fallbacks.includes(cachedIg) && url !== cachedIg) fallbacks.push(cachedIg);
+    if (!fallbacks.includes(cachedPlat) && url !== cachedPlat) fallbacks.push(cachedPlat);
     if (url && run.photo && run.photo.pathOrUrl !== url) {
       run.photo.pathOrUrl = url;
       if (run.pack) run.pack.stillUrl = url;
@@ -4204,7 +4235,7 @@
     if (frame) {
       const fill = frame.querySelector(":scope > .still-fill");
       if (fill) fill.hidden = true;
-      const src = url || cachedIg;
+      const src = url || cachedPlat;
       frame.style.backgroundImage = "none";
       applyPostAspect(run);
       frame.classList.toggle("no-chrome", !chromeSrc);
@@ -4213,7 +4244,7 @@
         photo.classList.remove("broken");
         if (photo.getAttribute("src") !== src) photo.src = src;
         photo.onerror = () => {
-          const next = preferBaseCityStill(fallbacks.find((u) => u && u !== photo.getAttribute("src") && !/\.svg(\?|$)/i.test(u)) || cachedIg);
+          const next = preferBaseCityStill(fallbacks.find((u) => u && u !== photo.getAttribute("src") && !/\.svg(\?|$)/i.test(u)) || cachedPlat);
           if (photo.getAttribute("src") === next) return;
           photo.src = next;
           if (run.photo) run.photo.pathOrUrl = next;
@@ -4253,8 +4284,8 @@
     const outlet = run.photo?.credit || run.hits?.[0]?.outlet || "cutline";
     if (handle) handle.textContent = outlet;
     if (handleSub) {
-      const beat = (run.beat || "").toLowerCase();
-      handleSub.textContent = beat === "x" ? "X post" : beat === "youtube" ? "YouTube" : "Instagram post";
+      const p = postPlatform(run);
+      handleSub.textContent = p === "x" ? "X post" : p === "youtube" ? "YouTube" : "Instagram post";
     }
     const hl = $("igHeadlineEdit");
     if (hl && document.activeElement !== hl) {
@@ -4398,9 +4429,13 @@
       });
       const data = await res.json().catch(() => ({}));
       if (data.run) {
-        data.run._postPlatform = postPlatform({ ...data.run, hits: [{ sourceUrl }, ...(data.run.hits || [])] });
+        const stamped = browserKind(sourceUrl);
+        data.run._postPlatform = stamped !== "page"
+          ? stamped
+          : postPlatform({ ...data.run, hits: [{ sourceUrl }, ...(data.run.hits || [])] });
         if (data.run.pack) data.run.pack.postPlatform = data.run._postPlatform;
         applyRun(data.run, { preferBrowser: true });
+        applyPostAspect(data.run);
         if ($("pastePostUrl")) $("pastePostUrl").value = sourceUrl;
         setStyleUrl(sourceUrl);
         if ($("headline")) {
@@ -4666,6 +4701,10 @@
     $("headline").value = "copy this style";
     switchView("home");
     await doStyleMatch("copy this style");
+    if (currentRun) {
+      applyPostAspect(currentRun);
+      paintIgPost(currentRun);
+    }
     switchRightTab("structure");
     $("toolEditText")?.focus?.();
     $("igHeadlineEdit")?.focus();
@@ -4688,13 +4727,31 @@
           : "https://www.instagram.com/p/DdwHjcpId9B/");
       document.querySelectorAll("#socialChips [data-social]").forEach((b) => b.classList.remove("active"));
       btn.classList.add("active");
+      pendingSourceUrl = url;
+      if ($("pastePostUrl")) $("pastePostUrl").value = url;
+      /* Stamp aspect immediately so the Post frame flips before analyze returns */
+      if (currentRun) {
+        currentRun._postPlatform = kind;
+        if (currentRun.pack) currentRun.pack.postPlatform = kind;
+        applyPostAspect(currentRun);
+      } else {
+        const frame = $("igFrame");
+        if (frame) {
+          const aspect = kind === "youtube" ? "yt" : (kind === "x" ? "x" : "ig");
+          frame.dataset.aspect = aspect;
+          frame.setAttribute("data-aspect", aspect);
+          frame.style.aspectRatio = kind === "youtube" ? "16 / 9" : "4 / 5";
+        }
+      }
       const stayPost = $("tabStructure")?.classList.contains("active") && !!currentRun;
       await doAnalyze(url);
-      if (currentRun) applyPostAspect(currentRun);
-      if (stayPost && currentRun) {
-        switchRightTab("structure");
+      if (currentRun) {
+        currentRun._postPlatform = kind;
+        if (currentRun.pack) currentRun.pack.postPlatform = kind;
+        applyPostAspect(currentRun);
         paintIgPost(currentRun);
       }
+      if (stayPost) switchRightTab("structure");
     });
   });
 
