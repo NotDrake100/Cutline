@@ -2765,8 +2765,13 @@
         body: JSON.stringify({ url: sourceUrl }),
       });
       const data = await res.json().catch(() => ({}));
-      if (data.run) applyRun(data.run, { preferBrowser: true });
-      else {
+      if (data.run) {
+        applyRun(data.run, { preferBrowser: true });
+        if ($("headline")) {
+          $("headline").value = "";
+          $("headline").placeholder = "Make the same type of post…";
+        }
+      } else {
         setStatus("needs_input");
         $("frame").innerHTML = `<div class="ph">Using sourced photo</div>`;
         loadBrowserUrl(sourceUrl, { switchTab: true });
@@ -2780,12 +2785,49 @@
     }
   }
 
+  function looksLikeStyleMatch(ask) {
+    return /same type|same kind|similar (post|style)|like this|in this style|match (this|the) style|make another|another (one|post)|same style/i.test(ask || "");
+  }
+
+  async function doStyleMatch(ask) {
+    const ref = cleanPastedUrl(
+      resolveSourceUrl(currentRun) || $("pastePostUrl")?.value || pendingSourceUrl || ""
+    );
+    if (!isLiveSourceUrl(ref)) { setErr("Analyze a post first."); return; }
+    setErr("");
+    $("runBtn").disabled = true;
+    setStatus("drafting");
+    startStillFill();
+    try {
+      const res = await fetch("/api/style-match", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ url: ref, ask: ask || "make the same type of post", desk: selectedDesk || "pune" }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (data.run) applyRun(data.run, { preferBrowser: false });
+      else {
+        setStatus("needs_input");
+        $("frame").innerHTML = `<div class="ph">Using sourced photo</div>`;
+      }
+    } catch (_) {
+      setStatus("needs_input");
+    } finally {
+      $("runBtn").disabled = false;
+    }
+  }
+
   async function doRun() {
     setErr("");
     const pasted = ($("pastePostUrl")?.value || "").trim();
     const headline = $("headline").value.trim();
-    const asUrl = looksLikePostUrl(pasted) ? pasted : (looksLikePostUrl(headline) ? headline : (looksLikePostUrl(pendingSourceUrl) ? pendingSourceUrl : ""));
+    const refUrl = looksLikePostUrl(resolveSourceUrl(currentRun))
+      ? resolveSourceUrl(currentRun)
+      : (looksLikePostUrl(pasted) ? pasted : (looksLikePostUrl(pendingSourceUrl) ? pendingSourceUrl : ""));
+    if (looksLikeStyleMatch(headline) && isLiveSourceUrl(refUrl)) return doStyleMatch(headline);
+    const asUrl = looksLikePostUrl(headline) ? headline : "";
     if (asUrl) return doAnalyze(asUrl);
+    if (looksLikePostUrl(pasted) && !currentRun) return doAnalyze(pasted);
     const sourced = isLiveSourceUrl(pendingSourceUrl) || /^https?:\/\//i.test(headline);
     if (!headline && !sourced) { return runAssignment(); }
     $("runBtn").disabled = true;
@@ -3812,12 +3854,18 @@
       if (cap) cap.innerText = "Pune · overnight buses. Edited on the desk. Approve still waits on you.";
       savePostEdits();
       switchRightTab(preview === "flow-browser" ? "browser" : "structure");
-    } else if (preview === "social" || preview === "social-post") {
+    } else if (preview === "social" || preview === "social-post" || preview === "style-match") {
       document.body.classList.add("is-showcase");
       const ig = document.querySelector("#socialChips [data-social=\"instagram\"]");
       const url = (ig && ig.dataset.url) || "https://www.instagram.com/p/DdwHjcpId9B/";
       await doAnalyze(url);
-      switchRightTab(preview === "social-post" ? "structure" : "browser");
+      if (preview === "style-match") {
+        if ($("headline")) $("headline").value = "make the same type of post";
+        await doStyleMatch("make the same type of post");
+        switchRightTab("structure");
+      } else {
+        switchRightTab(preview === "social-post" ? "structure" : "browser");
+      }
     }
   })();
 

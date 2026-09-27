@@ -8,6 +8,7 @@ import { sourcedBrief, sourcedPack, sourcedRewrite } from "../../packages/desk/s
 import { getStyle } from "../../packages/core/src/styles";
 import { fetchOgMeta, fetchYoutubeOEmbed, upgradeSocialImage } from "../../packages/scout/src/http";
 import { parseGeminiJson } from "../../packages/core/src/gemini";
+import { demoRun } from "./demo";
 
 /** Archit's showcase DCN Instagram post. Strip ?stkn= and other query junk. */
 export const DCN_INSTAGRAM_POST = "https://www.instagram.com/p/DdwHjcpId9B/";
@@ -306,4 +307,54 @@ export async function analyzePostUrl(opts: {
     spendCents: 0,
     createdAt: now,
   };
+}
+
+/**
+ * Same-type ask after Analyze: new similar news post, not a clone of the pasted caption.
+ * Demo: city fixture + cached page. Never Gemini.
+ */
+export async function styleMatchFromPost(opts: {
+  url: string;
+  ask?: string;
+  desk?: string;
+  base: string;
+  owner: boolean;
+  geminiText?: (prompt: string) => Promise<string>;
+}): Promise<StoryRun> {
+  const refUrl = cleanPostUrl(opts.url);
+  if (!/^https?:\/\//i.test(refUrl)) throw new Error("source_needed");
+  const kind = classifyPostUrl(refUrl) || "web";
+  const desk = (opts.desk || "pune").toLowerCase();
+  const run = demoRun({ desk, base: opts.base });
+  const now = new Date().toISOString();
+  const note = `Same type as ${PLATFORM_LABEL[kind]} · new story. Style from ${refUrl}`;
+  run.beat = desk;
+  run.styleId = "tight_news";
+  if (run.brief) run.brief.angle = note;
+  if (run.pack) run.pack.canvaNotes = note;
+  run.stillNote = "Using demo still — new story, not the pasted post";
+  run.log = [
+    { agent: "wire", at: now, action: "style_match", ok: true, spendCents: 0, detail: kind },
+    { agent: "still", at: now, action: "sourced", ok: true, spendCents: 0, detail: "demo fixture" },
+    { agent: "desk", at: now, action: "pack", ok: true, spendCents: 0, detail: "new_story" },
+    { agent: "ship", at: now, action: "await_approve", ok: true, detail: "needs_input" },
+  ];
+  run.spendCents = 0;
+
+  if (opts.owner && opts.geminiText) {
+    try {
+      const raw = await opts.geminiText(
+        `Write a NEW tight-news post in the same style as this reference. Do not clone the caption. JSON {"headline","caption"}.\nReference: ${refUrl}\nAsk: ${opts.ask || "same type of post"}\nSeed: ${run.rewrite?.headline || ""}`
+      );
+      const parsed = parseGeminiJson<{ headline?: string; caption?: string }>(raw);
+      if (parsed.headline && run.rewrite) run.rewrite.headline = parsed.headline.trim();
+      if (parsed.caption) {
+        if (run.rewrite) run.rewrite.caption = parsed.caption.trim();
+        if (run.pack) run.pack.igCaption = parsed.caption.trim();
+      }
+    } catch {
+      /* keep fixture new story */
+    }
+  }
+  return run;
 }

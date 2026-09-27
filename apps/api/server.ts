@@ -20,7 +20,7 @@ import {
   requestIp,
 } from "../../packages/core/src/owner";
 import { demoHits, demoRun, requestBase } from "./demo";
-import { analyzePostUrl, isPostUrl } from "./analyze";
+import { analyzePostUrl, isPostUrl, styleMatchFromPost } from "./analyze";
 import { loadRun, saveRun } from "../../packages/core/src/runs";
 import { ENV } from "../../packages/core/src/env";
 import { uploadsRoot } from "../../packages/core/src/paths";
@@ -332,6 +332,56 @@ async function handleApi(req: IncomingMessage, res: ServerResponse, url: URL) {
       await saveRun(fallback);
       persistLibrary(fallback);
       return json(res, 200, { run: fallback, mode: "demo", via: "analyze" });
+    }
+  }
+
+  if (method === "POST" && path === "/api/style-match") {
+    const raw = await readBody(req);
+    let body: { url?: string; sourceUrl?: string; ask?: string; desk?: string };
+    try {
+      body = JSON.parse(raw || "{}") as typeof body;
+    } catch {
+      return json(res, 400, { error: "invalid_json" });
+    }
+    const sourceUrl = (body.url || body.sourceUrl || "").trim();
+    if (!/^https?:\/\//i.test(sourceUrl)) return json(res, 400, { error: "source_needed" });
+    const owner = ownerMode(req);
+    if (!owner && demoAiBlocked(requestIp(req))) {
+      return json(res, 429, { error: "ai_blocked_demo", mode: "demo" });
+    }
+    try {
+      const matched = owner
+        ? await withGeminiPermit(() =>
+            styleMatchFromPost({
+              url: sourceUrl,
+              ask: body.ask,
+              desk: body.desk,
+              base: publicOrigin(req, url),
+              owner: true,
+              geminiText: (p) => gemini.text(p),
+            })
+          )
+        : await styleMatchFromPost({
+            url: sourceUrl,
+            ask: body.ask,
+            desk: body.desk,
+            base: publicOrigin(req, url),
+            owner: false,
+          });
+      const run = sanitizeRun(ensureDeskLog(matched));
+      await saveRun(run);
+      persistLibrary(run);
+      return json(res, 200, { run, mode: owner ? "owner" : "demo", via: "style_match" });
+    } catch (e) {
+      const msg = (e as Error).message || "style_match_failed";
+      if (msg === "source_needed") return json(res, 400, { error: msg });
+      const fallback = sanitizeRun(ensureDeskLog(demoRun({
+        desk: body.desk || "pune",
+        base: publicOrigin(req, url),
+      })));
+      await saveRun(fallback);
+      persistLibrary(fallback);
+      return json(res, 200, { run: fallback, mode: "demo", via: "style_match" });
     }
   }
 
