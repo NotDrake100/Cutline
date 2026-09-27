@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<title>Cutline — Figma Design Kit</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=Geist:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+<style>
+  :root {
+    --cream: #F6F1E8;
+    --cream-dark: #EDE6D9;
+    --ink: #0A0A0A;
+    --muted: rgba(10,10,10,0.55);
+    --lime: #E1F435;
+    --card: #FFFEFB;
+    --line: rgba(10,10,10,0.08);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: Geist, Inter, system-ui, sans-serif;
+    background: #1a1a1a;
+    color: var(--ink);
+    padding: 48px;
+  }
+  .kit-label {
+    color: #aaa; font-size: 13px; margin-bottom: 24px; letter-spacing: 0.04em;
+  }
+  .frame {
+    background: var(--cream);
+    width: 1440px;
+    margin-bottom: 64px;
+    border-radius: 0;
+    overflow: hidden;
+    box-shadow: 0 24px 80px rgba(0,0,0,0.45);
+  }
+  .frame-tag {
+    color: #888; font-size: 12px; margin: 0 0 10px; font-family: ui-monospace, monospace;
+  }
+  nav {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 22px 56px; border-bottom: 1px solid var(--line);
+  }
+  .brand { display: flex; align-items: center; gap: 12px; font-weight: 700; font-size: 18px; }
+  .mark {
+    width: 36px; height: 36px; background: var(--lime); border-radius: 7px;
+    display: grid; place-items: center; font-family: Anton, sans-serif; font-size: 22px;
+  }
+  .nav-cta {
+    background: var(--ink); color: #fff; border: 0; padding: 10px 18px;
+    border-radius: 999px; font-weight: 600; font-size: 14px;
+  }
+  .hero { padding: 72px 56px 64px; display: grid; grid-template-columns: 1.1fr 0.9fr; gap: 48px; align-items: center; }
+  .eyebrow { font-size: 13px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); margin-bottom: 18px; }
+  h1 { font-family: Anton, sans-serif; font-size: 72px; line-height: 0.95; letter-spacing: -0.02em; margin-bottom: 22px; }
+  .lede { font-size: 18px; line-height: 1.5; color: var(--muted); max-width: 460px; margin-bottom: 28px; }
+  .cta-row { display: flex; gap: 12px; }
+  .btn-primary {
+    background: var(--lime); color: var(--ink); border: 0; padding: 14px 22px;
+    border-radius: 999px; font-weight: 700; font-size: 15px;
+  }
+  .btn-ghost {
+    background: transparent; border: 1px solid var(--line); padding: 14px 22px;
+    border-radius: 999px; font-weight: 600; font-size: 15px;
+  }
+  .mock {
+    background: var(--card); border: 1px solid var(--line); border-radius: 20px;
+    padding: 20px; box-shadow: 0 12px 40px rgba(10,10,10,0.06);
+  }
+  .mock-bar { height: 10px; width: 40%; background: var(--lime); border-radius: 4px; margin-bottom: 16px; }
+  .mock-line { height: 10px; background: var(--cream-dark); border-radius: 4px; margin-bottom: 10px; }
+  .mock-line.w60 { width: 60%; }
+  .mock-line.w80 { width: 80%; }
+  .mock-still {
+    height: 180px; background: linear-gradient(135deg, #ddd6c8, #c9c0ae);
+    border-radius: 12px; margin-top: 16px; display: grid; place-items: center;
+    font-weight: 600; color: rgba(10,10,10,0.45);
+  }
+  .section { padding: 64px 56px; }
+  .section h2 { font-family: Anton, sans-serif; font-size: 48px; margin-bottom: 12px; }
+  .sub { color: var(--muted); font-size: 17px; margin-bottom: 36px; max-width: 520px; }
+  .grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+  .card {
+    background: var(--card); border: 1px solid var(--line); border-radius: 20px; padding: 24px;
+  }
+  .card h3 { font-size: 16px; margin-bottom: 8px; }
+  .card p { font-size: 14px; color: var(--muted); line-height: 1.45; }
+  .chip {
+    display: inline-block; background: var(--lime); color: var(--ink);
+    font-size: 11px; font-weight: 700; padding: 4px 8px; border-radius: 6px; margin-bottom: 12px;
+  }
+  .steps { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+  .step-num { font-family: Anton, sans-serif; font-size: 40px; color: var(--lime); -webkit-text-stroke: 1px var(--ink); }
+  .tokens {
+    background: var(--cream); width: 1440px; padding: 56px; display: grid;
+    grid-template-columns: repeat(6, 1fr); gap: 16px;
+  }
+  .swatch { border-radius: 16px; height: 120px; border: 1px solid var(--line); position: relative; }
+  .swatch span {
+    position: absolute; left: 12px; bottom: 12px; font-size: 12px; font-weight: 600;
+    background: rgba(255,255,255,0.85); padding: 4px 8px; border-radius: 6px;
+  }
+</style>
+</head>
+<body>
+<p class="kit-label">CUTLINE FIGMA KIT · Import with html.to.design · Cream + Ace lime · Product locked Sep 2026</p>
+
+<p class="frame-tag">Frame · Landing 1440</p>
+<section class="frame" data-name="Cutline / Landing">
+  <nav>
+    <div class="brand"><div class="mark">C</div>Cutline</div>
+    <button class="nav-cta">Open the desk</button>
+  </nav>
+  <div class="hero">
+    <div>
+      <p class="eyebrow">Desk software · templates · Gemini</p>
+      <h1>News on your<br/>template.<br/>Video fully<br/>edited.</h1>
+      <p class="lede">Cutline searches the news onto your template, and turns uploads into fully edited videos on that same template. Approve, then ship.</p>
+      <div class="cta-row">
+        <button class="btn-primary">Open the desk</button>
+        <button class="btn-ghost">How it works</button>
+      </div>
+    </div>
+    <div class="mock">
+      <div class="mock-bar"></div>
+      <div class="mock-line w80"></div>
+      <div class="mock-line w60"></div>
+      <div class="mock-still">On template</div>
+    </div>
+  </div>
+  <div class="section">
+    <h2>Two ways in. One template out.</h2>
+    <p class="sub">Hunt a story or drop a clip. Everything lands on your locked layout.</p>
+    <div class="grid">
+      <div class="card"><span class="chip">01</span><h3>News search</h3><p>Pull what’s live. Headline and still land on your template.</p></div>
+      <div class="card"><span class="chip">02</span><h3>Locked templates</h3><p>Fixed chrome like Hyderabad: brand, type, frame stay yours.</p></div>
+      <div class="card"><span class="chip">03</span><h3>Video upload</h3><p>Drop raw footage. Get a fully edited cut on template.</p></div>
+      <div class="card"><span class="chip">04</span><h3>Captions on brand</h3><p>House voice, length cut for the channel.</p></div>
+      <div class="card"><span class="chip">05</span><h3>Approve gate</h3><p>Nothing ships until you tap yes.</p></div>
+      <div class="card"><span class="chip">06</span><h3>Ship</h3><p>Instagram, YouTube, Canva when you’re ready.</p></div>
+    </div>
+  </div>
+  <div class="section" style="padding-top:0">
+    <h2>Search or upload. Template. Ship.</h2>
+    <p class="sub">Three steps. Same template system for posts and video.</p>
+    <div class="steps">
+      <div class="card"><div class="step-num">01</div><h3>Search or upload</h3><p>Paste a story, hunt news, or drop a raw video.</p></div>
+      <div class="card"><div class="step-num">02</div><h3>Template finishes it</h3><p>Headline/still on layout, or a fully edited video on the same template system.</p></div>
+      <div class="card"><div class="step-num">03</div><h3>Approve and ship</h3><p>Sign off, then send to Instagram, YouTube, Canva — or download.</p></div>
+    </div>
+  </div>
+</section>
+
+<p class="frame-tag">Frame · Color tokens</p>
+<section class="tokens frame" data-name="Cutline / Tokens" style="width:1440px">
+  <div class="swatch" style="background:#F6F1E8"><span>cream #F6F1E8</span></div>
+  <div class="swatch" style="background:#EDE6D9"><span>creamDark #EDE6D9</span></div>
+  <div class="swatch" style="background:#0A0A0A"><span style="color:#fff;background:rgba(0,0,0,0.5)">ink #0A0A0A</span></div>
+  <div class="swatch" style="background:#E1F435"><span>lime #E1F435</span></div>
+  <div class="swatch" style="background:#FFFEFB"><span>card #FFFEFB</span></div>
+  <div class="swatch" style="background:#ddd6c8"><span>still well</span></div>
+</section>
+</body>
+</html>

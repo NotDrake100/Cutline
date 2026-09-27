@@ -1,0 +1,782 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>Cutline — Search news. Template it. Edit video.</title>
+<meta name="description" content="Desk software that searches the news onto your template, and turns uploads into fully edited videos on the same template."/>
+<link rel="icon" type="image/png" href="assets/cutline-mark.png?v=5b"/>
+<link rel="apple-touch-icon" href="assets/cutline-mark.png?v=5b"/>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet"/>
+<style>
+  :root {
+    --bg: #F5F1E8;
+    --paper: #FAF7F0;
+    --card: #FFFFFF;
+    --ink: #1A1A1A;
+    --muted: #5C5A54;
+    --dim: #8A877C;
+    --line: rgba(26,26,26,.1);
+    --line-soft: rgba(26,26,26,.06);
+    --lime: #E1F435;
+    --lime-ink: #0A0A0A;
+    --radius: 16px;
+    --radius-sm: 12px;
+    --radius-pill: 999px;
+    --font: "Geist", ui-sans-serif, system-ui, sans-serif;
+    --display: "Anton", Impact, sans-serif;
+    --mono: "Geist Mono", ui-monospace, monospace;
+    --shadow: 0 24px 60px rgba(26,26,26,.1), 0 8px 20px rgba(26,26,26,.05);
+    --shadow-sm: 0 10px 28px rgba(26,26,26,.06);
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; background: var(--bg); color: var(--ink); font-family: var(--font); }
+  a { color: inherit; text-decoration: none; }
+  button { font: inherit; cursor: pointer; }
+  img { display: block; max-width: 100%; }
+  .wrap { width: min(1120px, calc(100% - 48px)); margin: 0 auto; }
+
+  /* —— top nav —— */
+  .top {
+    position: sticky; top: 0; z-index: 50;
+    padding: 14px 0;
+    border-bottom: 1px solid var(--line-soft);
+    background: rgba(245,241,232,.92);
+    backdrop-filter: blur(14px);
+  }
+  .top .wrap { display: flex; align-items: center; gap: 20px; }
+  .brand {
+    display: flex; align-items: center; gap: 10px;
+    font-family: var(--mono); font-size: 13px; font-weight: 600;
+    letter-spacing: .14em; text-transform: uppercase;
+  }
+  .brand img {
+    width: 30px; height: 30px; border-radius: 7px;
+    background: var(--lime); object-fit: cover;
+  }
+  .nav { display: flex; gap: 22px; color: var(--muted); font-size: 14px; font-weight: 500; margin-left: 12px; }
+  .nav a:hover { color: var(--ink); }
+  .spacer { flex: 1; }
+  .btn {
+    display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+    padding: 11px 22px; border-radius: var(--radius-pill); font-weight: 600; font-size: 14px;
+    border: 1px solid transparent; transition: transform .15s ease, filter .15s ease, background .15s ease;
+  }
+  .btn:active { transform: translateY(1px); }
+  .btn-lime { background: var(--lime); color: var(--lime-ink); }
+  .btn-lime:hover { filter: brightness(1.03); }
+  .btn-ink {
+    background: var(--ink); color: #F5F1E8;
+  }
+  .btn-ink:hover { filter: brightness(1.15); }
+  .btn-ghost {
+    background: transparent; border-color: var(--line); color: var(--ink);
+  }
+  .btn-ghost:hover { background: rgba(26,26,26,.04); }
+
+  /* —— hero —— */
+  .hero {
+    padding: 64px 0 28px;
+    text-align: center;
+  }
+  .eyebrow {
+    display: inline-flex; align-items: center; gap: 10px;
+    font-family: var(--mono); font-size: 12px; font-weight: 500;
+    letter-spacing: .1em; text-transform: uppercase; color: var(--muted);
+    margin-bottom: 18px;
+  }
+  .eyebrow .dot {
+    width: 8px; height: 8px; border-radius: 50%; background: var(--lime);
+  }
+  .hero h1 {
+    font-family: var(--display);
+    font-weight: 400;
+    font-size: clamp(52px, 9vw, 104px);
+    line-height: .88;
+    letter-spacing: -.01em;
+    text-transform: uppercase;
+    margin: 0 auto 20px;
+    max-width: 18ch;
+    color: var(--ink);
+  }
+  .lede {
+    font-size: 17px; line-height: 1.55; color: var(--muted);
+    max-width: 46ch; margin: 0 auto 28px;
+  }
+  .cta-row { display: flex; flex-wrap: wrap; gap: 12px; justify-content: center; margin-bottom: 48px; }
+
+  /* —— lime envelope hero visual —— */
+  .pack-stage {
+    position: relative;
+    width: min(420px, 88vw);
+    margin: 0 auto 56px;
+    perspective: 900px;
+  }
+  .pack-env {
+    position: relative;
+    background: var(--lime);
+    border-radius: 18px 18px 22px 22px;
+    height: 260px;
+    box-shadow: var(--shadow);
+    overflow: visible;
+  }
+  .pack-env::before {
+    /* flap */
+    content: "";
+    position: absolute;
+    left: 0; right: 0; top: 0;
+    height: 78px;
+    background: linear-gradient(180deg, #EEF86A 0%, var(--lime) 100%);
+    border-radius: 18px 18px 0 0;
+    clip-path: polygon(0 0, 100% 0, 50% 100%);
+    opacity: .85;
+    z-index: 1;
+  }
+  .pack-env::after {
+    /* wax / seal */
+    content: "";
+    position: absolute;
+    left: 50%; top: 52px;
+    transform: translateX(-50%);
+    width: 36px; height: 36px;
+    border-radius: 50%;
+    background: var(--ink);
+    box-shadow: 0 4px 12px rgba(0,0,0,.18);
+    z-index: 3;
+  }
+  .pack-card {
+    position: absolute;
+    left: 50%;
+    bottom: 42px;
+    transform: translateX(-50%) translateY(-28px) rotate(-2deg);
+    width: 78%;
+    background: var(--paper);
+    border-radius: 12px;
+    padding: 18px 18px 16px;
+    box-shadow: 0 16px 40px rgba(26,26,26,.14);
+    border: 1px solid var(--line-soft);
+    z-index: 2;
+    text-align: left;
+  }
+  .pack-card .date {
+    font-family: var(--mono); font-size: 11px; font-weight: 600;
+    letter-spacing: .08em; text-transform: uppercase;
+    color: var(--ink);
+    display: inline-flex; align-items: center; gap: 8px;
+    background: var(--lime);
+    padding: 5px 10px; border-radius: 8px;
+    margin-bottom: 14px;
+  }
+  .pack-card .lines { display: flex; flex-direction: column; gap: 8px; }
+  .pack-card .line {
+    height: 8px; border-radius: 4px;
+    background: rgba(26,26,26,.1);
+  }
+  .pack-card .line.lg { width: 92%; height: 11px; background: rgba(26,26,26,.16); }
+  .pack-card .line.md { width: 74%; }
+  .pack-card .line.sm { width: 58%; }
+  .pack-card .line.xs { width: 40%; }
+  .pack-label {
+    position: absolute;
+    right: -8px; bottom: -10px;
+    font-family: var(--mono); font-size: 10px; font-weight: 600;
+    letter-spacing: .12em; text-transform: uppercase;
+    background: var(--ink); color: var(--lime);
+    padding: 7px 12px; border-radius: var(--radius-pill);
+    z-index: 4;
+    box-shadow: var(--shadow-sm);
+  }
+
+  /* —— lime marquee —— */
+  .marquee-wrap {
+    background: var(--lime);
+    color: var(--lime-ink);
+    overflow: hidden;
+    border-top: 1px solid rgba(0,0,0,.06);
+    border-bottom: 1px solid rgba(0,0,0,.06);
+    margin: 0 0 72px;
+  }
+  .marquee {
+    display: flex;
+    width: max-content;
+    animation: marquee 28s linear infinite;
+    padding: 16px 0;
+  }
+  .marquee span {
+    display: inline-flex; align-items: center; gap: 14px;
+    font-family: var(--mono); font-size: 13px; font-weight: 600;
+    letter-spacing: .14em; text-transform: uppercase;
+    padding: 0 28px;
+    white-space: nowrap;
+  }
+  .marquee span::before {
+    content: "";
+    width: 7px; height: 7px; border-radius: 50%;
+    background: var(--ink); opacity: .55;
+  }
+  @keyframes marquee {
+    from { transform: translateX(0); }
+    to { transform: translateX(-50%); }
+  }
+
+  /* —— section heads —— */
+  .sec {
+    padding: 0 0 80px;
+  }
+  .sec-head {
+    text-align: center;
+    margin-bottom: 36px;
+  }
+  .sec-head h2 {
+    font-family: var(--display);
+    font-weight: 400;
+    font-size: clamp(36px, 5.5vw, 56px);
+    line-height: .95;
+    text-transform: uppercase;
+    margin: 0 0 12px;
+    letter-spacing: -.01em;
+  }
+  .sec-head p {
+    margin: 0 auto;
+    max-width: 48ch;
+    color: var(--muted);
+    font-size: 16px;
+    line-height: 1.5;
+  }
+
+  /* —— feature grid —— */
+  .helpers {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 18px;
+  }
+  @media (max-width: 860px) {
+    .helpers { grid-template-columns: 1fr 1fr; }
+    .nav { display: none; }
+  }
+  @media (max-width: 560px) {
+    .helpers { grid-template-columns: 1fr; }
+  }
+  .hcard {
+    background: var(--card);
+    border: 1px solid var(--line-soft);
+    border-radius: var(--radius);
+    padding: 18px;
+    box-shadow: var(--shadow-sm);
+    min-height: 220px;
+    display: flex; flex-direction: column;
+    overflow: hidden;
+    position: relative;
+  }
+  .hcard .viz {
+    flex: 1;
+    background: var(--paper);
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--line-soft);
+    margin-bottom: 16px;
+    padding: 14px;
+    display: flex; align-items: flex-end; justify-content: flex-start;
+    gap: 8px;
+    min-height: 110px;
+    position: relative;
+  }
+  .hcard h3 {
+    margin: 0 0 4px;
+    font-size: 16px;
+    font-weight: 600;
+  }
+  .hcard p {
+    margin: 0;
+    font-size: 13px;
+    color: var(--muted);
+    line-height: 1.4;
+  }
+
+  /* mini visuals inside feature cards */
+  .chip-row { display: flex; flex-wrap: wrap; gap: 6px; }
+  .chip {
+    font-family: var(--mono); font-size: 10px; font-weight: 600;
+    letter-spacing: .06em; text-transform: uppercase;
+    background: var(--lime); color: var(--lime-ink);
+    padding: 6px 10px; border-radius: var(--radius-pill);
+  }
+  .chip.ghost {
+    background: var(--card);
+    border: 1px solid var(--line);
+  }
+  .brief-block {
+    width: 100%;
+    background: var(--card);
+    border-radius: 10px;
+    padding: 10px 12px;
+    border: 1px solid var(--line-soft);
+  }
+  .brief-block .lbl {
+    font-family: var(--mono); font-size: 9px; letter-spacing: .1em;
+    text-transform: uppercase; color: var(--dim); margin-bottom: 6px;
+  }
+  .brief-block .bl {
+    height: 6px; border-radius: 3px; background: rgba(26,26,26,.12); margin-bottom: 5px;
+  }
+  .brief-block .bl:last-child { width: 55%; margin-bottom: 0; }
+  .crop-frame {
+    width: 72px; height: 90px;
+    border-radius: 8px; overflow: hidden;
+    border: 2px solid var(--lime);
+    box-shadow: 0 6px 16px rgba(26,26,26,.1);
+  }
+  .crop-frame img { width: 100%; height: 100%; object-fit: cover; }
+  .crop-guides {
+    position: absolute; right: 14px; top: 14px;
+    font-family: var(--mono); font-size: 10px; font-weight: 600;
+    background: var(--ink); color: #F5F1E8;
+    padding: 4px 8px; border-radius: 6px;
+  }
+  .cap-stack { display: flex; flex-direction: column; gap: 6px; width: 100%; }
+  .cap-line {
+    background: var(--card);
+    border: 1px solid var(--line-soft);
+    border-radius: 8px;
+    padding: 8px 10px;
+    font-size: 11px; color: var(--muted);
+    display: flex; gap: 8px; align-items: center;
+  }
+  .cap-line b {
+    font-family: var(--mono); font-size: 9px; letter-spacing: .06em;
+    background: var(--lime); color: var(--lime-ink);
+    padding: 3px 6px; border-radius: 4px;
+  }
+  .gate-pill {
+    display: inline-flex; align-items: center; gap: 8px;
+    background: var(--ink); color: #F5F1E8;
+    padding: 10px 14px; border-radius: var(--radius-pill);
+    font-size: 12px; font-weight: 600;
+  }
+  .gate-pill .dot {
+    width: 8px; height: 8px; border-radius: 50%; background: var(--lime);
+  }
+  .lock-row {
+    display: flex; gap: 8px; align-items: center;
+  }
+  .lock-box {
+    width: 42px; height: 42px; border-radius: 10px;
+    background: var(--lime); display: grid; place-items: center;
+    font-size: 18px;
+  }
+  .lock-txt {
+    font-family: var(--mono); font-size: 10px; letter-spacing: .06em;
+    text-transform: uppercase; color: var(--muted); line-height: 1.4;
+  }
+
+  /* —— how it comes together —— */
+  .how {
+    display: grid;
+    grid-template-columns: 1fr 1.15fr;
+    gap: 48px;
+    align-items: center;
+  }
+  @media (max-width: 860px) {
+    .how { grid-template-columns: 1fr; }
+  }
+  .how-left .kicker {
+    font-family: var(--mono); font-size: 11px; font-weight: 600;
+    letter-spacing: .12em; text-transform: uppercase;
+    color: var(--dim); margin-bottom: 10px;
+  }
+  .how-left h2 {
+    font-family: var(--display);
+    font-weight: 400;
+    font-size: clamp(36px, 5vw, 52px);
+    line-height: .95;
+    text-transform: uppercase;
+    margin: 0 0 28px;
+  }
+  .steps { display: flex; flex-direction: column; gap: 22px; }
+  .step {
+    display: grid;
+    grid-template-columns: 48px 1fr;
+    gap: 14px;
+    align-items: start;
+  }
+  .step .n {
+    width: 44px; height: 44px;
+    background: var(--lime); color: var(--lime-ink);
+    border-radius: 10px;
+    display: grid; place-items: center;
+    font-family: var(--mono); font-size: 13px; font-weight: 700;
+    letter-spacing: .04em;
+  }
+  .step h3 { margin: 2px 0 4px; font-size: 17px; }
+  .step p { margin: 0; color: var(--muted); font-size: 14px; line-height: 1.45; }
+
+  .float-ui {
+    background: var(--card);
+    border-radius: 20px;
+    box-shadow: var(--shadow);
+    border: 1px solid var(--line-soft);
+    overflow: hidden;
+    transform: rotate(1.5deg);
+  }
+  .float-ui .chrome {
+    display: flex; align-items: center; gap: 8px;
+    padding: 12px 16px;
+    background: var(--paper);
+    border-bottom: 1px solid var(--line-soft);
+  }
+  .float-ui .chrome .dots { display: flex; gap: 6px; }
+  .float-ui .chrome .dots i {
+    width: 10px; height: 10px; border-radius: 50%;
+    background: rgba(26,26,26,.14); display: block;
+  }
+  .float-ui .chrome .title {
+    font-family: var(--mono); font-size: 11px; letter-spacing: .08em;
+    text-transform: uppercase; color: var(--dim); margin-left: 6px;
+  }
+  .float-body {
+    display: grid;
+    grid-template-columns: 1.05fr 1fr;
+    gap: 0;
+    min-height: 280px;
+  }
+  @media (max-width: 560px) {
+    .float-body { grid-template-columns: 1fr; }
+  }
+  .float-still {
+    position: relative;
+    background: #111;
+    min-height: 260px;
+  }
+  .float-still img {
+    width: 100%; height: 100%;
+    object-fit: cover; min-height: 260px;
+  }
+  .float-still .tag {
+    position: absolute; left: 12px; bottom: 12px;
+    font-family: var(--mono); font-size: 10px; font-weight: 600;
+    letter-spacing: .08em;
+    background: var(--lime); color: var(--lime-ink);
+    padding: 5px 10px; border-radius: var(--radius-pill);
+  }
+  .float-cap {
+    padding: 18px;
+    display: flex; flex-direction: column; gap: 12px;
+    background: var(--card);
+  }
+  .float-cap .who {
+    font-family: var(--mono); font-size: 10px; letter-spacing: .1em;
+    text-transform: uppercase; color: var(--dim);
+  }
+  .float-cap .quote {
+    font-size: 14px; line-height: 1.5; color: var(--ink);
+    margin: 0;
+  }
+  .float-cap .meta {
+    margin-top: auto;
+    display: flex; gap: 8px; flex-wrap: wrap;
+  }
+  .float-cap .pill {
+    font-family: var(--mono); font-size: 10px; font-weight: 600;
+    letter-spacing: .06em; text-transform: uppercase;
+    background: var(--paper); border: 1px solid var(--line-soft);
+    padding: 5px 10px; border-radius: var(--radius-pill);
+  }
+  .float-cap .pill.on {
+    background: var(--lime); border-color: transparent;
+  }
+
+  /* —— hour strip —— */
+  .quote-sec {
+    padding: 20px 0 80px;
+  }
+  .hour-strip {
+    max-width: 560px;
+    margin: 0 auto;
+    text-align: center;
+    padding: 36px 24px;
+    border-top: 1px solid var(--line-soft);
+    border-bottom: 1px solid var(--line-soft);
+  }
+  .hour-strip h2 {
+    font-family: var(--display);
+    font-weight: 400;
+    font-size: clamp(28px, 4vw, 40px);
+    line-height: .95;
+    text-transform: uppercase;
+    margin: 0 0 12px;
+    letter-spacing: -.01em;
+  }
+  .hour-strip p {
+    margin: 0 auto;
+    max-width: 40ch;
+    color: var(--muted);
+    font-size: 16px;
+    line-height: 1.5;
+  }
+
+  /* —— bottom CTA —— */
+  .bottom {
+    background: var(--lime);
+    color: var(--lime-ink);
+    padding: 72px 24px 56px;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+  }
+  .bottom::before,
+  .bottom::after {
+    content: "";
+    position: absolute;
+    width: 120px; height: 150px;
+    border-radius: 8px;
+    border: 3px solid rgba(0,0,0,.12);
+    background: rgba(255,255,255,.25);
+    top: -20px;
+  }
+  .bottom::before { left: 8%; transform: rotate(-8deg); }
+  .bottom::after { right: 8%; transform: rotate(10deg); background: rgba(26,26,26,.06); }
+  .bottom h2 {
+    font-family: var(--display);
+    font-weight: 400;
+    font-size: clamp(40px, 7vw, 72px);
+    line-height: .92;
+    text-transform: uppercase;
+    margin: 0 auto 18px;
+    max-width: 18ch;
+    position: relative; z-index: 1;
+  }
+  .bottom p {
+    margin: 0 auto 28px;
+    max-width: 42ch;
+    font-size: 16px;
+    opacity: .75;
+    position: relative; z-index: 1;
+  }
+  .bottom .btn-ink {
+    position: relative; z-index: 1;
+    padding: 14px 28px; font-size: 15px;
+  }
+  .bottom-foot {
+    margin-top: 48px;
+    display: flex; flex-wrap: wrap; justify-content: space-between; gap: 12px;
+    font-family: var(--mono); font-size: 11px; letter-spacing: .06em;
+    text-transform: uppercase; color: rgba(0,0,0,.45);
+    width: min(1120px, calc(100% - 0px));
+    margin-left: auto; margin-right: auto;
+    position: relative; z-index: 1;
+  }
+  .bottom-foot a:hover { color: var(--ink); }
+
+  @media (max-width: 640px) {
+    .hero { padding-top: 40px; }
+    .hero h1 { font-size: clamp(44px, 12vw, 64px); }
+    .bottom::before, .bottom::after { display: none; }
+  }
+</style>
+</head>
+<body>
+  <header class="top">
+    <div class="wrap">
+      <a class="brand" href="#"><img src="assets/cutline-mark.png?v=5b" alt=""/>Cutline</a>
+      <nav class="nav">
+        <a href="#desk">Desk</a>
+        <a href="#agents">Agents</a>
+        <a href="#ship">Ship</a>
+        <a href="#how">How</a>
+      </nav>
+      <div class="spacer"></div>
+      <a class="btn btn-lime" href="/studio.html">Open the desk</a>
+    </div>
+  </header>
+
+  <main>
+    <!-- 1 · Hero -->
+    <section class="hero wrap">
+      <div class="eyebrow"><span class="dot"></span> Desk software · templates · Gemini</div>
+      <h1>News on your template.<br/>Video fully edited.</h1>
+      <p class="lede">Cutline searches the news onto your template — and turns uploads into fully edited videos on that same template. Approve, then ship.</p>
+      <div class="cta-row">
+        <a class="btn btn-lime" href="/studio.html">Open the desk</a>
+        <a class="btn btn-ghost" href="#how">How it works</a>
+      </div>
+
+      <div class="pack-stage" aria-hidden="true">
+        <div class="pack-env">
+          <div class="pack-card">
+            <div class="date">Thu · Ready</div>
+            <div class="lines">
+              <div class="line lg"></div>
+              <div class="line md"></div>
+              <div class="line sm"></div>
+              <div class="line xs"></div>
+            </div>
+          </div>
+          <div class="pack-label">On template</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 2 · Marquee -->
+    <div class="marquee-wrap" aria-label="Integrations">
+      <div class="marquee">
+        <span>Instagram</span><span>YouTube</span><span>Canva</span><span>Gemini</span>
+        <span>News</span><span>Template</span><span>Video</span><span>Desk</span>
+        <span>Instagram</span><span>YouTube</span><span>Canva</span><span>Gemini</span>
+        <span>News</span><span>Template</span><span>Video</span><span>Desk</span>
+      </div>
+    </div>
+
+    <!-- 3 · Feature grid -->
+    <section class="sec wrap" id="agents">
+      <div class="sec-head">
+        <h2>Two ways in. One template out.</h2>
+        <p>Hunt a story or drop a clip. Everything lands on your locked layout.</p>
+      </div>
+      <div class="helpers">
+        <article class="hcard">
+          <div class="viz">
+            <div class="chip-row">
+              <span class="chip">Live</span>
+              <span class="chip">News</span>
+              <span class="chip ghost">Search</span>
+            </div>
+          </div>
+          <h3>News search</h3>
+          <p>Pull what’s live. Headline and still land on your template.</p>
+        </article>
+
+        <article class="hcard">
+          <div class="viz">
+            <div class="brief-block">
+              <div class="lbl">Locked chrome</div>
+              <div class="bl" style="width:88%"></div>
+              <div class="bl" style="width:70%"></div>
+              <div class="bl" style="width:52%"></div>
+            </div>
+          </div>
+          <h3>Locked templates</h3>
+          <p>Fixed chrome like Hyderabad: brand, type, frame stay yours.</p>
+        </article>
+
+        <article class="hcard">
+          <div class="viz">
+            <div class="crop-frame"><img src="assets/demo-still.jpg" alt=""/></div>
+            <div class="crop-guides">EDIT</div>
+          </div>
+          <h3>Video upload</h3>
+          <p>Drop raw footage. Get a fully edited cut on template.</p>
+        </article>
+
+        <article class="hcard">
+          <div class="viz">
+            <div class="cap-stack">
+              <div class="cap-line"><b>IG</b> Metro stalled after overnight rain…</div>
+              <div class="cap-line"><b>YT</b> What we know before rush hour</div>
+            </div>
+          </div>
+          <h3>Captions on brand</h3>
+          <p>House voice, length cut for the channel.</p>
+        </article>
+
+        <article class="hcard" id="ship">
+          <div class="viz" style="align-items:center;justify-content:center">
+            <div class="gate-pill"><span class="dot"></span> Waiting on you</div>
+          </div>
+          <h3>Approve gate</h3>
+          <p>Nothing ships until you tap yes.</p>
+        </article>
+
+        <article class="hcard">
+          <div class="viz" style="align-items:center">
+            <div class="lock-row">
+              <div class="lock-box" aria-hidden="true">→</div>
+              <div class="lock-txt">Ship when ready<br/>IG · YT · Canva</div>
+            </div>
+          </div>
+          <h3>Ship</h3>
+          <p>Instagram, YouTube, Canva when you’re ready.</p>
+        </article>
+      </div>
+    </section>
+
+    <!-- 4 · How it comes together -->
+    <section class="sec wrap" id="how">
+      <div class="how">
+        <div class="how-left">
+          <div class="kicker">Three steps</div>
+          <h2>Search or upload. Template. Ship.</h2>
+          <div class="steps">
+            <div class="step">
+              <div class="n">01</div>
+              <div>
+                <h3>Search or upload</h3>
+                <p>Paste a story, hunt news, or drop a raw video.</p>
+              </div>
+            </div>
+            <div class="step">
+              <div class="n">02</div>
+              <div>
+                <h3>Template finishes it</h3>
+                <p>Headline/still on layout, or a fully edited video on the same template system.</p>
+              </div>
+            </div>
+            <div class="step">
+              <div class="n">03</div>
+              <div>
+                <h3>Approve and ship</h3>
+                <p>Sign off, then send to Instagram, YouTube, Canva — or download.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <aside class="float-ui" id="desk" aria-label="Template preview">
+          <div class="chrome">
+            <div class="dots"><i></i><i></i><i></i></div>
+            <div class="title">Cutline · Ready</div>
+          </div>
+          <div class="float-body">
+            <div class="float-still">
+              <img src="assets/demo-still.jpg" alt="Demo still"/>
+              <span class="tag">STILL · 4:5</span>
+            </div>
+            <div class="float-cap">
+              <div class="who">IG caption</div>
+              <p class="quote">Metro stalled after overnight rain. Commuters wait on a flooded platform — what we know before the morning rush.</p>
+              <div class="meta">
+                <span class="pill on">Approved</span>
+                <span class="pill">IG</span>
+                <span class="pill">YT</span>
+              </div>
+            </div>
+          </div>
+        </aside>
+      </div>
+    </section>
+
+    <!-- 5 · Hour strip -->
+    <section class="quote-sec wrap">
+      <div class="hour-strip">
+        <h2>Built like a real desk</h2>
+        <p>Same template discipline as DCN Hyderabad — search news onto brand, upload video get the edit — not a blank canvas chatbot.</p>
+      </div>
+    </section>
+  </main>
+
+  <!-- 6 · Big lime bottom CTA -->
+  <section class="bottom">
+    <h2>Ready to template the story?</h2>
+    <p>Search the news or upload a clip. Cutline finishes it on your template.</p>
+    <a class="btn btn-ink" href="/studio.html">Try Cutline</a>
+    <div class="bottom-foot">
+      <span>Cutline · Templates · News · Video</span>
+      <span>
+        <a href="#how">How</a> ·
+        <a href="#agents">Agents</a> ·
+        <a href="/studio.html">Studio</a>
+      </span>
+    </div>
+  </section>
+</body>
+</html>

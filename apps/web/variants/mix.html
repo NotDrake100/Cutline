@@ -1,0 +1,754 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>Cutline — Paste. Cut. Ship.</title>
+<meta name="description" content="Cutline is end-to-end desk software for papers, publishers, and editors. Hunt or paste a story. Wire, Still, captions, approve, and ship to Instagram, YouTube, and Canva."/>
+<link rel="icon" href="../assets/logo.png"/>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet"/>
+<style>
+  :root {
+    --bg: #F5F1E8;
+    --paper: #FAF7F0;
+    --card: #FFFFFF;
+    --ink: #1A1A1A;
+    --muted: #5C5A54;
+    --dim: #8A877C;
+    --line: rgba(26,26,26,.1);
+    --line-soft: rgba(26,26,26,.06);
+    --lime: #E1F435;
+    --lime-ink: #0A0A0A;
+    --radius: 16px;
+    --radius-sm: 12px;
+    --radius-pill: 999px;
+    --font: "Geist", ui-sans-serif, system-ui, sans-serif;
+    --display: "Anton", Impact, sans-serif;
+    --mono: "Geist Mono", ui-monospace, monospace;
+    --shadow: 0 24px 60px rgba(26,26,26,.1), 0 8px 20px rgba(26,26,26,.05);
+    --shadow-sm: 0 10px 28px rgba(26,26,26,.06);
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; background: var(--bg); color: var(--ink); font-family: var(--font); }
+  a { color: inherit; text-decoration: none; }
+  button { font: inherit; cursor: pointer; }
+  img { display: block; max-width: 100%; }
+
+  .wrap { width: min(1180px, calc(100% - 48px)); margin: 0 auto; }
+
+  /* —— LOOO header —— */
+  .top {
+    position: sticky; top: 0; z-index: 50;
+    padding: 14px 0;
+    border-bottom: 1px solid var(--line-soft);
+    background: rgba(245,241,232,.9);
+    backdrop-filter: blur(14px);
+  }
+  .top .wrap { display: flex; align-items: center; gap: 20px; }
+  .brand {
+    display: flex; align-items: center; gap: 10px;
+    font-family: var(--mono); font-size: 13px; font-weight: 600;
+    letter-spacing: .14em; text-transform: uppercase;
+  }
+  .brand img {
+    width: 30px; height: 30px; border-radius: 50%;
+    background: var(--lime); object-fit: cover;
+  }
+  .nav { display: flex; gap: 22px; color: var(--muted); font-size: 14px; font-weight: 500; }
+  .nav a:hover { color: var(--ink); }
+  .spacer { flex: 1; }
+  .btn {
+    display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+    padding: 11px 20px; border-radius: var(--radius-pill); font-weight: 600; font-size: 14px;
+    border: 1px solid transparent; transition: transform .15s ease, filter .15s ease, background .15s ease;
+  }
+  .btn:active { transform: translateY(1px); }
+  .btn-lime { background: var(--lime); color: var(--lime-ink); }
+  .btn-lime:hover { filter: brightness(1.03); }
+  .btn-ghost {
+    background: transparent; border-color: var(--line); color: var(--ink);
+  }
+  .btn-ghost:hover { background: rgba(26,26,26,.04); }
+  .btn-ink {
+    background: var(--ink); color: #F5F1E8; border: 0;
+    border-radius: var(--radius-pill); padding: 8px 14px; font-weight: 600; font-size: 12px;
+  }
+  .btn-soft {
+    background: var(--paper); color: var(--ink); border: 1px solid var(--line-soft);
+    border-radius: var(--radius-pill); padding: 8px 14px; font-weight: 600; font-size: 12px;
+  }
+
+  /* —— hero —— */
+  .hero {
+    padding: 72px 0 40px;
+    text-align: center;
+    border: 0;
+  }
+  .eyebrow {
+    display: inline-flex; align-items: center; gap: 10px;
+    font-family: var(--mono); font-size: 12px; font-weight: 500;
+    letter-spacing: .08em; text-transform: uppercase; color: var(--muted);
+    margin-bottom: 18px;
+  }
+  .eyebrow .dot {
+    width: 8px; height: 8px; border-radius: 50%; background: var(--lime);
+  }
+  .hero h1 {
+    font-family: var(--display);
+    font-weight: 400;
+    font-size: clamp(52px, 8vw, 96px);
+    line-height: .9;
+    letter-spacing: -.01em;
+    text-transform: uppercase;
+    margin: 0 auto 18px;
+    max-width: 14ch;
+    color: var(--ink);
+  }
+  .lede {
+    font-size: 17px; line-height: 1.55; color: var(--muted);
+    max-width: 48ch; margin: 0 auto 28px;
+  }
+  .cta-row { display: flex; flex-wrap: wrap; gap: 12px; justify-content: center; margin-bottom: 18px; }
+  .meta-row {
+    display: flex; flex-wrap: wrap; gap: 16px; justify-content: center;
+    font-family: var(--mono); font-size: 11px; letter-spacing: .06em;
+    text-transform: uppercase; color: var(--dim);
+    margin-bottom: 48px;
+  }
+  .meta-row strong { color: var(--ink); font-weight: 500; }
+
+  /* —— floating Ace white product window —— */
+  .desk-float {
+    background: var(--card);
+    border-radius: 20px;
+    box-shadow: var(--shadow);
+    border: 1px solid var(--line-soft);
+    overflow: hidden;
+    text-align: left;
+    max-width: 980px;
+    margin: 0 auto;
+  }
+  .desk-chrome {
+    display: flex; align-items: center; gap: 8px;
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--line-soft);
+    background: var(--paper);
+  }
+  .desk-chrome .dots { display: flex; gap: 6px; }
+  .desk-chrome .dots i {
+    width: 10px; height: 10px; border-radius: 50%;
+    background: rgba(26,26,26,.12); display: block;
+  }
+  .desk-chrome .title {
+    font-family: var(--mono); font-size: 11px; letter-spacing: .06em;
+    text-transform: uppercase; color: var(--dim); margin-left: 8px;
+  }
+  .desk-body {
+    display: grid;
+    grid-template-columns: 168px 1fr;
+    min-height: 420px;
+  }
+  @media (max-width: 720px) {
+    .desk-body { grid-template-columns: 1fr; }
+    .side { display: none; }
+    .nav { display: none; }
+  }
+
+  /* Ace sidebar */
+  .side {
+    border-right: 1px solid var(--line-soft);
+    padding: 16px 12px;
+    background: #FBFBFB;
+    display: flex; flex-direction: column; gap: 2px;
+  }
+  .side .brand-mini {
+    display: flex; align-items: center; gap: 8px;
+    padding: 4px 8px 14px;
+    font-family: var(--mono); font-size: 11px; font-weight: 600;
+    letter-spacing: .1em; text-transform: uppercase;
+  }
+  .side .brand-mini img {
+    width: 22px; height: 22px; border-radius: 50%;
+    background: var(--lime); object-fit: cover;
+  }
+  .side .sec {
+    font-family: var(--mono); font-size: 10px; letter-spacing: .1em;
+    text-transform: uppercase; color: var(--dim);
+    padding: 12px 8px 6px;
+  }
+  .side a.item {
+    display: flex; align-items: center; gap: 8px;
+    padding: 8px 10px; border-radius: 10px;
+    font-size: 13px; font-weight: 500; color: var(--muted);
+  }
+  .side a.item:hover { background: rgba(26,26,26,.04); color: var(--ink); }
+  .side a.item.on { background: var(--ink); color: #F5F1E8; }
+  .side a.item .badge {
+    margin-left: auto;
+    width: 7px; height: 7px; border-radius: 50%; background: #FF5A36;
+  }
+  .side .agents-mini {
+    margin-top: auto; padding-top: 12px;
+  }
+  .side .av-row { display: flex; gap: 6px; padding: 4px 8px 8px; }
+  .side .av {
+    width: 26px; height: 26px; border-radius: 50%;
+    background: var(--lime); color: var(--lime-ink);
+    display: grid; place-items: center;
+    font-family: var(--mono); font-size: 10px; font-weight: 600;
+  }
+  .side .av.dim { background: #EDEAE2; color: var(--muted); }
+
+  /* Ask home */
+  .ask-home {
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    padding: 48px 32px 40px; gap: 18px; background: #fff;
+    min-height: 420px;
+  }
+  .ask-home h2 {
+    font-family: var(--display); font-size: clamp(28px, 4vw, 40px);
+    text-transform: uppercase; letter-spacing: -.01em; line-height: .95;
+    margin: 0; text-align: center; max-width: 16ch;
+  }
+  .ask-bar {
+    width: min(560px, 100%);
+    background: #fff;
+    border: 1px solid var(--line);
+    border-radius: 18px;
+    box-shadow: var(--shadow-sm);
+    padding: 14px 16px;
+    display: flex; flex-direction: column; gap: 12px;
+  }
+  .ask-bar .field {
+    font-size: 15px; color: var(--dim); min-height: 24px;
+  }
+  .ask-bar .bar-row {
+    display: flex; align-items: center; gap: 8px;
+  }
+  .ask-bar .chip {
+    display: inline-flex; align-items: center; gap: 6px;
+    font-family: var(--mono); font-size: 11px; font-weight: 500;
+    letter-spacing: .04em;
+    background: var(--paper); border: 1px solid var(--line-soft);
+    border-radius: var(--radius-pill); padding: 6px 10px; color: var(--ink);
+  }
+  .ask-bar .chip .spark {
+    width: 8px; height: 8px; border-radius: 50%; background: var(--lime);
+  }
+  .ask-bar .send {
+    margin-left: auto;
+    width: 32px; height: 32px; border-radius: 50%;
+    background: var(--ink); color: #fff; border: 0;
+    display: grid; place-items: center; font-size: 14px;
+  }
+  .prompts {
+    display: flex; flex-wrap: wrap; gap: 8px; justify-content: center;
+    max-width: 560px;
+  }
+  .prompts span {
+    display: inline-flex; align-items: center; gap: 6px;
+    font-size: 13px; color: var(--muted);
+    background: var(--paper); border: 1px solid var(--line-soft);
+    border-radius: var(--radius-pill); padding: 9px 14px;
+  }
+  .prompts span b {
+    width: 6px; height: 6px; border-radius: 50%; background: var(--lime);
+    display: inline-block;
+  }
+
+  /* —— sections —— */
+  section { padding: 80px 0; border-top: 1px solid var(--line-soft); }
+  .sec-num {
+    font-family: var(--mono); font-size: 12px; letter-spacing: .12em;
+    color: var(--dim); text-transform: uppercase; margin-bottom: 8px;
+  }
+  .sec-title {
+    font-family: var(--display); font-size: clamp(36px, 5vw, 56px);
+    line-height: .95; text-transform: uppercase; margin: 0; letter-spacing: -.01em;
+    max-width: 18ch; color: var(--ink);
+  }
+  .sec-sub { color: var(--muted); max-width: 46ch; font-size: 15px; line-height: 1.5; margin: 12px 0 0; }
+  .sec-head { margin-bottom: 36px; }
+
+  /* —— Inside the desk: stacked Ace portfolio cards —— */
+  .stack { display: flex; flex-direction: column; gap: 28px; }
+
+  .prod-card {
+    background: var(--card);
+    border: 1px solid var(--line-soft);
+    border-radius: 20px;
+    box-shadow: var(--shadow-sm);
+    overflow: hidden;
+  }
+  .prod-card .pc-head {
+    display: flex; align-items: center; justify-content: space-between; gap: 12px;
+    padding: 16px 20px; border-bottom: 1px solid var(--line-soft);
+    background: #FBFBFB;
+  }
+  .prod-card .pc-head h3 {
+    margin: 0; font-size: 15px; font-weight: 600;
+  }
+  .prod-card .pc-head .tag {
+    font-family: var(--mono); font-size: 11px; letter-spacing: .06em;
+    text-transform: uppercase; color: var(--dim);
+  }
+  .prod-card .pc-body {
+    display: grid; grid-template-columns: 140px 1fr;
+    min-height: 280px;
+  }
+  @media (max-width: 720px) {
+    .prod-card .pc-body { grid-template-columns: 1fr; }
+    .prod-card .pc-side { display: none; }
+  }
+  .pc-side {
+    border-right: 1px solid var(--line-soft);
+    padding: 14px 10px; background: #FBFBFB;
+  }
+  .pc-side .item {
+    display: flex; align-items: center; gap: 8px;
+    padding: 7px 8px; border-radius: 8px;
+    font-size: 12px; color: var(--muted); font-weight: 500;
+  }
+  .pc-side .item.on { background: var(--ink); color: #F5F1E8; }
+  .pc-main { padding: 20px; }
+
+  /* Needs input approve */
+  .needs-block h4 {
+    margin: 0 0 14px;
+    font-family: var(--mono); font-size: 11px; letter-spacing: .1em;
+    text-transform: uppercase; color: var(--dim);
+  }
+  .needs-card {
+    background: var(--paper);
+    border: 1px solid var(--line-soft);
+    border-radius: 14px;
+    padding: 16px;
+    margin-bottom: 12px;
+  }
+  .needs-card .row {
+    display: flex; align-items: flex-start; justify-content: space-between; gap: 16px;
+    flex-wrap: wrap;
+  }
+  .needs-card .label {
+    font-size: 14px; font-weight: 600; margin-bottom: 4px;
+  }
+  .needs-card .desc { font-size: 13px; color: var(--muted); line-height: 1.45; max-width: 42ch; }
+  .needs-card .acts { display: flex; gap: 8px; flex-shrink: 0; }
+  .still-thumb {
+    width: 72px; height: 72px; border-radius: 10px; overflow: hidden;
+    background: #111; flex-shrink: 0;
+  }
+  .still-thumb img { width: 100%; height: 100%; object-fit: cover; }
+
+  /* Working log + canvas */
+  .work-grid {
+    display: grid; grid-template-columns: 1.1fr 1fr; gap: 16px;
+  }
+  @media (max-width: 800px) { .work-grid { grid-template-columns: 1fr; } }
+  .work-log {
+    background: var(--paper); border: 1px solid var(--line-soft);
+    border-radius: 14px; padding: 16px;
+  }
+  .work-log .wl-head {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 12px;
+  }
+  .work-log .wl-head strong { font-size: 14px; }
+  .work-log .pulse {
+    font-family: var(--mono); font-size: 11px; letter-spacing: .04em;
+    color: var(--lime-ink); background: var(--lime);
+    border-radius: var(--radius-pill); padding: 5px 10px;
+  }
+  .log-line {
+    display: flex; gap: 10px; align-items: flex-start;
+    padding: 8px 0; border-bottom: 1px solid var(--line-soft);
+    font-size: 13px; color: var(--muted);
+  }
+  .log-line:last-child { border-bottom: 0; }
+  .log-line .ag {
+    font-family: var(--mono); font-size: 10px; letter-spacing: .06em;
+    text-transform: uppercase; color: var(--ink); min-width: 44px; font-weight: 600;
+  }
+  .work-canvas {
+    background: #0E0E10; border-radius: 14px; overflow: hidden;
+    position: relative; min-height: 220px;
+  }
+  .work-canvas img { width: 100%; height: 100%; object-fit: cover; min-height: 220px; }
+  .work-canvas .tag {
+    position: absolute; left: 12px; bottom: 12px;
+    background: rgba(0,0,0,.78); color: #fff;
+    font-family: var(--mono); font-size: 10px;
+    padding: 6px 12px; border-radius: var(--radius-pill);
+  }
+  .work-canvas .status {
+    position: absolute; right: 12px; top: 12px;
+    background: var(--lime); color: var(--lime-ink);
+    font-family: var(--mono); font-size: 10px; font-weight: 600;
+    padding: 6px 12px; border-radius: var(--radius-pill);
+  }
+
+  /* Connect cards inside product */
+  .connect-grid {
+    display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px;
+  }
+  @media (max-width: 720px) { .connect-grid { grid-template-columns: 1fr; } }
+  .conn {
+    background: var(--paper); border: 1px solid var(--line-soft);
+    border-radius: 14px; padding: 18px;
+    display: flex; flex-direction: column; gap: 10px; min-height: 160px;
+  }
+  .conn .ico {
+    width: 40px; height: 40px; border-radius: 10px;
+    display: grid; place-items: center;
+    font-family: var(--mono); font-weight: 600; font-size: 12px;
+    background: #fff; border: 1px solid var(--line-soft);
+  }
+  .conn.ig .ico { color: #E1306C; }
+  .conn.yt .ico { color: #FF4444; }
+  .conn.cv .ico { color: #00C4CC; }
+  .conn h4 { margin: 0; font-size: 15px; }
+  .conn p { margin: 0; font-size: 13px; color: var(--muted); line-height: 1.45; flex: 1; }
+  .conn .go {
+    align-self: flex-start;
+    background: var(--lime); color: var(--lime-ink); border: 0;
+    border-radius: var(--radius-pill); padding: 8px 14px;
+    font-weight: 600; font-size: 12px;
+  }
+
+  /* —— Agents —— */
+  .agents {
+    display: grid; grid-template-columns: repeat(5, 1fr); gap: 14px;
+  }
+  @media (max-width: 900px) { .agents { grid-template-columns: 1fr 1fr; } }
+  @media (max-width: 520px) { .agents { grid-template-columns: 1fr; } }
+  .acard {
+    background: var(--card);
+    border: 1px solid var(--line-soft);
+    border-radius: var(--radius);
+    padding: 22px 18px;
+    min-height: 176px;
+    display: flex; flex-direction: column; gap: 10px;
+    box-shadow: var(--shadow-sm);
+    transition: border-color .15s ease, transform .15s ease;
+  }
+  .acard:hover { border-color: rgba(26,26,26,.16); transform: translateY(-2px); }
+  .acard .code {
+    font-family: var(--mono); font-size: 12px; letter-spacing: .1em;
+    color: var(--lime-ink); background: var(--lime);
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 36px; height: 36px; border-radius: 50%;
+    font-weight: 600;
+  }
+  .acard h3 {
+    font-family: var(--display); font-size: 26px; margin: 0;
+    text-transform: uppercase; letter-spacing: -.01em; line-height: 1;
+  }
+  .acard p { margin: 0; color: var(--muted); font-size: 13px; line-height: 1.45; flex: 1; }
+
+  /* —— How 01 02 03 —— */
+  .flow {
+    display: grid; grid-template-columns: 1fr auto 1fr auto 1fr; gap: 12px; align-items: stretch;
+  }
+  @media (max-width: 800px) {
+    .flow { grid-template-columns: 1fr; }
+    .flow .arr { display: none; }
+  }
+  .fstep {
+    background: var(--card); border: 1px solid var(--line-soft);
+    border-radius: var(--radius); padding: 26px 22px;
+    box-shadow: var(--shadow-sm);
+  }
+  .fstep .n {
+    width: 44px; height: 44px; border-radius: 50%;
+    display: grid; place-items: center;
+    font-family: var(--mono); font-size: 13px; font-weight: 600;
+    background: var(--lime); color: var(--lime-ink);
+    letter-spacing: .04em; margin-bottom: 14px;
+  }
+  .fstep h3 { margin: 0 0 8px; font-size: 18px; }
+  .fstep p { margin: 0; color: var(--muted); font-size: 14px; line-height: 1.45; }
+  .arr {
+    display: grid; place-items: center;
+    color: var(--dim); font-family: var(--mono); font-size: 18px;
+  }
+
+  /* —— bottom CTA —— */
+  .bottom {
+    margin: 0 0 40px;
+    background: var(--ink);
+    color: #F5F1E8;
+    border-radius: 20px;
+    padding: 52px 44px;
+    display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 24px;
+    position: relative; overflow: hidden;
+  }
+  .bottom::before {
+    content: "";
+    position: absolute; right: -48px; top: -48px;
+    width: 200px; height: 200px; border-radius: 50%;
+    background: var(--lime); opacity: .92;
+  }
+  .bottom > * { position: relative; z-index: 1; }
+  .bottom h2 {
+    font-family: var(--display); font-size: clamp(36px, 5vw, 52px);
+    line-height: .95; text-transform: uppercase; margin: 0; max-width: 14ch;
+  }
+  .bottom p { margin: 12px 0 0; max-width: 40ch; opacity: .7; font-size: 15px; }
+  .bottom .btn-lime-cta {
+    background: var(--lime); color: var(--lime-ink); border: 0;
+    border-radius: var(--radius-pill); padding: 14px 24px; font-weight: 600; font-size: 15px;
+    display: inline-flex;
+  }
+
+  footer {
+    border-top: 1px solid var(--line-soft);
+    padding: 28px 0 40px;
+    display: flex; flex-wrap: wrap; gap: 16px; justify-content: space-between;
+    font-family: var(--mono); font-size: 12px; color: var(--dim);
+  }
+</style>
+</head>
+<body>
+  <header class="top">
+    <div class="wrap">
+      <a class="brand" href="#"><img src="../assets/logo.png" alt=""/>Cutline</a>
+      <nav class="nav">
+        <a href="#desk">Desk</a>
+        <a href="#inside">Inside</a>
+        <a href="#agents">Agents</a>
+        <a href="#how">How</a>
+      </nav>
+      <div class="spacer"></div>
+      <a class="btn btn-ghost" href="#how">How it works</a>
+      <a class="btn btn-lime" href="/studio.html">Try it now</a>
+    </div>
+  </header>
+
+  <main class="wrap">
+    <!-- LOOO hero + Ace floating product -->
+    <section class="hero" id="desk">
+      <div class="eyebrow"><span class="dot"></span> Late desk · papers &amp; publishers</div>
+      <h1>Paste. Cut. Ship.</h1>
+      <p class="lede">End-to-end desk software for papers, publishers, and editors. Paste a story — Wire locks the angle, Still cuts the frame, Desk writes captions. You approve. Then ship to IG, YT, or Canva.</p>
+      <div class="cta-row">
+        <a class="btn btn-lime" href="/studio.html">Paste a headline</a>
+        <a class="btn btn-ghost" href="#inside">See inside the desk</a>
+      </div>
+      <div class="meta-row">
+        <span><strong>Paste · Wire · Still · Captions · Approve · Ship</strong></span>
+        <span>Instagram · YouTube · Canva</span>
+      </div>
+
+      <aside class="desk-float" aria-label="Cutline desk — ask home">
+        <div class="desk-chrome">
+          <div class="dots" aria-hidden="true"><i></i><i></i><i></i></div>
+          <span class="title">Cutline · Desk</span>
+        </div>
+        <div class="desk-body">
+          <nav class="side" aria-label="Desk nav">
+            <div class="brand-mini"><img src="../assets/logo.png" alt=""/>Cutline</div>
+            <a class="item on" href="#">Home</a>
+            <a class="item" href="#">Activity<span class="badge" title="needs you"></span></a>
+            <a class="item" href="#">Needs input</a>
+            <div class="sec">Workspace</div>
+            <a class="item" href="#">Desk</a>
+            <a class="item" href="#">Connect</a>
+            <a class="item" href="#">Runs</a>
+            <div class="agents-mini">
+              <div class="sec">Agents</div>
+              <div class="av-row">
+                <span class="av" title="Wire">W</span>
+                <span class="av" title="Still">S</span>
+                <span class="av dim" title="Desk">D</span>
+                <span class="av dim" title="Ship">H</span>
+              </div>
+            </div>
+          </nav>
+          <div class="ask-home">
+            <h2>How can I help the desk today?</h2>
+            <div class="ask-bar">
+              <div class="field">Ask anything — paste a headline, or @ an agent…</div>
+              <div class="bar-row">
+                <span class="chip"><span class="spark"></span>Gemini</span>
+                <button type="button" class="send" aria-label="Send">↑</button>
+              </div>
+            </div>
+            <div class="prompts">
+              <span><b></b>What's moving on my beat?</span>
+              <span><b></b>Cut a still for this headline</span>
+              <span><b></b>Show packs waiting on approve</span>
+            </div>
+          </div>
+        </div>
+      </aside>
+    </section>
+
+    <!-- Inside the desk — stacked Ace portfolio cards -->
+    <section id="inside">
+      <div class="sec-head">
+        <div class="sec-num">/01 · Inside the desk</div>
+        <h2 class="sec-title">White panels. Real work.</h2>
+        <p class="sec-sub">Activity, Needs input, the tool log, and Connect — Ace Marketer-class surfaces on cream paper. Agents automate; you stay editor-in-chief.</p>
+      </div>
+
+      <div class="stack">
+        <!-- Activity / Needs input -->
+        <article class="prod-card">
+          <div class="pc-head">
+            <h3>Activity · Needs input</h3>
+            <span class="tag">2 packs waiting</span>
+          </div>
+          <div class="pc-body">
+            <div class="pc-side">
+              <div class="item">Home</div>
+              <div class="item on">Activity</div>
+              <div class="item">Needs input</div>
+              <div class="item">Desk</div>
+              <div class="item">Connect</div>
+              <div class="item">Runs</div>
+            </div>
+            <div class="pc-main">
+              <div class="needs-block">
+                <h4>Needs your input</h4>
+                <div class="needs-card">
+                  <div class="row">
+                    <div class="still-thumb"><img src="../assets/demo-still.jpg" alt="Still preview"/></div>
+                    <div style="flex:1;min-width:180px">
+                      <div class="label">Pune metro floods — IG pack</div>
+                      <div class="desc">Wire locked civic angle. Still cropped 4:5. Desk drafted captions. Approve to queue Ship.</div>
+                    </div>
+                    <div class="acts">
+                      <button type="button" class="btn-ink">Approve</button>
+                      <button type="button" class="btn-soft">Adjust</button>
+                    </div>
+                  </div>
+                </div>
+                <div class="needs-card">
+                  <div class="row">
+                    <div style="flex:1;min-width:180px">
+                      <div class="label">YT title + description</div>
+                      <div class="desc">Desk wrote house-voice pack for the same run. Hold or push with the still.</div>
+                    </div>
+                    <div class="acts">
+                      <button type="button" class="btn-ink">Approve</button>
+                      <button type="button" class="btn-soft">Edit</button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </article>
+
+        <!-- Working log + still canvas -->
+        <article class="prod-card">
+          <div class="pc-head">
+            <h3>Desk · Run in progress</h3>
+            <span class="tag">Wire → Still → Desk</span>
+          </div>
+          <div class="pc-body" style="grid-template-columns:1fr">
+            <div class="pc-main">
+              <div class="work-grid">
+                <div class="work-log">
+                  <div class="wl-head">
+                    <strong>Tool log</strong>
+                    <span class="pulse">Working for 1m 28s</span>
+                  </div>
+                  <div class="log-line"><span class="ag">Wire</span><span>Locked angle: civic service disruption · morning rush</span></div>
+                  <div class="log-line"><span class="ag">Still</span><span>Cut 4:5 frame · safe margins · grade for feed</span></div>
+                  <div class="log-line"><span class="ag">Desk</span><span>Drafted IG + YT captions in house voice</span></div>
+                  <div class="log-line"><span class="ag">Ship</span><span>Waiting on approve before IG / YT / Canva</span></div>
+                </div>
+                <div class="work-canvas">
+                  <img src="../assets/demo-still.jpg" alt="Demo still on canvas"/>
+                  <span class="status">STILL · READY</span>
+                  <span class="tag">4:5 · feed-safe</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </article>
+
+        <!-- Connect -->
+        <article class="prod-card" id="connect">
+          <div class="pc-head">
+            <h3>Connect</h3>
+            <span class="tag">Ship destinations</span>
+          </div>
+          <div class="pc-body" style="grid-template-columns:1fr">
+            <div class="pc-main">
+              <div class="connect-grid">
+                <div class="conn ig">
+                  <div class="ico">IG</div>
+                  <h4>Instagram</h4>
+                  <p>Connect once. Cutline learns crop, tone, and caption length — then ships the pack.</p>
+                  <button type="button" class="go">Connect Instagram</button>
+                </div>
+                <div class="conn yt">
+                  <div class="ico">YT</div>
+                  <h4>YouTube</h4>
+                  <p>Thumb, title, description drafted to your channel. Shorts when Clip is in the run.</p>
+                  <button type="button" class="go">Connect YouTube</button>
+                </div>
+                <div class="conn cv">
+                  <div class="ico">CV</div>
+                  <h4>Canva</h4>
+                  <p>Drop the still into your brand kit. Keep the grid you already use.</p>
+                  <button type="button" class="go">Connect Canva</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </article>
+      </div>
+    </section>
+
+    <!-- Agents -->
+    <section id="agents">
+      <div class="sec-head">
+        <div class="sec-num">/02 · Agents</div>
+        <h2 class="sec-title">Five roles. One cut.</h2>
+        <p class="sec-sub">Wire, Still, Clip, Desk, Ship — each owns one job. Agents automate inside; you approve the pack, then ship.</p>
+      </div>
+      <div class="agents">
+        <article class="acard"><div class="code">01</div><h3>Wire</h3><p>Locks angle, facts, and visual brief from the headline.</p></article>
+        <article class="acard"><div class="code">02</div><h3>Still</h3><p>Builds the publishable frame — crop, grade, safe margins.</p></article>
+        <article class="acard"><div class="code">03</div><h3>Clip</h3><p>Short motion cut when the story needs motion, not a poster.</p></article>
+        <article class="acard"><div class="code">04</div><h3>Desk</h3><p>Captions and packs for IG, YT, and Canva in house voice.</p></article>
+        <article class="acard"><div class="code">05</div><h3>Ship</h3><p>Hands off to connected channels. One tap when you’re ready.</p></article>
+      </div>
+    </section>
+
+    <!-- How -->
+    <section id="how">
+      <div class="sec-head">
+        <div class="sec-num">/03 · How</div>
+        <h2 class="sec-title">Paste. Cut. Ship.</h2>
+        <p class="sec-sub">Under a minute from headline to share pack when the desk is warm.</p>
+      </div>
+      <div class="flow">
+        <div class="fstep"><div class="n">01</div><h3>Paste a story</h3><p>Drop the headline. Optional notes: city, angle, deadline.</p></div>
+        <div class="arr">→</div>
+        <div class="fstep"><div class="n">02</div><h3>Wire · Still · Captions</h3><p>Wire briefs Still. Desk writes captions. Agents automate inside.</p></div>
+        <div class="arr">→</div>
+        <div class="fstep"><div class="n">03</div><h3>Approve &amp; ship</h3><p>One-tap to connected Instagram, YouTube, or Canva — or download.</p></div>
+      </div>
+    </section>
+
+    <div class="bottom">
+      <div>
+        <h2>Ready for the late desk?</h2>
+        <p>Paste a headline. Get a still, captions, and a share pack — approve, then ship before the story cools.</p>
+      </div>
+      <a class="btn-lime-cta" href="/studio.html">Try Cutline now</a>
+    </div>
+
+    <footer>
+      <span>Cutline · Papers · Publishers · Editors · Sep 2026</span>
+      <span>Built for the late desk</span>
+    </footer>
+  </main>
+</body>
+</html>

@@ -1,0 +1,393 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>Cutline Studio — Mode A</title>
+<link rel="icon" href="assets/logo.png"/>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=Chivo+Mono:wght@400;500;600&family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet"/>
+<style>
+  :root {
+    --bg: #000000;
+    --ink: #F4F4F5;
+    --muted: #A1A1AA;
+    --dim: #71717A;
+    --line: rgba(255,255,255,.1);
+    --panel: #0A0A0A;
+    --elev: #111111;
+    --lime: #E1F435;
+    --lime-ink: #0A0A0A;
+    --red: #FF3B30;
+    --ok: #34D399;
+    --radius: 0px;
+    --font: "Geist", ui-sans-serif, system-ui, sans-serif;
+    --display: "Anton", Impact, sans-serif;
+    --mono: "Geist Mono", "Chivo Mono", ui-monospace, monospace;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; height: 100%; background: var(--bg); color: var(--ink); font-family: var(--font); }
+  a { color: inherit; text-decoration: none; }
+  button, textarea, input { font: inherit; color: inherit; }
+  button { cursor: pointer; }
+  img { display: block; max-width: 100%; }
+
+  .shell {
+    display: grid;
+    grid-template-rows: 52px 1fr;
+    height: 100vh;
+  }
+  .top {
+    display: flex; align-items: center; gap: 16px;
+    padding: 0 16px;
+    border-bottom: 1px solid var(--line);
+    background: rgba(0,0,0,.92);
+  }
+  .brand {
+    display: flex; align-items: center; gap: 10px;
+    font-family: var(--mono); font-size: 12px; font-weight: 600;
+    letter-spacing: .14em; text-transform: uppercase;
+  }
+  .brand img {
+    width: 24px; height: 24px; border-radius: 50%;
+    background: var(--lime); object-fit: cover;
+  }
+  .top .meta {
+    font-family: var(--mono); font-size: 11px; letter-spacing: .06em;
+    text-transform: uppercase; color: var(--dim);
+  }
+  .top .meta strong { color: var(--lime); font-weight: 500; }
+  .spacer { flex: 1; }
+  .btn {
+    display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+    padding: 9px 14px; border-radius: 0; font-weight: 600; font-size: 13px;
+    border: 1px solid transparent; background: transparent;
+  }
+  .btn-lime { background: var(--lime); color: var(--lime-ink); }
+  .btn-lime:hover { filter: brightness(1.04); }
+  .btn-lime:disabled { opacity: .35; cursor: not-allowed; filter: none; }
+  .btn-ghost { border-color: var(--line); color: var(--ink); }
+  .btn-ghost:hover { background: var(--elev); }
+  .btn-ghost:disabled { opacity: .35; cursor: not-allowed; }
+
+  .desk {
+    display: grid;
+    grid-template-columns: 200px 1fr 340px;
+    min-height: 0;
+  }
+  @media (max-width: 960px) {
+    .desk { grid-template-columns: 1fr; grid-template-rows: auto 1fr auto; }
+  }
+
+  .roster {
+    border-right: 1px solid var(--line);
+    background: var(--panel);
+    padding: 16px 0;
+    overflow: auto;
+  }
+  .roster h2 {
+    font-family: var(--mono); font-size: 10px; letter-spacing: .14em;
+    text-transform: uppercase; color: var(--dim);
+    margin: 0 16px 12px;
+  }
+  .agent {
+    display: grid; grid-template-columns: 8px 1fr; gap: 10px; align-items: center;
+    padding: 10px 16px; border-left: 2px solid transparent;
+  }
+  .agent.active { border-left-color: var(--lime); background: var(--elev); }
+  .agent .dot { width: 8px; height: 8px; background: var(--dim); }
+  .agent.active .dot { background: var(--lime); }
+  .agent.done .dot { background: var(--ok); }
+  .agent .name {
+    font-family: var(--display); font-size: 18px; letter-spacing: -.01em;
+    text-transform: uppercase; line-height: 1;
+  }
+  .agent .role { font-family: var(--mono); font-size: 10px; color: var(--muted); letter-spacing: .04em; margin-top: 4px; }
+
+  .center {
+    display: flex; flex-direction: column; min-height: 0;
+    border-right: 1px solid var(--line);
+  }
+  .compose {
+    padding: 16px;
+    border-bottom: 1px solid var(--line);
+    display: flex; flex-direction: column; gap: 10px;
+  }
+  .compose label {
+    font-family: var(--mono); font-size: 10px; letter-spacing: .12em;
+    text-transform: uppercase; color: var(--lime);
+  }
+  .compose textarea {
+    width: 100%; min-height: 72px; resize: vertical;
+    background: var(--elev); border: 1px solid var(--line); border-radius: 0;
+    padding: 12px; color: var(--ink); outline: none;
+  }
+  .compose textarea:focus { border-color: rgba(225,244,53,.45); }
+  .compose .row { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+  .status-pill {
+    font-family: var(--mono); font-size: 11px; letter-spacing: .08em;
+    text-transform: uppercase; color: var(--muted);
+    border: 1px solid var(--line); padding: 7px 10px;
+  }
+  .status-pill.needs_input { color: var(--lime); border-color: rgba(225,244,53,.35); }
+  .status-pill.approved { color: var(--ok); border-color: rgba(52,211,153,.35); }
+  .status-pill.failed { color: var(--red); }
+
+  .log-wrap {
+    flex: 1; min-height: 0; overflow: auto; padding: 12px 16px 24px;
+  }
+  .log-wrap h2 {
+    font-family: var(--mono); font-size: 10px; letter-spacing: .14em;
+    text-transform: uppercase; color: var(--dim); margin: 8px 0 12px;
+  }
+  .log-entry {
+    display: grid; grid-template-columns: 72px 1fr auto; gap: 12px;
+    padding: 10px 0; border-bottom: 1px solid var(--line);
+    font-size: 13px;
+  }
+  .log-entry .ag {
+    font-family: var(--mono); font-size: 11px; letter-spacing: .06em;
+    text-transform: uppercase; color: var(--lime);
+  }
+  .log-entry .act { color: var(--ink); }
+  .log-entry .act .detail { color: var(--muted); font-size: 12px; margin-top: 2px; }
+  .log-entry .ok { font-family: var(--mono); font-size: 10px; color: var(--ok); }
+  .log-entry .bad { font-family: var(--mono); font-size: 10px; color: var(--red); }
+  .empty {
+    font-family: var(--mono); font-size: 12px; color: var(--dim);
+    letter-spacing: .04em; padding: 24px 0;
+  }
+
+  .right {
+    background: var(--panel);
+    display: flex; flex-direction: column; min-height: 0; overflow: auto;
+  }
+  .canvas {
+    padding: 16px; border-bottom: 1px solid var(--line);
+  }
+  .canvas h2, .pack h2 {
+    font-family: var(--mono); font-size: 10px; letter-spacing: .14em;
+    text-transform: uppercase; color: var(--dim); margin: 0 0 12px;
+  }
+  .frame {
+    aspect-ratio: 1;
+    background: #0B0B0E;
+    border: 1px solid var(--line);
+    display: grid; place-items: center;
+    overflow: hidden; position: relative;
+  }
+  .frame img { width: 100%; height: 100%; object-fit: cover; }
+  .frame .ph {
+    font-family: var(--mono); font-size: 11px; color: var(--dim);
+    letter-spacing: .08em; text-transform: uppercase; text-align: center; padding: 16px;
+  }
+  .ban {
+    margin-top: 10px;
+    font-family: var(--mono); font-size: 11px; letter-spacing: .06em;
+    text-transform: uppercase; color: var(--red);
+    border: 1px solid rgba(255,59,48,.35); padding: 8px 10px;
+    display: none;
+  }
+  .ban.show { display: block; }
+  .pack { padding: 16px; flex: 1; }
+  .pack pre {
+    margin: 0; white-space: pre-wrap; word-break: break-word;
+    font-family: var(--mono); font-size: 12px; line-height: 1.5;
+    color: var(--muted); background: var(--elev);
+    border: 1px solid var(--line); padding: 12px; min-height: 120px;
+  }
+  .err {
+    color: var(--red); font-family: var(--mono); font-size: 12px;
+    margin-top: 6px; display: none;
+  }
+  .err.show { display: block; }
+</style>
+</head>
+<body>
+<div class="shell">
+  <header class="top">
+    <a class="brand" href="/">
+      <img src="assets/logo.png" alt=""/>
+      CUTLINE
+    </a>
+    <span class="meta">Mode A · <strong>Wedge</strong> · no scout</span>
+    <span class="spacer"></span>
+    <a class="btn btn-ghost" href="/">Marketing</a>
+  </header>
+
+  <div class="desk">
+    <aside class="roster" aria-label="Agent roster">
+      <h2>Roster</h2>
+      <div class="agent" data-agent="wire"><span class="dot"></span><div><div class="name">Wire</div><div class="role">Headline → brief</div></div></div>
+      <div class="agent" data-agent="still"><span class="dot"></span><div><div class="name">Still</div><div class="role">Gemini still</div></div></div>
+      <div class="agent" data-agent="desk"><span class="dot"></span><div><div class="name">Desk</div><div class="role">Captions / pack</div></div></div>
+      <div class="agent" data-agent="ship"><span class="dot"></span><div><div class="name">Ship</div><div class="role">Approve gate</div></div></div>
+    </aside>
+
+    <main class="center">
+      <section class="compose">
+        <label for="headline">Paste headline</label>
+        <textarea id="headline" placeholder="Pune rains flood streets near Deccan Gymkhana"></textarea>
+        <div class="row">
+          <button class="btn btn-lime" id="runBtn" type="button">Run wedge</button>
+          <button class="btn btn-ghost" id="approveBtn" type="button" disabled>Approve</button>
+          <span class="status-pill" id="statusPill">idle</span>
+          <span class="meta" id="runMeta" style="font-family:var(--mono);font-size:11px;color:var(--dim)"></span>
+        </div>
+        <div class="err" id="errBox"></div>
+      </section>
+      <section class="log-wrap">
+        <h2>Tool log</h2>
+        <div id="log" class="empty">Paste a headline. Wire → Still → Desk → needs_input. Approve unlocks ship.</div>
+      </section>
+    </main>
+
+    <aside class="right">
+      <section class="canvas">
+        <h2>Still</h2>
+        <div class="frame" id="frame"><div class="ph">No still yet</div></div>
+        <div class="ban" id="ban">bannedForPrint · gemini_gen · social only</div>
+      </section>
+      <section class="pack">
+        <h2>Pack preview</h2>
+        <pre id="pack">—</pre>
+      </section>
+    </aside>
+  </div>
+</div>
+<script>
+  let currentRun = null;
+
+  const $ = (id) => document.getElementById(id);
+  const agents = ["wire", "still", "desk", "ship"];
+
+  function setErr(msg) {
+    const el = $("errBox");
+    if (!msg) { el.classList.remove("show"); el.textContent = ""; return; }
+    el.textContent = msg;
+    el.classList.add("show");
+  }
+
+  function setStatus(s) {
+    const el = $("statusPill");
+    el.textContent = s || "idle";
+    el.className = "status-pill" + (s ? " " + s : "");
+  }
+
+  function markRoster(log) {
+    document.querySelectorAll(".agent").forEach((n) => {
+      n.classList.remove("active", "done");
+    });
+    if (!log || !log.length) return;
+    const seen = new Set();
+    for (const e of log) {
+      if (e.ok) seen.add(e.agent);
+    }
+    const last = log[log.length - 1]?.agent;
+    for (const a of agents) {
+      const node = document.querySelector(`.agent[data-agent="${a}"]`);
+      if (!node) continue;
+      if (seen.has(a)) node.classList.add("done");
+      if (a === last) node.classList.add("active");
+    }
+  }
+
+  function renderLog(log) {
+    const root = $("log");
+    if (!log || !log.length) {
+      root.className = "empty";
+      root.textContent = "No agent actions yet.";
+      return;
+    }
+    root.className = "";
+    root.innerHTML = log.map((e) => `
+      <div class="log-entry">
+        <div class="ag">${e.agent}</div>
+        <div class="act">${e.action}${e.detail ? `<div class="detail">${e.detail}</div>` : ""}${e.spendCents ? `<div class="detail">spend ${e.spendCents}¢</div>` : ""}</div>
+        <div class="${e.ok ? "ok" : "bad"}">${e.ok ? "OK" : "FAIL"}</div>
+      </div>
+    `).join("");
+  }
+
+  function renderStill(run) {
+    const frame = $("frame");
+    const ban = $("ban");
+    const photo = run?.photo;
+    if (!photo?.pathOrUrl) {
+      frame.innerHTML = `<div class="ph">No still yet</div>`;
+      ban.classList.remove("show");
+      return;
+    }
+    frame.innerHTML = `<img src="${photo.pathOrUrl}" alt="still"/>`;
+    if (photo.via === "gemini_gen" || photo.bannedForPrint) ban.classList.add("show");
+    else ban.classList.remove("show");
+  }
+
+  function renderPack(run) {
+    const p = run?.pack;
+    if (!p) { $("pack").textContent = "—"; return; }
+    $("pack").textContent = [
+      "YT  " + (p.ytTitle || ""),
+      "",
+      p.igCaption || "",
+      "",
+      p.ytDescription || "",
+    ].join("\n");
+  }
+
+  function applyRun(run, stub) {
+    currentRun = run;
+    setStatus(run.status);
+    $("runMeta").textContent = run.id + (stub ? " · stub gemini" : "");
+    renderLog(run.log);
+    markRoster(run.log);
+    renderStill(run);
+    renderPack(run);
+    $("approveBtn").disabled = run.status !== "needs_input";
+  }
+
+  $("runBtn").addEventListener("click", async () => {
+    setErr("");
+    const headline = $("headline").value.trim();
+    if (!headline) { setErr("headline required"); return; }
+    $("runBtn").disabled = true;
+    setStatus("drafting");
+    try {
+      const res = await fetch("/api/wedge", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ headline }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "wedge failed");
+      applyRun(data.run, data.stub);
+    } catch (e) {
+      setErr(e.message || String(e));
+      setStatus("failed");
+    } finally {
+      $("runBtn").disabled = false;
+    }
+  });
+
+  $("approveBtn").addEventListener("click", async () => {
+    if (!currentRun?.id) return;
+    setErr("");
+    $("approveBtn").disabled = true;
+    try {
+      const res = await fetch("/api/approve", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ runId: currentRun.id }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "approve failed");
+      applyRun(data.run, false);
+    } catch (e) {
+      setErr(e.message || String(e));
+      $("approveBtn").disabled = currentRun?.status !== "needs_input";
+    }
+  });
+</script>
+</body>
+</html>

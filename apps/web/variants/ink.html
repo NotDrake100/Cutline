@@ -1,0 +1,520 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>Cutline — Paste. Cut. Ship.</title>
+<meta name="description" content="Cutline is end-to-end desk software for papers, publishers, and editors. Hunt or paste a story. Wire, Still, captions, approve, and ship to Instagram, YouTube, and Canva."/>
+<link rel="icon" href="../assets/logo.png"/>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet"/>
+<style>
+  :root {
+    --bg: #000000;
+    --ink: #F4F4F5;
+    --muted: #A1A1AA;
+    --dim: #71717A;
+    --line: rgba(255,255,255,.1);
+    --line-soft: rgba(255,255,255,.06);
+    --panel: #0A0A0A;
+    --elev: #111111;
+    --card: #0E0E10;
+    --lime: #E1F435;
+    --lime-ink: #0A0A0A;
+    --radius: 14px;
+    --radius-sm: 10px;
+    --radius-pill: 999px;
+    --font: "Geist", ui-sans-serif, system-ui, sans-serif;
+    --display: "Anton", Impact, sans-serif;
+    --mono: "Geist Mono", ui-monospace, monospace;
+    --shadow: 0 24px 60px rgba(0,0,0,.45), 0 8px 24px rgba(0,0,0,.3);
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; background: var(--bg); color: var(--ink); font-family: var(--font); }
+  a { color: inherit; text-decoration: none; }
+  button { font: inherit; cursor: pointer; }
+  img { display: block; max-width: 100%; }
+
+  .wrap { width: min(1120px, calc(100% - 48px)); margin: 0 auto; }
+
+  /* —— top —— */
+  .top {
+    position: sticky; top: 0; z-index: 50;
+    padding: 14px 0;
+    border-bottom: 1px solid var(--line-soft);
+    background: rgba(0,0,0,.88);
+    backdrop-filter: blur(14px);
+  }
+  .top .wrap { display: flex; align-items: center; gap: 20px; }
+  .brand {
+    display: flex; align-items: center; gap: 10px;
+    font-family: var(--mono); font-size: 13px; font-weight: 600;
+    letter-spacing: .14em; text-transform: uppercase;
+  }
+  .brand img {
+    width: 30px; height: 30px; border-radius: 50%;
+    background: var(--lime); object-fit: cover;
+  }
+  .nav { display: flex; gap: 22px; color: var(--muted); font-size: 14px; font-weight: 500; }
+  .nav a:hover { color: var(--ink); }
+  .spacer { flex: 1; }
+  .btn {
+    display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+    padding: 11px 20px; border-radius: var(--radius-pill); font-weight: 600; font-size: 14px;
+    border: 1px solid transparent; transition: transform .15s ease, filter .15s ease, background .15s ease;
+  }
+  .btn:active { transform: translateY(1px); }
+  .btn-lime { background: var(--lime); color: var(--lime-ink); }
+  .btn-lime:hover { filter: brightness(1.04); }
+  .btn-ghost {
+    background: transparent; border-color: var(--line); color: var(--ink);
+  }
+  .btn-ghost:hover { background: var(--elev); }
+
+  /* —— hero —— */
+  .hero {
+    padding: 64px 0 56px;
+    display: grid;
+    grid-template-columns: 1fr 1.05fr;
+    gap: 48px;
+    align-items: center;
+  }
+  @media (max-width: 960px) {
+    .hero { grid-template-columns: 1fr; padding-top: 40px; }
+    .nav { display: none; }
+  }
+  .eyebrow {
+    display: inline-flex; align-items: center; gap: 10px;
+    font-family: var(--mono); font-size: 12px; font-weight: 500;
+    letter-spacing: .08em; text-transform: uppercase; color: var(--lime);
+    margin-bottom: 20px;
+  }
+  .eyebrow .dot {
+    width: 8px; height: 8px; border-radius: 50%; background: var(--lime);
+  }
+  h1 {
+    font-family: var(--display);
+    font-weight: 400;
+    font-size: clamp(48px, 6.8vw, 84px);
+    line-height: .92;
+    letter-spacing: -.01em;
+    text-transform: uppercase;
+    margin: 0 0 20px;
+    max-width: 11ch;
+  }
+  .lede {
+    font-size: 17px; line-height: 1.55; color: var(--muted);
+    max-width: 40ch; margin: 0 0 28px;
+  }
+  .cta-row { display: flex; flex-wrap: wrap; gap: 12px; margin-bottom: 28px; }
+  .meta-row {
+    display: flex; flex-wrap: wrap; gap: 16px;
+    font-family: var(--mono); font-size: 11px; letter-spacing: .06em;
+    text-transform: uppercase; color: var(--dim);
+  }
+  .meta-row strong { color: var(--ink); font-weight: 500; }
+
+  /* floating light/white desk mock on dark */
+  .desk-float {
+    background: #F7F4EC;
+    color: #1A1A1A;
+    border-radius: 16px;
+    padding: 16px;
+    box-shadow: var(--shadow), 0 0 0 1px rgba(225,244,53,.15);
+    position: relative;
+  }
+  .desk-float .pill {
+    display: inline-block;
+    background: #1A1A1A;
+    color: #F7F4EC;
+    font-family: var(--mono); font-size: 11px; letter-spacing: .04em;
+    padding: 7px 14px; border-radius: var(--radius-pill);
+    margin-bottom: 12px;
+  }
+  .studio {
+    background: #0B0B0E;
+    color: #F4F4F5;
+    border-radius: 12px;
+    overflow: hidden;
+    display: grid;
+    grid-template-columns: 140px 1fr 1.1fr;
+    border: 1px solid #222228;
+    min-height: 320px;
+  }
+  @media (max-width: 640px) {
+    .studio { grid-template-columns: 1fr; }
+  }
+  .roster {
+    background: #0E0E12;
+    border-right: 1px solid #222228;
+    padding: 12px 10px;
+    font-size: 12px;
+  }
+  .roster .rh {
+    font-family: var(--mono); font-size: 10px; letter-spacing: .1em;
+    text-transform: uppercase; color: #71717A; margin-bottom: 10px; padding: 0 6px;
+  }
+  .agent {
+    display: flex; align-items: center; gap: 8px;
+    padding: 8px 6px; border-radius: 8px; color: #D4D4D8;
+  }
+  .agent.on { background: #1A1A20; color: #fff; }
+  .agent .av {
+    width: 22px; height: 22px; border-radius: 50%;
+    background: #23232A; display: grid; place-items: center;
+    font-family: var(--mono); font-size: 9px; font-weight: 600;
+  }
+  .agent.on .av { background: var(--lime); color: #000; }
+  .agent .st { margin-left: auto; font-size: 10px; color: #71717A; }
+  .agent.on .st { color: var(--lime); }
+  .chat {
+    padding: 12px; border-right: 1px solid #222228;
+    display: flex; flex-direction: column; gap: 10px;
+    font-size: 12px; line-height: 1.45;
+  }
+  .bubble {
+    background: #16161C; border: 1px solid #2A2A32;
+    border-radius: 10px; padding: 10px 11px; color: #D4D4D8;
+  }
+  .bubble.me { background: #1C1C14; border-color: #3A3A20; color: #E8E8C8; }
+  .bubble .who {
+    font-family: var(--mono); font-size: 10px; letter-spacing: .08em;
+    text-transform: uppercase; color: #71717A; margin-bottom: 4px;
+  }
+  .canvas { padding: 12px; display: flex; flex-direction: column; gap: 10px; }
+  .still {
+    flex: 1; border-radius: 10px; overflow: hidden;
+    background: #111; position: relative; min-height: 160px;
+  }
+  .still img { width: 100%; height: 100%; object-fit: cover; min-height: 160px; }
+  .still .tag {
+    position: absolute; left: 8px; bottom: 8px;
+    background: rgba(0,0,0,.75); color: #fff;
+    font-family: var(--mono); font-size: 10px;
+    padding: 5px 10px; border-radius: var(--radius-pill);
+  }
+  .caps { display: grid; gap: 6px; }
+  .cap {
+    background: #16161C; border: 1px solid #2A2A32;
+    border-radius: 8px; padding: 8px 10px; font-size: 11px; color: #A1A1AA;
+  }
+  .cap b {
+    color: #FAFAFA; font-weight: 600; display: block; margin-bottom: 2px;
+    font-size: 10px; font-family: var(--mono); letter-spacing: .06em; text-transform: uppercase;
+  }
+
+  /* —— sections —— */
+  section { padding: 72px 0; border-top: 1px solid var(--line-soft); }
+  .sec-head { margin-bottom: 32px; }
+  .sec-num {
+    font-family: var(--mono); font-size: 12px; letter-spacing: .12em;
+    color: var(--dim); text-transform: uppercase; margin-bottom: 8px;
+  }
+  .sec-title {
+    font-family: var(--display); font-size: clamp(36px, 5vw, 52px);
+    line-height: .95; text-transform: uppercase; margin: 0; letter-spacing: -.01em;
+    max-width: 16ch;
+  }
+  .sec-sub { color: var(--muted); max-width: 42ch; font-size: 15px; line-height: 1.5; margin: 12px 0 0; }
+
+  /* —— agents —— */
+  .agents {
+    display: grid; grid-template-columns: repeat(5, 1fr); gap: 14px;
+  }
+  @media (max-width: 900px) { .agents { grid-template-columns: 1fr 1fr; } }
+  @media (max-width: 520px) { .agents { grid-template-columns: 1fr; } }
+  .acard {
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    padding: 20px 18px;
+    min-height: 168px;
+    display: flex; flex-direction: column; gap: 10px;
+    transition: border-color .15s ease, transform .15s ease;
+  }
+  .acard:hover { border-color: rgba(225,244,53,.35); transform: translateY(-2px); }
+  .acard .code {
+    font-family: var(--mono); font-size: 12px; letter-spacing: .1em;
+    color: var(--lime-ink); background: var(--lime);
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 36px; height: 36px; border-radius: 50%;
+    font-weight: 600;
+  }
+  .acard h3 {
+    font-family: var(--display); font-size: 26px; margin: 0;
+    text-transform: uppercase; letter-spacing: -.01em; line-height: 1;
+  }
+  .acard p { margin: 0; color: var(--muted); font-size: 13px; line-height: 1.45; flex: 1; }
+
+  /* —— connect —— */
+  .plugins {
+    display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px;
+  }
+  @media (max-width: 800px) { .plugins { grid-template-columns: 1fr; } }
+  .pcard {
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    padding: 24px;
+    display: flex; flex-direction: column; gap: 14px;
+    min-height: 220px;
+  }
+  .pcard .icon {
+    width: 48px; height: 48px; border-radius: 12px;
+    display: grid; place-items: center;
+    font-family: var(--mono); font-weight: 600; font-size: 13px;
+    background: var(--elev); border: 1px solid var(--line);
+  }
+  .pcard.ig .icon { color: #E1306C; }
+  .pcard.yt .icon { color: #FF4444; }
+  .pcard.cv .icon { color: #00C4CC; }
+  .pcard h3 { margin: 0; font-size: 18px; font-weight: 600; }
+  .pcard p { margin: 0; color: var(--muted); font-size: 14px; line-height: 1.5; flex: 1; }
+  .pcard .connect {
+    align-self: flex-start;
+    background: var(--lime); color: var(--lime-ink);
+    border: 0; border-radius: var(--radius-pill);
+    padding: 10px 16px; font-weight: 600; font-size: 13px;
+  }
+
+  /* —— how / flow —— */
+  .flow {
+    display: grid; grid-template-columns: 1fr auto 1fr auto 1fr; gap: 12px; align-items: stretch;
+  }
+  @media (max-width: 800px) {
+    .flow { grid-template-columns: 1fr; }
+    .flow .arr { display: none; }
+  }
+  .fstep {
+    background: var(--card); border: 1px solid var(--line);
+    border-radius: var(--radius); padding: 24px 22px;
+  }
+  .fstep .n {
+    width: 44px; height: 44px; border-radius: 50%;
+    display: grid; place-items: center;
+    font-family: var(--mono); font-size: 13px; font-weight: 600;
+    background: var(--lime); color: var(--lime-ink);
+    letter-spacing: .04em; margin-bottom: 14px;
+  }
+  .fstep h3 { margin: 0 0 8px; font-size: 18px; }
+  .fstep p { margin: 0; color: var(--muted); font-size: 14px; line-height: 1.45; }
+  .arr {
+    display: grid; place-items: center;
+    color: var(--dim); font-family: var(--mono); font-size: 18px;
+  }
+
+  /* —— pipeline strip —— */
+  .pipeline {
+    display: flex; flex-wrap: wrap; align-items: center; justify-content: center;
+    gap: 8px 4px;
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    padding: 22px 20px;
+  }
+  .pipe-step {
+    display: inline-flex; align-items: center; gap: 8px;
+    font-family: var(--mono); font-size: 12px; font-weight: 500;
+    letter-spacing: .04em; text-transform: uppercase;
+    color: var(--ink);
+    background: var(--elev);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-pill);
+    padding: 10px 16px;
+  }
+  .pipe-step .num {
+    width: 22px; height: 22px; border-radius: 50%;
+    background: var(--lime); color: var(--lime-ink);
+    display: grid; place-items: center;
+    font-size: 10px; font-weight: 600;
+  }
+  .pipe-arr {
+    color: var(--dim); font-family: var(--mono); font-size: 14px; padding: 0 4px;
+  }
+
+  /* —— bottom CTA —— */
+  .bottom {
+    margin: 0 0 40px;
+    background: var(--lime);
+    color: var(--lime-ink);
+    border-radius: 16px;
+    padding: 48px 40px;
+    display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 24px;
+  }
+  .bottom h2 {
+    font-family: var(--display); font-size: clamp(36px, 5vw, 52px);
+    line-height: .95; text-transform: uppercase; margin: 0; max-width: 14ch;
+  }
+  .bottom p { margin: 12px 0 0; max-width: 40ch; opacity: .72; font-size: 15px; }
+  .bottom .btn-dark {
+    background: #0A0A0A; color: #F4F4F5; border: 0;
+    border-radius: var(--radius-pill); padding: 14px 24px; font-weight: 600; font-size: 15px;
+    display: inline-flex;
+  }
+
+  footer {
+    border-top: 1px solid var(--line-soft);
+    padding: 28px 0 40px;
+    display: flex; flex-wrap: wrap; gap: 16px; justify-content: space-between;
+    font-family: var(--mono); font-size: 12px; color: var(--dim);
+  }
+  footer a:hover { color: var(--ink); }
+</style>
+</head>
+<body>
+  <header class="top">
+    <div class="wrap">
+      <a class="brand" href="#"><img src="../assets/logo.png" alt=""/>Cutline</a>
+      <nav class="nav">
+        <a href="#desk">Desk</a>
+        <a href="#agents">Agents</a>
+        <a href="#connect">Connect</a>
+        <a href="#how">How</a>
+      </nav>
+      <div class="spacer"></div>
+      <a class="btn btn-ghost" href="#how">How it works</a>
+      <a class="btn btn-lime" href="/studio.html">Try it now</a>
+    </div>
+  </header>
+
+  <main class="wrap">
+    <section class="hero" style="border:0;padding-top:56px;padding-bottom:48px">
+      <div>
+        <div class="eyebrow"><span class="dot"></span> Late desk · papers &amp; publishers</div>
+        <h1>Hunt. Paste. Ship.</h1>
+        <p class="lede">End-to-end desk software for papers, publishers, and editors. Paste a story. Wire locks the angle, Still cuts the frame, Desk writes captions — you approve, then ship to IG, YT, or Canva.</p>
+        <div class="cta-row">
+          <a class="btn btn-lime" href="/studio.html">Paste a headline</a>
+          <a class="btn btn-ghost" href="#desk">See the desk</a>
+        </div>
+        <div class="meta-row">
+          <span><strong>Hunt · Wire · Still · Pack · Approve · Ship</strong></span>
+          <span>Instagram · YouTube · Canva</span>
+        </div>
+      </div>
+
+      <aside class="desk-float" id="desk" aria-label="Cutline studio preview">
+        <div class="pill">Cutline — Product desk</div>
+        <div class="studio">
+          <div class="roster">
+            <div class="rh">Experts</div>
+            <div class="agent on"><span class="av">W</span>Wire<span class="st">live</span></div>
+            <div class="agent"><span class="av">S</span>Still<span class="st">idle</span></div>
+            <div class="agent"><span class="av">C</span>Clip<span class="st">idle</span></div>
+            <div class="agent"><span class="av">D</span>Desk<span class="st">idle</span></div>
+            <div class="agent"><span class="av">H</span>Ship<span class="st">idle</span></div>
+          </div>
+          <div class="chat">
+            <div class="bubble me"><div class="who">You</div>Pune monsoon floods metro line — need a still + IG pack before 7.</div>
+            <div class="bubble"><div class="who">Wire</div>Angle locked: civic service disruption. Framing: flooded platform, morning rush. Handing Still a tight brief.</div>
+            <div class="bubble"><div class="who">Still</div>Frame ready. Crop for 4:5. Desk drafting captions.</div>
+          </div>
+          <div class="canvas">
+            <div class="still">
+              <img src="../assets/demo-still.jpg" alt="Demo still"/>
+              <span class="tag">STILL · 4:5</span>
+            </div>
+            <div class="caps">
+              <div class="cap"><b>IG</b>Metro stalled after overnight rain. Commuters wait on a flooded platform.</div>
+              <div class="cap"><b>YT</b>Pune floods hit the metro — what we know before rush hour.</div>
+            </div>
+          </div>
+        </div>
+      </aside>
+    </section>
+
+    <section id="agents">
+      <div class="sec-head">
+        <div class="sec-num">/01 · Agents</div>
+        <h2 class="sec-title">Five roles. One cut.</h2>
+        <p class="sec-sub">Each agent owns one job. You stay editor-in-chief — approve the pack, then ship.</p>
+      </div>
+      <div class="agents">
+        <article class="acard"><div class="code">01</div><h3>Wire</h3><p>Locks angle, facts, and visual brief from the headline.</p></article>
+        <article class="acard"><div class="code">02</div><h3>Still</h3><p>Builds the publishable frame — crop, grade, safe margins.</p></article>
+        <article class="acard"><div class="code">03</div><h3>Clip</h3><p>Short motion cut when the story needs motion, not a poster.</p></article>
+        <article class="acard"><div class="code">04</div><h3>Desk</h3><p>Captions and packs for IG, YT, and Canva in house voice.</p></article>
+        <article class="acard"><div class="code">05</div><h3>Ship</h3><p>Hands off to connected channels. One tap when you’re ready.</p></article>
+      </div>
+    </section>
+
+    <section id="connect">
+      <div class="sec-head">
+        <div class="sec-num">/02 · Connect</div>
+        <h2 class="sec-title">Connect once. Ship in house style.</h2>
+        <p class="sec-sub">Pull recent posts to learn your look. Then export packs that already match.</p>
+      </div>
+      <div class="plugins">
+        <article class="pcard ig">
+          <div class="icon">IG</div>
+          <h3>Instagram</h3>
+          <p>Connect your account. Cutline reads recent posts for crop, tone, and caption length — then ships the pack.</p>
+          <button type="button" class="connect">Connect Instagram</button>
+        </article>
+        <article class="pcard yt">
+          <div class="icon">YT</div>
+          <h3>YouTube</h3>
+          <p>Thumb + title + description drafted to your channel’s pattern. Shorts when Clip is in the run.</p>
+          <button type="button" class="connect">Connect YouTube</button>
+        </article>
+        <article class="pcard cv">
+          <div class="icon">CV</div>
+          <h3>Canva</h3>
+          <p>Drop the still into your brand kit. Keep the grid you already use — Cutline fills the well.</p>
+          <button type="button" class="connect">Connect Canva</button>
+        </article>
+      </div>
+    </section>
+
+    <section id="how">
+      <div class="sec-head">
+        <div class="sec-num">/03 · How</div>
+        <h2 class="sec-title">Paste. Cut. Ship.</h2>
+        <p class="sec-sub">Under a minute from headline to share pack when the desk is warm.</p>
+      </div>
+      <div class="flow">
+        <div class="fstep"><div class="n">01</div><h3>Hunt or paste</h3><p>Drop the story line. Optional notes: city, angle, deadline.</p></div>
+        <div class="arr">→</div>
+        <div class="fstep"><div class="n">02</div><h3>Wire · Still · Pack</h3><p>Wire briefs Still. Desk writes captions. You approve or redirect.</p></div>
+        <div class="arr">→</div>
+        <div class="fstep"><div class="n">03</div><h3>Approve &amp; ship</h3><p>One-tap to connected Instagram, YouTube, or Canva — or download.</p></div>
+      </div>
+    </section>
+
+    <section id="pipeline">
+      <div class="sec-head">
+        <div class="sec-num">/04 · Pipeline</div>
+        <h2 class="sec-title">End to end on one desk.</h2>
+        <p class="sec-sub">From hunt to ship — no handoff gaps between editors and channels.</p>
+      </div>
+      <div class="pipeline" aria-label="End-to-end pipeline">
+        <span class="pipe-step"><span class="num">1</span>Hunt / paste</span>
+        <span class="pipe-arr">→</span>
+        <span class="pipe-step"><span class="num">2</span>Wire</span>
+        <span class="pipe-arr">→</span>
+        <span class="pipe-step"><span class="num">3</span>Still</span>
+        <span class="pipe-arr">→</span>
+        <span class="pipe-step"><span class="num">4</span>Captions</span>
+        <span class="pipe-arr">→</span>
+        <span class="pipe-step"><span class="num">5</span>Approve</span>
+        <span class="pipe-arr">→</span>
+        <span class="pipe-step"><span class="num">6</span>Ship · IG / YT / Canva</span>
+      </div>
+    </section>
+
+    <div class="bottom">
+      <div>
+        <h2>Ready for the late desk?</h2>
+        <p>Paste a headline. Get a still, captions, and a share pack — approve, then ship before the story cools.</p>
+      </div>
+      <a class="btn-dark" href="/studio.html">Try Cutline now</a>
+    </div>
+
+    <footer>
+      <span>Cutline · Papers · Publishers · Editors · Sep 2026</span>
+      <span>Built for the late desk</span>
+    </footer>
+  </main>
+</body>
+</html>
