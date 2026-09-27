@@ -1,0 +1,29 @@
+{
+  "tip": {
+    "src": "/assets/demo/mumbai.jpg",
+    "chrome": false
+  },
+  "styleCopy": {
+    "chrome": "template_post_chrome_hyderabad.png"
+  },
+  "canva": {
+    "ok": false,
+    "channel": "canva",
+    "status": "connect_required",
+    "connectUrl": "/studio.html?view=connect",
+    "nextStep": "Connect Canva with OAuth to publish. Until then, use ZIP or open canva.com yourself.",
+    "pack": {
+      "igCaption": "Pune · overnight buses go to a vote. Cached demo pack — no Gemini.",
+      "ytTitle": "Overnight bus",
+      "ytDescription": "Pune councillors take up the overnight bus plan this week.",
+      "canvaNotes": "Demo pack — open Canva with this headline.",
+      "stillUrl": "http://127.0.0.1:8787/assets/demo/pune.jpg",
+      "headline": "Overnight bus",
+      "shareText": "Overnight bus\n\nPune · overnight buses go to a vote. Cached demo pack — no Gemini.\n\nhttp://127.0.0.1:8787/sample-pune.html"
+    },
+    "warning": "Run still needs_input — prefer Approve before ship. Pack available.",
+    "runId": "demo_mukbjc0b",
+    "runStatus": "needs_input"
+  },
+  "toast": "Connect required. Connect Canva with OAuth to publish. Until then, use ZIP or open canva.com yourself.\nRun still needs_input — prefer Approve before ship. Pack available."
+}

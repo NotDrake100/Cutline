@@ -1,43 +1,50 @@
 # Deploy Cutline
 
-Node 20+. The library uses `better-sqlite3` (not `node:sqlite`) so local Node 20, Vercel, and Cloud Run images all boot.
+Host the public product on **Vercel**. Public URL: **https://cutline.dev** (also `https://cutline.vercel.app`). Do not invent a DCN / droplet deploy.
 
-Set `GEMINI_API_KEY` on the host. Never put the key in git.
+Node 20+. The library uses `better-sqlite3` so local Node 20 and Vercel both boot.
 
-Local `npm run dev` reads a gitignored repo-root `.env` into `process.env` only when the var is unset or empty — so a key Archit already has locally stays local, and Vercel/Cloud Run env always wins.
-
-Optional: `GEMINI_TEXT_MODEL` (default `gemini-3.8-flash`; prefer `gemini-flash-latest` or `gemini-3.8-flash`), `GEMINI_IMAGE_MODEL` (default `gemini-3.1-flash-image` — paid/quota may be required; a 429 does not fail the pack — the desk uses the sourced page photo with a quiet “Using sourced photo” / “Still unavailable” note). The desk UI never shows `gemini_http_*`, status codes, or `GEMINI_API_KEY`.
-
-`GET /api/health` and `GET /api/status` return `{ ok, geminiConfigured }` where `geminiConfigured` is a boolean. They never echo the key.
-
-## Vercel — public URL
-
-Create the project as **`cutline`**. Vercel then serves:
-
-`https://cutline.vercel.app`
-
-No custom domain required.
+## Vercel
 
 ```
 npx vercel
 ```
 
-When prompted, set the project name to `cutline`.
+Dashboard: Import the repo → Project Name `cutline` → add env → Deploy. Attach the `cutline.dev` domain to the project.
 
-Or in the Vercel dashboard: Import the repo → Project Name `cutline` → Env `GEMINI_API_KEY` → Deploy.
+`vercel.json` routes `/` to the landing, `/studio` to the desk, `/api/*` to the Node handler. On Vercel the library writes to `/tmp`.
 
-`vercel.json` routes `/` to the desk front and `/api/*` to the Node handler.
+## Env (Vercel project settings)
 
-On Vercel the library writes to `/tmp` for the instance.
-
-## Cloud Run
+Required for HIS owner desk:
 
 ```
-gcloud run deploy cutline \
-  --source . \
-  --set-env-vars GEMINI_API_KEY=YOUR_KEY
+GEMINI_API_KEY=
+CUTLINE_OWNER_KEY=
+CUTLINE_PUBLIC_URL=https://cutline.dev
 ```
 
-Or build the Dockerfile and set `GEMINI_API_KEY` in the service. The container listens on `PORT` (default 8080).
+Canva OAuth (tokens stay server-side, never in the browser):
 
-Hunt and Browser work without Gemini. Rewrite uses the key when present. Missing or failed Gemini settles on the sourced page photo and last-good copy — the desk never invents news.
+```
+CANVA_CLIENT_ID=
+CANVA_CLIENT_SECRET=
+```
+
+Register the Canva redirect: `https://cutline.dev/api/oauth/callback/canva`
+
+To persist HIS Canva account across serverless instances, also set `CANVA_ACCESS_TOKEN`, `CANVA_REFRESH_TOKEN`, `CANVA_ACCOUNT_LABEL` after the first connect.
+
+Optional: `GEMINI_TEXT_MODEL` (default `gemini-3.8-flash`), `GEMINI_IMAGE_MODEL` (default `gemini-3.1-flash-image`).
+
+`CUTLINE_FORCE_DEMO=1` forces Demo even with an owner cookie.
+
+## Demo vs owner AI
+
+Public / anonymous → Demo fixtures. No Gemini `generateContent`.
+Owner cookie or `x-cutline-owner: CUTLINE_OWNER_KEY` → real Gemini.
+On Vercel, a missing owner session is always Demo even if `GEMINI_API_KEY` is set.
+
+`GET /api/health` returns `{ mode, owner, geminiConfigured }`. Public `geminiConfigured` is false so judges do not see a live key.
+
+Hunt and Browser work without Gemini. Owner rewrite uses the key when present.

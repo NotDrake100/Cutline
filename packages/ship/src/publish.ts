@@ -53,6 +53,9 @@ export async function publishConnected(
     if (channel === "ig") return await publishIg(account, run, shareText);
     if (channel === "tiktok") return await publishTikTok(account, run, shareText);
     if (channel === "yt") return await publishYouTube(account, run);
+    if (channel === "gmail" || channel === "drive" || channel === "slack") {
+      return failed(channel, "Open from Plugins — auto-send is not wired yet.");
+    }
     const _exhaustive: never = channel;
     return failed(_exhaustive, "Unknown channel");
   } catch (err) {

@@ -12,7 +12,10 @@ export type ShipChannel =
   | "zip"
   | "telegram"
   | "x"
-  | "tiktok";
+  | "tiktok"
+  | "gmail"
+  | "drive"
+  | "slack";
 
 export type ShipStatus = "ready" | "queued" | "connect_required" | "downloaded" | "published" | "failed";
 
@@ -30,6 +33,10 @@ export interface PluginInfo {
   /** Env names still empty. Never values. */
   missing: string[];
   accountLabel?: string;
+  /** Public app URL for Open — never implies Connected. */
+  openUrl?: string;
+  /** Connect OAuth only this pass — no auto-send/publish. */
+  openOnly?: boolean;
 }
 
 export interface PackPreview {
@@ -62,12 +69,52 @@ export interface ShipResult {
 
 const PLUGINS: Omit<PluginInfo, "configured" | "missing">[] = [
   {
-    id: "ig",
-    name: "Instagram",
-    description: "Still + IG caption pack",
+    id: "canva",
+    name: "Canva",
+    description: "Design handoff — real OAuth when CANVA_* is set",
     connected: false,
     primary: true,
     local: false,
+    openUrl: "https://www.canva.com/",
+  },
+  {
+    id: "gmail",
+    name: "Gmail",
+    description: "Newsroom inbox — Google OAuth when GOOGLE_* is set",
+    connected: false,
+    primary: true,
+    local: false,
+    openUrl: "https://mail.google.com/",
+    openOnly: true,
+  },
+  {
+    id: "drive",
+    name: "Google Drive",
+    description: "Packs & assets — same Google OAuth family as Gmail",
+    connected: false,
+    primary: true,
+    local: false,
+    openUrl: "https://drive.google.com/",
+    openOnly: true,
+  },
+  {
+    id: "slack",
+    name: "Slack",
+    description: "Desk alerts — OAuth when SLACK_* is set",
+    connected: false,
+    primary: false,
+    local: false,
+    openUrl: "https://app.slack.com/",
+    openOnly: true,
+  },
+  {
+    id: "x",
+    name: "X / Twitter",
+    description: "Post + media — OAuth when X_CLIENT_* is set",
+    connected: false,
+    primary: false,
+    local: false,
+    openUrl: "https://x.com/",
   },
   {
     id: "yt",
@@ -76,14 +123,16 @@ const PLUGINS: Omit<PluginInfo, "configured" | "missing">[] = [
     connected: false,
     primary: true,
     local: false,
+    openUrl: "https://studio.youtube.com/",
   },
   {
-    id: "canva",
-    name: "Canva",
-    description: "Open design handoff",
+    id: "ig",
+    name: "Instagram",
+    description: "Still + IG caption pack",
     connected: false,
     primary: true,
     local: false,
+    openUrl: "https://www.instagram.com/",
   },
   {
     id: "telegram",
@@ -92,14 +141,7 @@ const PLUGINS: Omit<PluginInfo, "configured" | "missing">[] = [
     connected: false,
     primary: false,
     local: false,
-  },
-  {
-    id: "x",
-    name: "X / Twitter",
-    description: "Post + media",
-    connected: false,
-    primary: false,
-    local: false,
+    openUrl: "https://telegram.org/",
   },
   {
     id: "tiktok",
@@ -108,20 +150,33 @@ const PLUGINS: Omit<PluginInfo, "configured" | "missing">[] = [
     connected: false,
     primary: false,
     local: false,
+    openUrl: "https://www.tiktok.com/",
   },
   {
     id: "zip",
     name: "Download ZIP",
-    description: "JSON + caption bundle — always works",
+    description: "JSON + caption bundle — always works, no login",
     connected: true,
     primary: false,
     local: true,
   },
 ];
 
+/** Desk Plugins page — newsroom connectors. Honesty: Connected only after real OAuth. */
+const WORKING_PLUGIN_IDS: ReadonlySet<ShipChannel> = new Set([
+  "canva",
+  "gmail",
+  "drive",
+  "slack",
+  "x",
+  "yt",
+  "ig",
+  "zip",
+]);
+
 export function listPlugins(links: readonly ConnectionView[] = []): PluginInfo[] {
   const byChannel = new Map(links.map((link) => [link.channel, link]));
-  return PLUGINS.map((plugin) => {
+  return PLUGINS.filter((plugin) => WORKING_PLUGIN_IDS.has(plugin.id)).map((plugin) => {
     if (plugin.local || !isOauthChannel(plugin.id)) {
       return { ...plugin, connected: plugin.local, configured: true, missing: [] as string[] };
     }
@@ -204,6 +259,9 @@ function connectStub(
     telegram: "Telegram",
     x: "X / Twitter",
     tiktok: "TikTok",
+    gmail: "Gmail",
+    drive: "Google Drive",
+    slack: "Slack",
   };
   const connectUrls: Partial<Record<ShipChannel, string>> = {
     ig: "https://www.instagram.com/accounts/login/",
@@ -212,6 +270,9 @@ function connectStub(
     telegram: "https://telegram.org/",
     x: "https://x.com/i/flow/login",
     tiktok: "https://www.tiktok.com/login",
+    gmail: "https://mail.google.com/",
+    drive: "https://drive.google.com/",
+    slack: "https://app.slack.com/",
   };
   return {
     ok: false,
@@ -310,9 +371,35 @@ export async function shipRun(
 
   const account = await getFreshAccount(channel);
   if (!account) {
+    /* Honest gate: never toast Published without a real OAuth-linked account */
+    if (channel === "canva") {
+      return connectStub(channel, run, shareText, {
+        connectUrl: `/studio.html?view=connect`,
+        nextStep: "Connect Canva with OAuth to publish. Until then, use ZIP or open canva.com yourself.",
+        warning: warning || "Canva is not connected — no publish happened.",
+      });
+    }
     return connectStub(channel, run, shareText, {
       connectUrl: `/studio.html?view=connect`,
     });
+  }
+  /* Gmail / Drive / Slack: Connect OAuth + Open is enough this pass — never fake a send. */
+  if (channel === "gmail" || channel === "drive" || channel === "slack") {
+    const openUrl =
+      channel === "gmail"
+        ? "https://mail.google.com/"
+        : channel === "drive"
+          ? "https://drive.google.com/"
+          : "https://app.slack.com/";
+    return {
+      ok: true,
+      channel,
+      status: "ready",
+      connectUrl: openUrl,
+      nextStep: `Connected as ${account.accountLabel}. Open the app to work — auto-send is not wired yet.`,
+      pack: packPreview(run, shareText),
+      warning,
+    };
   }
   const published = await publishConnected(account, run, shareText);
   return {

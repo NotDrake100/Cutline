@@ -2,8 +2,24 @@
  * Gemini adapter — live API only.
  * Reads GEMINI_API_KEY from process.env (Vercel/Cloud Run env, or loadDotEnv .env).
  * Missing key or a failed call throws. Never invents headlines, stills, or pack copy.
+ *
+ * CREDIT GATE: generateContent is closed unless withGeminiPermit() is open.
+ * Server only opens that permit for an owner session. Anonymous / Demo traffic
+ * cannot reach Google even if GEMINI_API_KEY is set on the host.
  */
 import { ENV } from "./env";
+
+let permitDepth = 0;
+
+/** Owner-only. Demo paths must never wrap Gemini in this. */
+export async function withGeminiPermit<T>(fn: () => Promise<T> | T): Promise<T> {
+  permitDepth += 1;
+  try {
+    return await fn();
+  } finally {
+    permitDepth -= 1;
+  }
+}
 
 function apiKey(): string | undefined {
   const k = process.env[ENV.GEMINI_API_KEY];
@@ -42,6 +58,9 @@ async function generateContent(
   key: string,
   body: Record<string, unknown>
 ): Promise<unknown> {
+  if (permitDepth <= 0) {
+    throw new Error("ai_blocked_demo");
+  }
   const url = `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent`;
   const res = await fetch(url, {
     method: "POST",

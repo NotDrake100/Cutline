@@ -65,6 +65,56 @@ export const DESKS: Record<string, BeatConfig> = {
       "https://www.reuters.com/world/",
     ],
   },
+  pune: {
+    id: "pune",
+    label: "Pune",
+    keywords: ["Pune"],
+    sources: [
+      "https://indianexpress.com/section/cities/pune/",
+      "https://timesofindia.indiatimes.com/city/pune",
+      "https://www.hindustantimes.com/cities/pune-news",
+    ],
+  },
+  mumbai: {
+    id: "mumbai",
+    label: "Mumbai",
+    keywords: ["Mumbai"],
+    sources: [
+      "https://indianexpress.com/section/cities/mumbai/",
+      "https://timesofindia.indiatimes.com/city/mumbai",
+      "https://www.hindustantimes.com/cities/mumbai-news",
+    ],
+  },
+  delhi: {
+    id: "delhi",
+    label: "Delhi",
+    keywords: ["Delhi"],
+    sources: [
+      "https://indianexpress.com/section/cities/delhi/",
+      "https://timesofindia.indiatimes.com/city/delhi",
+      "https://www.hindustantimes.com/cities/delhi-news",
+    ],
+  },
+  bengaluru: {
+    id: "bengaluru",
+    label: "Bengaluru",
+    keywords: ["Bengaluru", "Bangalore"],
+    sources: [
+      "https://indianexpress.com/section/cities/bangalore/",
+      "https://timesofindia.indiatimes.com/city/bengaluru",
+      "https://www.hindustantimes.com/cities/bengaluru-news",
+    ],
+  },
+  hyderabad: {
+    id: "hyderabad",
+    label: "Hyderabad",
+    keywords: ["Hyderabad"],
+    sources: [
+      "https://indianexpress.com/section/cities/hyderabad/",
+      "https://timesofindia.indiatimes.com/city/hyderabad",
+      "https://www.hindustantimes.com/cities/hyderabad-news",
+    ],
+  },
 };
 
 export const BEATS = DESKS;

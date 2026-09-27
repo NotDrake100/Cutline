@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="1080" height="1080" viewBox="0 0 1080 1080">
+  <rect width="1080" height="1080" fill="#EDE6D9"/>
+  <rect x="48" y="48" width="984" height="984" rx="32" fill="#FFFEFB"/>
+  <rect x="48" y="48" width="22" height="984" fill="#E1F435"/>
+  <rect x="140" y="180" width="248" height="64" rx="10" fill="#E1F435"/>
+  <text x="164" y="224" font-family="ui-sans-serif, system-ui, sans-serif" font-size="30" font-weight="700" fill="#0A0A0A">DCN PUNE</text>
+  <text x="140" y="430" font-family="Georgia, serif" font-size="78" fill="#0A0A0A">Instagram</text>
+  <text x="140" y="530" font-family="Georgia, serif" font-size="78" fill="#0A0A0A">sourced post</text>
+  <text x="140" y="640" font-family="ui-sans-serif, system-ui, sans-serif" font-size="34" fill="rgba(10,10,10,.5)">instagram.com/p/DdwHjcpId9B</text>
+  <text x="140" y="960" font-family="ui-sans-serif, system-ui, sans-serif" font-size="30" fill="rgba(10,10,10,.4)">Demo still - open in Browser</text>
+</svg>

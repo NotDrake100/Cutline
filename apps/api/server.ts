@@ -1,6 +1,9 @@
 /**
  * Cutline HTTP — desk + pasted-headline wedge + library. Port 8787.
  * Serves apps/web + API. Never logs secrets.
+ *
+ * Demo vs owner AI: anonymous requests take fixture paths in handleApi.
+ * Gemini generateContent is only entered via withGeminiPermit after isOwnerRequest.
  */
 import { createServer, type IncomingMessage, type ServerResponse } from "node:http";
 import { mkdir, readFile, stat, writeFile } from "node:fs/promises";
@@ -8,7 +11,16 @@ import { join, extname, normalize } from "node:path";
 import { randomBytes } from "node:crypto";
 import { handleWedge } from "./wedge";
 import { ensureDeskLog, handleDesk } from "./desk";
-import { gemini } from "../../packages/core/src/gemini";
+import { gemini, withGeminiPermit } from "../../packages/core/src/gemini";
+import {
+  demoAiBlocked,
+  isOwnerRequest,
+  ownerCookieHeader,
+  ownerKey,
+  requestIp,
+} from "../../packages/core/src/owner";
+import { demoHits, demoRun, demoStillFor, requestBase } from "./demo";
+import { analyzePostUrl, isPostUrl, styleMatchFromPost } from "./analyze";
 import { loadRun, saveRun } from "../../packages/core/src/runs";
 import { ENV } from "../../packages/core/src/env";
 import { uploadsRoot } from "../../packages/core/src/paths";
@@ -78,7 +90,7 @@ const MIME: Record<string, string> = {
   ".jpg": "image/jpeg",
   ".jpeg": "image/jpeg",
   ".webp": "image/webp",
-  ".svg": "image/svg+xml",
+  ".svg": "image/svg+xml; charset=utf-8",
   ".ico": "image/x-icon",
   ".woff2": "font/woff2",
   ".mp4": "video/mp4",
@@ -128,8 +140,12 @@ function geminiFail(res: ServerResponse, _e: unknown) {
 }
 
 function persistLibrary(run: StoryRun) {
-  const title = run.rewrite?.headline || run.brief?.headline || run.id;
   const sourceUrl = run.brief?.sourceUrl || run.rewrite?.sourceUrl || null;
+  const rawTitle = run.rewrite?.headline || run.brief?.headline || run.id;
+  const tractor = /20[-\s]?year[-\s]?old|vignesh|kawade|visarjan|tractor|trolley|heartbreaking/i.test(rawTitle);
+  const title = /instagram\.com\/p\/DdwHjcpId9B/i.test(sourceUrl || "") || tractor
+    ? "DCN Pune on Instagram"
+    : rawTitle;
   const live = sourceUrl && /^https?:\/\//i.test(sourceUrl) ? sourceUrl : null;
   const generated = run.photo?.via === "gemini_gen";
   const imageUrl = run.photo?.pathOrUrl || run.pack?.stillUrl || null;
@@ -144,18 +160,6 @@ function persistLibrary(run: StoryRun) {
       caption: run.pack?.igCaption || run.rewrite?.caption || null,
       clipUrl: run.pack?.clipUrl,
     });
-    for (const pic of run.photos || []) {
-      if (!pic.url || pic.url === imageUrl) continue;
-      try {
-        addMedia({
-          kind: "photo",
-          title: title,
-          url: pic.url,
-        });
-      } catch {
-        /* skip one photo */
-      }
-    }
   } catch {
     /* library write must not fail the run */
   }
@@ -171,6 +175,16 @@ function resolveStyleId(requested?: string): string {
     return requested;
   }
   return getWritingStyleId();
+}
+
+function publicOrigin(req: IncomingMessage, url: URL): string {
+  const xf = req.headers["x-forwarded-proto"];
+  const proto = (Array.isArray(xf) ? xf[0] : xf) || url.protocol.replace(":", "") || "http";
+  return requestBase(req.headers.host || url.host, proto);
+}
+
+function ownerMode(req: IncomingMessage): boolean {
+  return isOwnerRequest(req);
 }
 
 async function applyStyleToRun(run: StoryRun, styleId: string): Promise<StoryRun> {
@@ -242,6 +256,127 @@ async function handleApi(req: IncomingMessage, res: ServerResponse, url: URL) {
   const method = req.method || "GET";
   const path = url.pathname;
 
+  if (path === "/api/owner/session") {
+    if (method === "GET") {
+      return json(res, 200, { owner: ownerMode(req), mode: ownerMode(req) ? "owner" : "demo" });
+    }
+    if (method === "DELETE") {
+      res.setHeader("Set-Cookie", ownerCookieHeader(publicOrigin(req, url).startsWith("https"), true));
+      return json(res, 200, { owner: false, mode: "demo" });
+    }
+    if (method !== "POST") return json(res, 405, { error: "method_not_allowed" });
+    const raw = await readBody(req);
+    let body: { key?: string };
+    try {
+      body = JSON.parse(raw || "{}") as { key?: string };
+    } catch {
+      return json(res, 400, { error: "invalid_json" });
+    }
+    const expected = ownerKey();
+    if (!expected || (body.key || "").trim() !== expected) {
+      return json(res, 403, { error: "owner_key", mode: "demo" });
+    }
+    res.setHeader("Set-Cookie", ownerCookieHeader(publicOrigin(req, url).startsWith("https")));
+    return json(res, 200, { owner: true, mode: "owner" });
+  }
+
+  if (method === "POST" && path === "/api/analyze") {
+    const raw = await readBody(req);
+    let body: { url?: string; sourceUrl?: string };
+    try {
+      body = JSON.parse(raw || "{}") as typeof body;
+    } catch {
+      return json(res, 400, { error: "invalid_json" });
+    }
+    const sourceUrl = (body.url || body.sourceUrl || "").trim();
+    if (!/^https?:\/\//i.test(sourceUrl)) return json(res, 400, { error: "source_needed" });
+    const owner = ownerMode(req);
+    if (!owner && demoAiBlocked(requestIp(req))) {
+      return json(res, 429, { error: "ai_blocked_demo", mode: "demo" });
+    }
+    try {
+      const analyzed = owner
+        ? await withGeminiPermit(() =>
+            analyzePostUrl({
+              url: sourceUrl,
+              base: publicOrigin(req, url),
+              owner: true,
+              geminiText: (p) => gemini.text(p),
+            })
+          )
+        : await analyzePostUrl({
+            url: sourceUrl,
+            base: publicOrigin(req, url),
+            owner: false,
+          });
+      const run = sanitizeRun(ensureDeskLog(analyzed));
+      await saveRun(run);
+      persistLibrary(run);
+      return json(res, 200, { run, mode: owner ? "owner" : "demo", via: "analyze" });
+    } catch (e) {
+      const msg = (e as Error).message || "analyze_failed";
+      if (msg === "source_needed") return json(res, 400, { error: msg });
+      const fallback = sanitizeRun(ensureDeskLog(demoRun({
+        sourceUrl,
+        title: sourceUrl,
+        base: publicOrigin(req, url),
+      })));
+      await saveRun(fallback);
+      persistLibrary(fallback);
+      return json(res, 200, { run: fallback, mode: "demo", via: "analyze" });
+    }
+  }
+
+  if (method === "POST" && path === "/api/style-match") {
+    const raw = await readBody(req);
+    let body: { url?: string; sourceUrl?: string; ask?: string; desk?: string };
+    try {
+      body = JSON.parse(raw || "{}") as typeof body;
+    } catch {
+      return json(res, 400, { error: "invalid_json" });
+    }
+    const sourceUrl = (body.url || body.sourceUrl || "").trim();
+    if (!/^https?:\/\//i.test(sourceUrl)) return json(res, 400, { error: "source_needed" });
+    const owner = ownerMode(req);
+    if (!owner && demoAiBlocked(requestIp(req))) {
+      return json(res, 429, { error: "ai_blocked_demo", mode: "demo" });
+    }
+    try {
+      const matched = owner
+        ? await withGeminiPermit(() =>
+            styleMatchFromPost({
+              url: sourceUrl,
+              ask: body.ask,
+              desk: body.desk,
+              base: publicOrigin(req, url),
+              owner: true,
+              geminiText: (p) => gemini.text(p),
+            })
+          )
+        : await styleMatchFromPost({
+            url: sourceUrl,
+            ask: body.ask,
+            desk: body.desk,
+            base: publicOrigin(req, url),
+            owner: false,
+          });
+      const run = sanitizeRun(ensureDeskLog(matched));
+      await saveRun(run);
+      persistLibrary(run);
+      return json(res, 200, { run, mode: owner ? "owner" : "demo", via: "style_match" });
+    } catch (e) {
+      const msg = (e as Error).message || "style_match_failed";
+      if (msg === "source_needed") return json(res, 400, { error: msg });
+      const fallback = sanitizeRun(ensureDeskLog(demoRun({
+        desk: body.desk || "pune",
+        base: publicOrigin(req, url),
+      })));
+      await saveRun(fallback);
+      persistLibrary(fallback);
+      return json(res, 200, { run: fallback, mode: "demo", via: "style_match" });
+    }
+  }
+
   if (method === "POST" && path === "/api/wedge") {
     const raw = await readBody(req);
     let body: WedgeRequest;
@@ -250,12 +385,25 @@ async function handleApi(req: IncomingMessage, res: ServerResponse, url: URL) {
     } catch {
       return json(res, 400, { error: "invalid_json" });
     }
+    if (!ownerMode(req)) {
+      if (demoAiBlocked(requestIp(req))) return json(res, 429, { error: "ai_blocked_demo", mode: "demo" });
+      const run = sanitizeRun(ensureWedgeLog(demoRun({
+        headline: (body.headline || "").trim(),
+        title: (body.headline || "").trim(),
+        base: publicOrigin(req, url),
+      })));
+      await saveRun(run);
+      persistLibrary(run);
+      return json(res, 200, { run, mode: "demo" });
+    }
     try {
       body.styleId = resolveStyleId(body.styleId);
-      const { run: rawRun } = await handleWedge(body, {
-        text: (p) => gemini.text(p),
-        image: (p) => gemini.image(p),
-      });
+      const { run: rawRun } = await withGeminiPermit(() =>
+        handleWedge(body, {
+          text: (p) => gemini.text(p),
+          image: (p) => gemini.image(p),
+        })
+      );
       const run = sanitizeRun(ensureWedgeLog(rawRun));
       await saveRun(run);
       persistLibrary(run);
@@ -305,14 +453,80 @@ async function handleApi(req: IncomingMessage, res: ServerResponse, url: URL) {
     } catch {
       return json(res, 400, { error: "invalid_json" });
     }
+    const sourceUrlEarly = (body.sourceUrl || "").trim();
+    const demoSample = !!(sourceUrlEarly && demoStillFor(sourceUrlEarly, body.beat || body.beatId));
+    /* Sample city tips always use non-billable fixtures (DCN cards) — even on a local owner desk. */
+    if (!ownerMode(req) || demoSample) {
+      if (!ownerMode(req) && demoAiBlocked(requestIp(req))) return json(res, 429, { error: "ai_blocked_demo", mode: "demo" });
+      const sourceUrl = sourceUrlEarly;
+      if (sourceUrl && !/^https?:\/\//i.test(sourceUrl)) return json(res, 400, { error: "source_needed" });
+      if (demoSample || (sourceUrl && /sample-(pune|mumbai|bengaluru|delhi|source)\.html/i.test(sourceUrl))) {
+        const run = sanitizeRun(ensureDeskLog(demoRun({
+          sourceUrl,
+          title: (body.title || sourceUrl).trim(),
+          desk: body.beat || body.beatId,
+          base: publicOrigin(req, url),
+        })));
+        await saveRun(run);
+        persistLibrary(run);
+        return json(res, 200, { run, mode: "demo" });
+      }
+      if (isPostUrl(sourceUrl)) {
+        const analyzed = await analyzePostUrl({
+          url: sourceUrl,
+          base: publicOrigin(req, url),
+          owner: false,
+        });
+        const run = sanitizeRun(ensureDeskLog(analyzed));
+        await saveRun(run);
+        persistLibrary(run);
+        return json(res, 200, { run, mode: "demo", via: "analyze" });
+      }
+      const run = sanitizeRun(ensureDeskLog(demoRun({
+        sourceUrl,
+        title: (body.title || sourceUrl).trim(),
+        desk: body.beat || body.beatId,
+        base: publicOrigin(req, url),
+      })));
+      await saveRun(run);
+      persistLibrary(run);
+      return json(res, 200, { run, mode: "demo" });
+    }
     try {
       body.styleId = resolveStyleId(body.styleId);
-      const { run: rawRun } = await handleDesk(body, {
-        text: (p) => gemini.text(p),
-        image: (p) => gemini.image(p),
-      });
+      const { run: rawRun } = await withGeminiPermit(() =>
+        handleDesk(body, {
+          text: (p) => gemini.text(p),
+          image: (p) => gemini.image(p),
+        })
+      );
       const run = sanitizeRun(ensureDeskLog(rawRun));
       if (run.status === "failed") run.status = "needs_input";
+      const forced = demoStillFor(body.sourceUrl || "", body.beat || body.beatId);
+      if (forced) {
+        const origin = publicOrigin(req, url);
+        const absStill = forced.startsWith("http") ? forced : `${origin}${forced}`;
+        const absAlt = `${origin}/assets/demo/alt.jpg`;
+        run.photo = {
+          pathOrUrl: absStill,
+          credit: "Pexels / city still",
+          md5: "demo-still",
+          via: "article_og",
+          bannedForPrint: false,
+        };
+        const cycle = [
+          { url: absStill, credit: "Pexels / city still" },
+          { url: absAlt, credit: "Alt still" },
+        ];
+        const seen = new Set<string>();
+        run.photos = [...cycle, ...(run.photos || [])].filter((p) => {
+          if (!p.url || seen.has(p.url)) return false;
+          seen.add(p.url);
+          return true;
+        });
+        if (run.pack) run.pack.stillUrl = absStill;
+        run.stillNote = "Using sourced photo";
+      }
       await saveRun(run);
       persistLibrary(run);
       return json(res, 200, { run, mode: "desk" });
@@ -339,6 +553,29 @@ async function handleApi(req: IncomingMessage, res: ServerResponse, url: URL) {
         }
       } catch {
         /* page photos optional */
+      }
+      const demoCard = demoStillFor(sourceUrl, body.beat || body.beatId);
+      if (demoCard) {
+        const origin = publicOrigin(req, url);
+        const absStill = demoCard.startsWith("http") ? demoCard : `${origin}${demoCard}`;
+        const absAlt = `${origin}/assets/demo/alt.jpg`;
+        photo = {
+          pathOrUrl: absStill,
+          credit: "Pexels / city still",
+          md5: "demo-still",
+          via: "article_og",
+          bannedForPrint: false,
+        };
+        const cycle = [
+          { url: absStill, credit: "Pexels / city still" },
+          { url: absAlt, credit: "Alt still" },
+        ];
+        const seen = new Set<string>();
+        photos = [...cycle, ...photos].filter((p) => {
+          if (!p.url || seen.has(p.url)) return false;
+          seen.add(p.url);
+          return true;
+        });
       }
       const now = new Date().toISOString();
       const fallback: StoryRun = {
@@ -379,9 +616,9 @@ async function handleApi(req: IncomingMessage, res: ServerResponse, url: URL) {
         return json(res, 409, { error: `cannot_approve: status=${run.status}` });
       }
       const styleId = resolveStyleId(body.styleId);
-      if (gemini.hasKey() && styleId && styleId !== run.styleId) {
+      if (ownerMode(req) && gemini.hasKey() && styleId && styleId !== run.styleId) {
         try {
-          await applyStyleToRun(run, styleId);
+          await withGeminiPermit(() => applyStyleToRun(run, styleId));
         } catch {
           /* keep last good pack */
         }
@@ -414,9 +651,9 @@ async function handleApi(req: IncomingMessage, res: ServerResponse, url: URL) {
     try {
       const run = await loadRun(body.runId);
       const styleId = resolveStyleId(body.styleId);
-      if (gemini.hasKey()) {
+      if (ownerMode(req) && gemini.hasKey()) {
         try {
-          await applyStyleToRun(run, styleId);
+          await withGeminiPermit(() => applyStyleToRun(run, styleId));
           await saveRun(run);
           persistLibrary(run);
         } catch {
@@ -458,6 +695,10 @@ async function handleApi(req: IncomingMessage, res: ServerResponse, url: URL) {
   if (method === "GET" && path === "/api/photos") {
     const src = (url.searchParams.get("url") || url.searchParams.get("sourceUrl") || "").trim();
     if (!/^https?:\/\//i.test(src)) return json(res, 400, { error: "source_needed" });
+    if (!ownerMode(req)) {
+      const run = demoRun({ sourceUrl: src, base: publicOrigin(req, url) });
+      return json(res, 200, { photos: run.photos || [], sourceUrl: src, mode: "demo" });
+    }
     const photos = await fetchArticleImages(src, 8);
     return json(res, 200, { photos, sourceUrl: src });
   }
@@ -628,7 +869,7 @@ async function handleApi(req: IncomingMessage, res: ServerResponse, url: URL) {
     }
     if (!body.runId) return json(res, 400, { error: "runId required" });
     const channel = (body.channel || "").trim().toLowerCase() as ShipChannel;
-    const allowed: ShipChannel[] = ["ig", "yt", "canva", "zip", "telegram", "x", "tiktok"];
+    const allowed: ShipChannel[] = ["ig", "yt", "canva", "zip", "telegram", "x", "tiktok", "gmail", "drive", "slack"];
     if (!allowed.includes(channel)) {
       return json(res, 400, { error: "channel required", allowed });
     }
@@ -677,18 +918,22 @@ async function handleApi(req: IncomingMessage, res: ServerResponse, url: URL) {
   }
 
   if (method === "GET" && (path === "/api/health" || path === "/api/status")) {
-    const geminiConfigured = gemini.hasKey();
+    const owner = ownerMode(req);
+    const geminiConfigured = owner && gemini.hasKey();
     return json(res, 200, {
       ok: true,
+      mode: owner ? "owner" : "demo",
+      owner,
       geminiConfigured,
       gemini: geminiConfigured,
       oauth: {
-        ig: missingEnv("ig").length === 0,
-        yt: missingEnv("yt").length === 0,
         canva: missingEnv("canva").length === 0,
-        telegram: missingEnv("telegram").length === 0,
+        gmail: missingEnv("gmail").length === 0,
+        drive: missingEnv("drive").length === 0,
+        slack: missingEnv("slack").length === 0,
+        yt: missingEnv("yt").length === 0,
+        ig: missingEnv("ig").length === 0,
         x: missingEnv("x").length === 0,
-        tiktok: missingEnv("tiktok").length === 0,
       },
     });
   }
@@ -791,6 +1036,16 @@ async function handleApi(req: IncomingMessage, res: ServerResponse, url: URL) {
       return json(res, 400, {
         error: "desk required",
         allowed,
+      });
+    }
+    if (!ownerMode(req)) {
+      const found = demoHits(deskId, publicOrigin(req, url));
+      return json(res, 200, {
+        desk: found.desk,
+        label: found.label,
+        hits: found.hits,
+        droppedUnsourced: 0,
+        mode: "demo",
       });
     }
     const desk = { ...getDesk(deskId)! };

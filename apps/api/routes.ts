@@ -32,4 +32,6 @@ export const ROUTES = [
   "PUT  /api/style",
   "GET  /api/photos",
   "POST /api/pack",
+  "POST /api/analyze",
+  "POST /api/style-match",
 ] as const;

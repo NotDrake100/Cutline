@@ -5,14 +5,15 @@
 import { createHash, createHmac, randomBytes, timingSafeEqual } from "node:crypto";
 import { mkdir, readFile, rename, writeFile } from "node:fs/promises";
 import { join } from "node:path";
+import { dataRoot } from "../../core/src/paths";
 
-const ROOT = join(import.meta.dirname, "../../..");
-const SECRETS = join(ROOT, ".secrets");
+/** Server-side token store. Local: data/secrets. Vercel: /tmp/cutline/secrets. Seed Canva from env for HIS deploy. */
+const SECRETS = join(dataRoot(), "secrets");
 const ACCOUNTS_PATH = join(SECRETS, "oauth-accounts.json");
 const PENDING_PATH = join(SECRETS, "oauth-pending.json");
 const STATE_TTL_MS = 10 * 60 * 1000;
 
-export const OAUTH_CHANNELS = ["ig", "yt", "canva", "telegram", "x", "tiktok"] as const;
+export const OAUTH_CHANNELS = ["ig", "yt", "canva", "telegram", "x", "tiktok", "gmail", "drive", "slack"] as const;
 export type OauthChannel = (typeof OAUTH_CHANNELS)[number];
 
 export function isOauthChannel(value: string): value is OauthChannel {
@@ -90,14 +91,42 @@ export function redirectUri(channel: OauthChannel): string {
   return `${publicBase()}/api/oauth/callback/${channel}`;
 }
 
+/**
+ * Gmail + Drive share one Google Cloud OAuth client.
+ * Prefer GOOGLE_CLIENT_ID / GOOGLE_CLIENT_SECRET; fall back to YT_CLIENT_*
+ * (same Google app) so one credential set can cover YouTube + Gmail + Drive.
+ * Slack uses SLACK_CLIENT_ID / SLACK_CLIENT_SECRET.
+ */
+function googleClientId(): string {
+  return envValue("GOOGLE_CLIENT_ID") || envValue("YT_CLIENT_ID");
+}
+
+function googleClientSecret(): string {
+  return envValue("GOOGLE_CLIENT_SECRET") || envValue("YT_CLIENT_SECRET");
+}
+
+function googleMissing(): string[] {
+  if (googleClientId() && googleClientSecret()) return [];
+  const missing: string[] = [];
+  if (!googleClientId()) missing.push("GOOGLE_CLIENT_ID");
+  if (!googleClientSecret()) missing.push("GOOGLE_CLIENT_SECRET");
+  return missing;
+}
+
 export function missingEnv(channel: OauthChannel): string[] {
-  const need: Record<OauthChannel, string[]> = {
+  if (channel === "gmail" || channel === "drive") return googleMissing();
+  if (channel === "yt") {
+    // YouTube keeps YT_* names; also accept GOOGLE_* as the same app.
+    if (googleClientId() && googleClientSecret()) return [];
+    return ["YT_CLIENT_ID", "YT_CLIENT_SECRET"];
+  }
+  const need: Record<Exclude<OauthChannel, "gmail" | "drive" | "yt">, string[]> = {
     ig: ["IG_APP_ID", "IG_APP_SECRET"],
-    yt: ["YT_CLIENT_ID", "YT_CLIENT_SECRET"],
     canva: ["CANVA_CLIENT_ID", "CANVA_CLIENT_SECRET"],
     telegram: ["TELEGRAM_BOT_TOKEN"],
     x: ["X_CLIENT_ID", "X_CLIENT_SECRET"],
     tiktok: ["TIKTOK_CLIENT_KEY", "TIKTOK_CLIENT_SECRET"],
+    slack: ["SLACK_CLIENT_ID", "SLACK_CLIENT_SECRET"],
   };
   return need[channel].filter((name) => !envValue(name));
 }
@@ -163,8 +192,28 @@ function parseAccounts(raw: unknown): StoredAccount[] {
   return out;
 }
 
+function envSeededAccounts(): StoredAccount[] {
+  const canvaToken = envValue("CANVA_ACCESS_TOKEN");
+  if (!canvaToken) return [];
+  return [
+    {
+      channel: "canva",
+      accessToken: canvaToken,
+      refreshToken: envValue("CANVA_REFRESH_TOKEN") || undefined,
+      accountId: envValue("CANVA_ACCOUNT_ID") || "canva",
+      accountLabel: envValue("CANVA_ACCOUNT_LABEL") || "Canva",
+      scopes: "design:content:write design:meta:read profile:read",
+      connectedAt: new Date().toISOString(),
+    },
+  ];
+}
+
 async function loadAccounts(): Promise<StoredAccount[]> {
-  return parseAccounts(await readJson(ACCOUNTS_PATH));
+  const stored = parseAccounts(await readJson(ACCOUNTS_PATH));
+  const seeded = envSeededAccounts();
+  if (!seeded.length) return stored;
+  const have = new Set(stored.map((item) => item.channel));
+  return [...stored, ...seeded.filter((item) => !have.has(item.channel))];
 }
 
 async function saveAccounts(accounts: StoredAccount[]): Promise<void> {
@@ -253,7 +302,7 @@ function authorizeUrl(channel: OauthChannel, state: string, verifier: string | u
   }
   if (channel === "yt") {
     const q = new URLSearchParams({
-      client_id: envValue("YT_CLIENT_ID"),
+      client_id: googleClientId(),
       redirect_uri: back,
       response_type: "code",
       scope: "https://www.googleapis.com/auth/youtube.upload https://www.googleapis.com/auth/youtube.readonly",
@@ -264,6 +313,44 @@ function authorizeUrl(channel: OauthChannel, state: string, verifier: string | u
       code_challenge_method: "S256",
     });
     return `https://accounts.google.com/o/oauth2/v2/auth?${q}`;
+  }
+  if (channel === "gmail") {
+    const q = new URLSearchParams({
+      client_id: googleClientId(),
+      redirect_uri: back,
+      response_type: "code",
+      scope: "https://www.googleapis.com/auth/gmail.readonly https://www.googleapis.com/auth/userinfo.email openid",
+      access_type: "offline",
+      prompt: "consent",
+      state,
+      code_challenge: pkceChallenge(verifier || ""),
+      code_challenge_method: "S256",
+    });
+    return `https://accounts.google.com/o/oauth2/v2/auth?${q}`;
+  }
+  if (channel === "drive") {
+    const q = new URLSearchParams({
+      client_id: googleClientId(),
+      redirect_uri: back,
+      response_type: "code",
+      scope: "https://www.googleapis.com/auth/drive.file https://www.googleapis.com/auth/userinfo.email openid",
+      access_type: "offline",
+      prompt: "consent",
+      state,
+      code_challenge: pkceChallenge(verifier || ""),
+      code_challenge_method: "S256",
+    });
+    return `https://accounts.google.com/o/oauth2/v2/auth?${q}`;
+  }
+  if (channel === "slack") {
+    const q = new URLSearchParams({
+      client_id: envValue("SLACK_CLIENT_ID"),
+      redirect_uri: back,
+      response_type: "code",
+      scope: "channels:read,chat:write,users:read",
+      state,
+    });
+    return `https://slack.com/oauth/v2/authorize?${q}`;
   }
   if (channel === "canva") {
     const q = new URLSearchParams({
@@ -321,7 +408,7 @@ export async function startConnect(channel: OauthChannel): Promise<StartConnectR
     throw err;
   }
   const state = b64url(24);
-  const verifier = channel === "telegram" || channel === "ig" ? undefined : b64url(32);
+  const verifier = channel === "telegram" || channel === "ig" || channel === "slack" ? undefined : b64url(32);
   const pending = await loadPending();
   pending.push({ state, channel, verifier, createdAt: Date.now() });
   await savePending(pending);
@@ -432,13 +519,13 @@ async function exchangeCode(
     };
   }
 
-  if (channel === "yt") {
+  if (channel === "yt" || channel === "gmail" || channel === "drive") {
     const parsed = await postForm(
       "https://oauth2.googleapis.com/token",
       new URLSearchParams({
         code,
-        client_id: envValue("YT_CLIENT_ID"),
-        client_secret: envValue("YT_CLIENT_SECRET"),
+        client_id: googleClientId(),
+        client_secret: googleClientSecret(),
         redirect_uri: back,
         grant_type: "authorization_code",
         code_verifier: verifier || "",
@@ -446,18 +533,26 @@ async function exchangeCode(
     );
     if (!isRecord(parsed) || !str(parsed.access_token)) throw new Error("token_missing");
     const accessToken = str(parsed.access_token) || "";
-    let label = "YouTube";
-    let accountId = "yt";
+    let label = channel === "gmail" ? "Gmail" : channel === "drive" ? "Google Drive" : "YouTube";
+    let accountId: string = channel;
     try {
-      const me = await getJson(
-        "https://www.googleapis.com/youtube/v3/channels?part=snippet&mine=true",
-        accessToken
-      );
-      if (isRecord(me) && Array.isArray(me.items) && isRecord(me.items[0])) {
-        const item = me.items[0];
-        accountId = str(item.id) || accountId;
-        const snippet = isRecord(item.snippet) ? item.snippet : null;
-        label = (snippet && str(snippet.title)) || label;
+      if (channel === "yt") {
+        const me = await getJson(
+          "https://www.googleapis.com/youtube/v3/channels?part=snippet&mine=true",
+          accessToken
+        );
+        if (isRecord(me) && Array.isArray(me.items) && isRecord(me.items[0])) {
+          const item = me.items[0];
+          accountId = str(item.id) || accountId;
+          const snippet = isRecord(item.snippet) ? item.snippet : null;
+          label = (snippet && str(snippet.title)) || label;
+        }
+      } else {
+        const me = await getJson("https://www.googleapis.com/oauth2/v2/userinfo", accessToken);
+        if (isRecord(me)) {
+          label = str(me.email) || str(me.name) || label;
+          accountId = str(me.id) || accountId;
+        }
       }
     } catch {
       /* label stays generic */
@@ -591,6 +686,35 @@ async function exchangeCode(
     };
   }
 
+  if (channel === "slack") {
+    const parsed = await postForm(
+      "https://slack.com/api/oauth.v2.access",
+      new URLSearchParams({
+        client_id: envValue("SLACK_CLIENT_ID"),
+        client_secret: envValue("SLACK_CLIENT_SECRET"),
+        code,
+        redirect_uri: back,
+      })
+    );
+    if (!isRecord(parsed) || parsed.ok !== true) throw new Error("token_missing");
+    const accessToken = str(parsed.access_token) || (isRecord(parsed.authed_user) ? str(parsed.authed_user.access_token) : undefined) || "";
+    if (!accessToken) throw new Error("token_missing");
+    let label = "Slack";
+    let accountId = str(parsed.team) && isRecord(parsed.team) ? str(parsed.team.id) || "slack" : "slack";
+    if (isRecord(parsed.team) && str(parsed.team.name)) label = str(parsed.team.name) || label;
+    if (isRecord(parsed.authed_user) && str(parsed.authed_user.id)) {
+      accountId = str(parsed.authed_user.id) || accountId;
+    }
+    return {
+      channel,
+      accessToken,
+      accountId,
+      accountLabel: label,
+      scopes: str(parsed.scope) || "channels:read,chat:write,users:read",
+      connectedAt: new Date().toISOString(),
+    };
+  }
+
   throw new Error("telegram_uses_login");
 }
 
@@ -665,14 +789,14 @@ async function refreshAccount(account: StoredAccount): Promise<StoredAccount | n
       if (!isRecord(body) || !str(body.access_token)) return null;
       return { ...account, accessToken: str(body.access_token) || account.accessToken, expiresAt: expiresAtFrom(body.expires_in) };
     }
-    if (account.channel === "yt" && account.refreshToken) {
+    if ((account.channel === "yt" || account.channel === "gmail" || account.channel === "drive") && account.refreshToken) {
       const parsed = await postForm(
         "https://oauth2.googleapis.com/token",
         new URLSearchParams({
           grant_type: "refresh_token",
           refresh_token: account.refreshToken,
-          client_id: envValue("YT_CLIENT_ID"),
-          client_secret: envValue("YT_CLIENT_SECRET"),
+          client_id: googleClientId(),
+          client_secret: googleClientSecret(),
         })
       );
       if (!isRecord(parsed) || !str(parsed.access_token)) return null;
