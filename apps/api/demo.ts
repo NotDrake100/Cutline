@@ -22,7 +22,7 @@ const STORIES: DemoStory[] = [
     title: "Overnight bus routes go to a vote in Pune.",
     outlet: "City desk",
     page: "/sample-pune.html",
-    still: "/assets/demo/pune.jpg",
+    still: "/assets/demo/pune-card.jpg",
     body: "Pune councillors take up the overnight bus plan this week. The page is a cached demo source so Browser can open a real URL.",
     caption: "Pune · overnight buses go to a vote. Cached demo pack — no Gemini.",
   },
@@ -31,7 +31,7 @@ const STORIES: DemoStory[] = [
     title: "Metro Phase 2 stations get weekend trial hours.",
     outlet: "City desk",
     page: "/sample-pune.html",
-    still: "/assets/demo/pune.jpg",
+    still: "/assets/demo/pune-card.jpg",
     body: "Trial hours start on the new stretch this weekend. Demo fixture so the desk can finish a post without billing AI.",
     caption: "Pune · Metro Phase 2 weekend trials. Demo fixture.",
   },
@@ -40,7 +40,7 @@ const STORIES: DemoStory[] = [
     title: "Harbour line holds a late-night clearance window.",
     outlet: "City desk",
     page: "/sample-mumbai.html",
-    still: "/assets/demo/mumbai.jpg",
+    still: "/assets/demo/mumbai-card.jpg",
     body: "A late-night clearance window is posted for the Harbour line. Cached demo source for Browser and the Magic Layer.",
     caption: "Mumbai · Harbour line late-night window. Cached demo pack.",
   },
@@ -49,7 +49,7 @@ const STORIES: DemoStory[] = [
     title: "Marine Drive stretch marked for Sunday cycle hours.",
     outlet: "City desk",
     page: "/sample-mumbai.html",
-    still: "/assets/demo/mumbai.jpg",
+    still: "/assets/demo/mumbai-card.jpg",
     body: "Sunday cycle hours return on a marked stretch. Demo fixture for the public desk.",
     caption: "Mumbai · Sunday cycle hours on Marine Drive. Demo fixture.",
   },
@@ -58,7 +58,7 @@ const STORIES: DemoStory[] = [
     title: "Yellow Line weekend work shifts to early Monday.",
     outlet: "City desk",
     page: "/sample-delhi.html",
-    still: "/assets/demo/delhi.jpg",
+    still: "/assets/demo/delhi-card.jpg",
     body: "Weekend engineering work on the Yellow Line moves to early Monday. Demo source page for Browser.",
     caption: "Delhi · Yellow Line work window. Cached demo pack.",
   },
@@ -67,11 +67,29 @@ const STORIES: DemoStory[] = [
     title: "Whitefield feeder buses add a late last trip.",
     outlet: "City desk",
     page: "/sample-bengaluru.html",
-    still: "/assets/demo/bengaluru.jpg",
+    still: "/assets/demo/bengaluru-card.jpg",
     body: "A late last trip is added on Whitefield feeders. Demo fixture so Hunt and Canva still complete.",
     caption: "Bengaluru · late last trip on Whitefield feeders. Demo fixture.",
   },
 ];
+
+
+/** Demo Post still: prefer baked DCN card for sample city tips. */
+export function demoStillFor(sourceUrl: string, desk?: string): string | null {
+  const lower = (sourceUrl || "").toLowerCase();
+  const map: Record<string, string> = {
+    "sample-pune": "/assets/demo/pune-card.jpg",
+    "sample-mumbai": "/assets/demo/mumbai-card.jpg",
+    "sample-bengaluru": "/assets/demo/bengaluru-card.jpg",
+    "sample-delhi": "/assets/demo/delhi-card.jpg",
+  };
+  for (const [key, path] of Object.entries(map)) {
+    if (lower.includes(key)) return path;
+  }
+  const d = (desk || "").toLowerCase();
+  if (d && map[`sample-${d}`]) return map[`sample-${d}`]!;
+  return null;
+}
 
 export function requestBase(reqHost: string, proto = "http"): string {
   const fromEnv = (process.env.CUTLINE_PUBLIC_URL || "").trim().replace(/\/$/, "");
@@ -134,7 +152,7 @@ export function demoRun(opts: {
   rewrite.caption = story.caption;
   const photo = {
     pathOrUrl: still,
-    credit: "Demo fixture",
+    credit: "DCN demo",
     md5: "demo",
     via: "article_og" as const,
     bannedForPrint: false,
@@ -159,11 +177,12 @@ export function demoRun(opts: {
     rewrite,
     photo,
     photos: [
-      { url: still, credit: "Demo fixture" },
-      { url: abs(opts.base, "/assets/demo/alt.jpg"), credit: "Demo fixture" },
+      { url: still, credit: "DCN demo card" },
+      { url: abs(opts.base, story.still.replace("-card.jpg", ".jpg")), credit: "Demo source still" },
+      { url: abs(opts.base, "/assets/demo/alt.jpg"), credit: "DCN demo" },
     ],
     pack,
-    stillNote: "Using demo still",
+    stillNote: "Using DCN demo card",
     styleId: style.id,
     log: [
       { agent: "wire", at: now, action: "brief", ok: true, spendCents: 0, detail: "demo" },

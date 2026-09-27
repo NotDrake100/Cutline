@@ -19,7 +19,7 @@ import {
   ownerKey,
   requestIp,
 } from "../../packages/core/src/owner";
-import { demoHits, demoRun, requestBase } from "./demo";
+import { demoHits, demoRun, demoStillFor, requestBase } from "./demo";
 import { analyzePostUrl, isPostUrl, styleMatchFromPost } from "./analyze";
 import { loadRun, saveRun } from "../../packages/core/src/runs";
 import { ENV } from "../../packages/core/src/env";
@@ -488,6 +488,20 @@ async function handleApi(req: IncomingMessage, res: ServerResponse, url: URL) {
       );
       const run = sanitizeRun(ensureDeskLog(rawRun));
       if (run.status === "failed") run.status = "needs_input";
+      const forced = demoStillFor(body.sourceUrl || "", body.beat || body.beatId);
+      if (forced) {
+        const absCard = forced.startsWith("http") ? forced : `${publicOrigin(req, url)}${forced}`;
+        run.photo = {
+          pathOrUrl: absCard,
+          credit: "DCN demo card",
+          md5: "demo-card",
+          via: "article_og",
+          bannedForPrint: false,
+        };
+        run.photos = [{ url: absCard, credit: "DCN demo card" }, ...(run.photos || [])];
+        if (run.pack) run.pack.stillUrl = absCard;
+        run.stillNote = "Using DCN demo card";
+      }
       await saveRun(run);
       persistLibrary(run);
       return json(res, 200, { run, mode: "desk" });
@@ -514,6 +528,18 @@ async function handleApi(req: IncomingMessage, res: ServerResponse, url: URL) {
         }
       } catch {
         /* page photos optional */
+      }
+      const demoCard = demoStillFor(sourceUrl, body.beat || body.beatId);
+      if (demoCard) {
+        const absCard = demoCard.startsWith("http") ? demoCard : `${publicOrigin(req, url)}${demoCard}`;
+        photo = {
+          pathOrUrl: absCard,
+          credit: "DCN demo card",
+          md5: "demo-card",
+          via: "article_og",
+          bannedForPrint: false,
+        };
+        photos = [{ url: absCard, credit: "DCN demo card" }, ...photos.filter((p) => p.url !== absCard)];
       }
       const now = new Date().toISOString();
       const fallback: StoryRun = {

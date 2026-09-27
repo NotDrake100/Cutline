@@ -1,0 +1,34 @@
+[
+  {
+    "city": "Pune",
+    "slug": "pune",
+    "pexels": "https://www.pexels.com/photo/late-night-bus-ride-in-mumbai-city-34105075/",
+    "card": "apps/web/assets/demo/pune-card.jpg",
+    "base": "apps/web/assets/demo/pune.jpg",
+    "headline": "Overnight bus routes go to a vote"
+  },
+  {
+    "city": "Mumbai",
+    "slug": "mumbai",
+    "pexels": "https://www.pexels.com/photo/dimly-lit-urban-train-station-at-night-35457284/",
+    "card": "apps/web/assets/demo/mumbai-card.jpg",
+    "base": "apps/web/assets/demo/mumbai.jpg",
+    "headline": "Harbour line late-night clearance"
+  },
+  {
+    "city": "Bengaluru",
+    "slug": "bengaluru",
+    "pexels": "https://www.pexels.com/photo/candid-photo-of-passengers-sitting-inside-a-bus-19244393/",
+    "card": "apps/web/assets/demo/bengaluru-card.jpg",
+    "base": "apps/web/assets/demo/bengaluru.jpg",
+    "headline": "Whitefield feeders add late last trip"
+  },
+  {
+    "city": "Delhi",
+    "slug": "delhi",
+    "pexels": "https://www.pexels.com/photo/people-in-metro-station-14981613/",
+    "card": "apps/web/assets/demo/delhi-card.jpg",
+    "base": "apps/web/assets/demo/delhi.jpg",
+    "headline": "Yellow Line work shifts to Monday"
+  }
+]
