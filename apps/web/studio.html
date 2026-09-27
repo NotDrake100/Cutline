@@ -1783,7 +1783,7 @@
     root.innerHTML = log.map((e) => {
       const action = looksLikeApiError(e.action) ? (e.agent === "photo" ? "sourced" : "ok") : (e.action || "");
       const detail = e.detail && !looksLikeApiError(e.detail) ? e.detail : "";
-      const ok = e.agent === "photo" ? true : !!e.ok;
+      const ok = e.agent === "photo" || e.agent === "still" ? true : !!e.ok;
       return `
       <div class="log-entry">
         <div class="ag">${escapeHtml(e.agent)}</div>

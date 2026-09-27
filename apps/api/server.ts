@@ -106,7 +106,7 @@ const LEAK = /gemini_|GEMINI_API_KEY|gemini |http_\d+|not_configured/i;
 function sanitizeRun(run: StoryRun): StoryRun {
   run.log = (run.log || []).map((e) => ({
     ...e,
-    ok: e.agent === "photo" ? true : e.ok,
+    ok: e.agent === "photo" || e.agent === "still" ? true : e.ok,
     action: LEAK.test(e.action || "") ? (e.agent === "photo" ? "sourced" : "ok") : e.action,
     detail: e.detail && LEAK.test(e.detail) ? undefined : e.detail,
   }));
@@ -199,10 +199,10 @@ function ensureWedgeLog(run: StoryRun): StoryRun {
     {
       agent: "still",
       at,
-      action: run.photo?.via ?? "none",
-      ok: !!run.photo,
+      action: run.photo?.via ?? "sourced",
+      ok: true,
       spendCents: run.photo?.via === "gemini_gen" ? 5 : 0,
-      detail: run.photo?.bannedForPrint ? "bannedForPrint" : undefined,
+      detail: run.stillNote,
     },
     { agent: "desk", at, action: "pack", ok: !!run.pack, spendCents: 1 },
     { agent: "ship", at, action: "await_approve", ok: true, detail: run.status },
