@@ -5,9 +5,10 @@
 import { createHash, createHmac, randomBytes, timingSafeEqual } from "node:crypto";
 import { mkdir, readFile, rename, writeFile } from "node:fs/promises";
 import { join } from "node:path";
+import { dataRoot } from "../../core/src/paths";
 
-const ROOT = join(import.meta.dirname, "../../..");
-const SECRETS = join(ROOT, ".secrets");
+/** Server-side token store. Local: data/secrets. Vercel: /tmp/cutline/secrets. Seed Canva from env for HIS deploy. */
+const SECRETS = join(dataRoot(), "secrets");
 const ACCOUNTS_PATH = join(SECRETS, "oauth-accounts.json");
 const PENDING_PATH = join(SECRETS, "oauth-pending.json");
 const STATE_TTL_MS = 10 * 60 * 1000;
@@ -163,8 +164,28 @@ function parseAccounts(raw: unknown): StoredAccount[] {
   return out;
 }
 
+function envSeededAccounts(): StoredAccount[] {
+  const canvaToken = envValue("CANVA_ACCESS_TOKEN");
+  if (!canvaToken) return [];
+  return [
+    {
+      channel: "canva",
+      accessToken: canvaToken,
+      refreshToken: envValue("CANVA_REFRESH_TOKEN") || undefined,
+      accountId: envValue("CANVA_ACCOUNT_ID") || "canva",
+      accountLabel: envValue("CANVA_ACCOUNT_LABEL") || "Canva",
+      scopes: "design:content:write design:meta:read profile:read",
+      connectedAt: new Date().toISOString(),
+    },
+  ];
+}
+
 async function loadAccounts(): Promise<StoredAccount[]> {
-  return parseAccounts(await readJson(ACCOUNTS_PATH));
+  const stored = parseAccounts(await readJson(ACCOUNTS_PATH));
+  const seeded = envSeededAccounts();
+  if (!seeded.length) return stored;
+  const have = new Set(stored.map((item) => item.channel));
+  return [...stored, ...seeded.filter((item) => !have.has(item.channel))];
 }
 
 async function saveAccounts(accounts: StoredAccount[]): Promise<void> {

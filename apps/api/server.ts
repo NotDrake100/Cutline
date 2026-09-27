@@ -1,6 +1,9 @@
 /**
  * Cutline HTTP — desk + pasted-headline wedge + library. Port 8787.
  * Serves apps/web + API. Never logs secrets.
+ *
+ * Demo vs owner AI: anonymous requests take fixture paths in handleApi.
+ * Gemini generateContent is only entered via withGeminiPermit after isOwnerRequest.
  */
 import { createServer, type IncomingMessage, type ServerResponse } from "node:http";
 import { mkdir, readFile, stat, writeFile } from "node:fs/promises";
@@ -8,7 +11,15 @@ import { join, extname, normalize } from "node:path";
 import { randomBytes } from "node:crypto";
 import { handleWedge } from "./wedge";
 import { ensureDeskLog, handleDesk } from "./desk";
-import { gemini } from "../../packages/core/src/gemini";
+import { gemini, withGeminiPermit } from "../../packages/core/src/gemini";
+import {
+  demoAiBlocked,
+  isOwnerRequest,
+  ownerCookieHeader,
+  ownerKey,
+  requestIp,
+} from "../../packages/core/src/owner";
+import { demoHits, demoRun, requestBase } from "./demo";
 import { loadRun, saveRun } from "../../packages/core/src/runs";
 import { ENV } from "../../packages/core/src/env";
 import { uploadsRoot } from "../../packages/core/src/paths";
@@ -173,6 +184,16 @@ function resolveStyleId(requested?: string): string {
   return getWritingStyleId();
 }
 
+function publicOrigin(req: IncomingMessage, url: URL): string {
+  const xf = req.headers["x-forwarded-proto"];
+  const proto = (Array.isArray(xf) ? xf[0] : xf) || url.protocol.replace(":", "") || "http";
+  return requestBase(req.headers.host || url.host, proto);
+}
+
+function ownerMode(req: IncomingMessage): boolean {
+  return isOwnerRequest(req);
+}
+
 async function applyStyleToRun(run: StoryRun, styleId: string): Promise<StoryRun> {
   const style = getStyle(styleId);
   const { rewrite, pack } = await restyleRunCopy(run, style.id, (p) => gemini.text(p));
@@ -242,6 +263,30 @@ async function handleApi(req: IncomingMessage, res: ServerResponse, url: URL) {
   const method = req.method || "GET";
   const path = url.pathname;
 
+  if (path === "/api/owner/session") {
+    if (method === "GET") {
+      return json(res, 200, { owner: ownerMode(req), mode: ownerMode(req) ? "owner" : "demo" });
+    }
+    if (method === "DELETE") {
+      res.setHeader("Set-Cookie", ownerCookieHeader(publicOrigin(req, url).startsWith("https"), true));
+      return json(res, 200, { owner: false, mode: "demo" });
+    }
+    if (method !== "POST") return json(res, 405, { error: "method_not_allowed" });
+    const raw = await readBody(req);
+    let body: { key?: string };
+    try {
+      body = JSON.parse(raw || "{}") as { key?: string };
+    } catch {
+      return json(res, 400, { error: "invalid_json" });
+    }
+    const expected = ownerKey();
+    if (!expected || (body.key || "").trim() !== expected) {
+      return json(res, 403, { error: "owner_key", mode: "demo" });
+    }
+    res.setHeader("Set-Cookie", ownerCookieHeader(publicOrigin(req, url).startsWith("https")));
+    return json(res, 200, { owner: true, mode: "owner" });
+  }
+
   if (method === "POST" && path === "/api/wedge") {
     const raw = await readBody(req);
     let body: WedgeRequest;
@@ -250,12 +295,25 @@ async function handleApi(req: IncomingMessage, res: ServerResponse, url: URL) {
     } catch {
       return json(res, 400, { error: "invalid_json" });
     }
+    if (!ownerMode(req)) {
+      if (demoAiBlocked(requestIp(req))) return json(res, 429, { error: "ai_blocked_demo", mode: "demo" });
+      const run = sanitizeRun(ensureWedgeLog(demoRun({
+        headline: (body.headline || "").trim(),
+        title: (body.headline || "").trim(),
+        base: publicOrigin(req, url),
+      })));
+      await saveRun(run);
+      persistLibrary(run);
+      return json(res, 200, { run, mode: "demo" });
+    }
     try {
       body.styleId = resolveStyleId(body.styleId);
-      const { run: rawRun } = await handleWedge(body, {
-        text: (p) => gemini.text(p),
-        image: (p) => gemini.image(p),
-      });
+      const { run: rawRun } = await withGeminiPermit(() =>
+        handleWedge(body, {
+          text: (p) => gemini.text(p),
+          image: (p) => gemini.image(p),
+        })
+      );
       const run = sanitizeRun(ensureWedgeLog(rawRun));
       await saveRun(run);
       persistLibrary(run);
@@ -305,12 +363,28 @@ async function handleApi(req: IncomingMessage, res: ServerResponse, url: URL) {
     } catch {
       return json(res, 400, { error: "invalid_json" });
     }
+    if (!ownerMode(req)) {
+      if (demoAiBlocked(requestIp(req))) return json(res, 429, { error: "ai_blocked_demo", mode: "demo" });
+      const sourceUrl = (body.sourceUrl || "").trim();
+      if (sourceUrl && !/^https?:\/\//i.test(sourceUrl)) return json(res, 400, { error: "source_needed" });
+      const run = sanitizeRun(ensureDeskLog(demoRun({
+        sourceUrl,
+        title: (body.title || sourceUrl).trim(),
+        desk: body.beat || body.beatId,
+        base: publicOrigin(req, url),
+      })));
+      await saveRun(run);
+      persistLibrary(run);
+      return json(res, 200, { run, mode: "demo" });
+    }
     try {
       body.styleId = resolveStyleId(body.styleId);
-      const { run: rawRun } = await handleDesk(body, {
-        text: (p) => gemini.text(p),
-        image: (p) => gemini.image(p),
-      });
+      const { run: rawRun } = await withGeminiPermit(() =>
+        handleDesk(body, {
+          text: (p) => gemini.text(p),
+          image: (p) => gemini.image(p),
+        })
+      );
       const run = sanitizeRun(ensureDeskLog(rawRun));
       if (run.status === "failed") run.status = "needs_input";
       await saveRun(run);
@@ -379,9 +453,9 @@ async function handleApi(req: IncomingMessage, res: ServerResponse, url: URL) {
         return json(res, 409, { error: `cannot_approve: status=${run.status}` });
       }
       const styleId = resolveStyleId(body.styleId);
-      if (gemini.hasKey() && styleId && styleId !== run.styleId) {
+      if (ownerMode(req) && gemini.hasKey() && styleId && styleId !== run.styleId) {
         try {
-          await applyStyleToRun(run, styleId);
+          await withGeminiPermit(() => applyStyleToRun(run, styleId));
         } catch {
           /* keep last good pack */
         }
@@ -414,9 +488,9 @@ async function handleApi(req: IncomingMessage, res: ServerResponse, url: URL) {
     try {
       const run = await loadRun(body.runId);
       const styleId = resolveStyleId(body.styleId);
-      if (gemini.hasKey()) {
+      if (ownerMode(req) && gemini.hasKey()) {
         try {
-          await applyStyleToRun(run, styleId);
+          await withGeminiPermit(() => applyStyleToRun(run, styleId));
           await saveRun(run);
           persistLibrary(run);
         } catch {
@@ -458,6 +532,10 @@ async function handleApi(req: IncomingMessage, res: ServerResponse, url: URL) {
   if (method === "GET" && path === "/api/photos") {
     const src = (url.searchParams.get("url") || url.searchParams.get("sourceUrl") || "").trim();
     if (!/^https?:\/\//i.test(src)) return json(res, 400, { error: "source_needed" });
+    if (!ownerMode(req)) {
+      const run = demoRun({ sourceUrl: src, base: publicOrigin(req, url) });
+      return json(res, 200, { photos: run.photos || [], sourceUrl: src, mode: "demo" });
+    }
     const photos = await fetchArticleImages(src, 8);
     return json(res, 200, { photos, sourceUrl: src });
   }
@@ -677,18 +755,16 @@ async function handleApi(req: IncomingMessage, res: ServerResponse, url: URL) {
   }
 
   if (method === "GET" && (path === "/api/health" || path === "/api/status")) {
-    const geminiConfigured = gemini.hasKey();
+    const owner = ownerMode(req);
+    const geminiConfigured = owner && gemini.hasKey();
     return json(res, 200, {
       ok: true,
+      mode: owner ? "owner" : "demo",
+      owner,
       geminiConfigured,
       gemini: geminiConfigured,
       oauth: {
-        ig: missingEnv("ig").length === 0,
-        yt: missingEnv("yt").length === 0,
         canva: missingEnv("canva").length === 0,
-        telegram: missingEnv("telegram").length === 0,
-        x: missingEnv("x").length === 0,
-        tiktok: missingEnv("tiktok").length === 0,
       },
     });
   }
@@ -791,6 +867,16 @@ async function handleApi(req: IncomingMessage, res: ServerResponse, url: URL) {
       return json(res, 400, {
         error: "desk required",
         allowed,
+      });
+    }
+    if (!ownerMode(req)) {
+      const found = demoHits(deskId, publicOrigin(req, url));
+      return json(res, 200, {
+        desk: found.desk,
+        label: found.label,
+        hits: found.hits,
+        droppedUnsourced: 0,
+        mode: "demo",
       });
     }
     const desk = { ...getDesk(deskId)! };

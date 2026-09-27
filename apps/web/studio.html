@@ -90,7 +90,7 @@
   .panel-toggle svg { width: 16px; height: 16px; }
   .panel-restore {
     display: none;
-    position: fixed; left: 14px; top: 14px; z-index: 30;
+    position: fixed; left: 14px; top: 14px; z-index: 40;
     width: 40px; height: 40px;
     border-radius: 12px;
     background: var(--lime);
@@ -202,55 +202,41 @@
     margin-left: auto;
   }
 
-  .project-chips {
-    display: flex; flex-wrap: wrap; gap: 6px;
-    padding: 0 4px 4px;
-  }
-  .project-chips button {
-    height: 30px; padding: 0 11px;
-    border-radius: var(--radius-pill);
-    border: 1px solid var(--line);
-    background: var(--card);
-    font-size: 12.5px; font-weight: 550;
-  }
-  .project-chips button:hover { border-color: var(--line-strong); }
-  .project-chips button.active {
-    background: var(--ink); color: #fff; border-color: var(--ink);
-  }
-
   .tools {
-    display: grid;
-    grid-template-columns: 1fr 1fr 1fr;
-    gap: 8px;
-    padding: 0 4px 8px;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    padding: 0 0 8px;
   }
   .tool-row {
-    display: flex; flex-direction: column; align-items: center; gap: 6px;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 10px;
     width: 100%;
-    padding: 10px 4px 9px;
-    border-radius: 14px;
-    border: 1px solid var(--line);
-    background: var(--card);
-    font-size: 11.5px; font-weight: 600;
+    padding: 9px 12px;
+    border-radius: 12px;
+    font-size: 14px;
+    font-weight: 550;
     color: var(--ink);
-    text-align: center;
-    transition: border-color .12s ease, box-shadow .12s ease;
+    text-align: left;
+    transition: background .12s ease;
   }
-  .tool-row:hover { border-color: var(--line-strong); box-shadow: var(--shadow); }
+  .tool-row:hover { background: var(--nav-hover); }
   .tool-row:focus-visible { outline: 2px solid var(--ink); outline-offset: -2px; }
   .tool-ico {
-    width: 28px; height: 28px;
+    width: 22px; height: 22px;
     border-radius: var(--radius-brand);
     display: grid; place-items: center;
     flex-shrink: 0;
     color: var(--ink);
   }
-  .tool-ico svg { width: 14px; height: 14px; }
-  .tool-row .label { flex: none; }
+  .tool-ico svg { width: 13px; height: 13px; }
+  .tool-row .label { flex: 1; }
   .tool-row.t1 .tool-ico { background: #F2D8C5; }
   .tool-row.t2 .tool-ico { background: #CFE3D7; }
   .tool-row.t4 .tool-ico { background: #D1DEEA; }
-  .tool-row.active-tool { border-color: var(--ink); }
+  .tool-row.active-tool { background: var(--card); }
 
   .sidebar-spacer { flex: 1; min-height: 16px; }
 
@@ -381,14 +367,70 @@
     background: var(--lime);
   }
   .home-wrap h1 {
-    margin: 0 0 28px;
-    font-family: var(--display);
-    font-size: clamp(36px, 5vw, 52px);
-    font-weight: 400;
+    margin: 0 0 22px;
+    font-family: var(--font);
+    font-size: 22px;
+    font-weight: 500;
     letter-spacing: -.02em;
-    line-height: .95;
+    line-height: 1.3;
     text-align: center;
+    color: var(--muted);
   }
+  .assign {
+    width: 100%;
+    margin-top: 28px;
+    text-align: left;
+  }
+  .assign-help {
+    margin: 0 0 14px;
+    font-size: 13.5px;
+    color: var(--muted);
+    line-height: 1.45;
+  }
+  .assign-label {
+    font-size: 11px;
+    font-weight: 650;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin: 0 0 8px;
+  }
+  .assign-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 16px;
+  }
+  .assign-chip {
+    height: 34px;
+    padding: 0 14px;
+    border-radius: var(--radius-pill);
+    border: 1px solid var(--line);
+    background: var(--card);
+    font-size: 13.5px;
+    font-weight: 550;
+  }
+  .assign-chip:hover { border-color: var(--line-strong); }
+  .assign-chip.active {
+    background: var(--ink);
+    color: #fff;
+    border-color: var(--ink);
+  }
+  .showcase-rail {
+    display: none;
+    width: 100%;
+    margin: 0 0 18px;
+    padding: 10px 14px;
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    background: var(--card);
+    color: var(--muted);
+    font-size: 12.5px;
+    font-weight: 550;
+    line-height: 1.4;
+  }
+  body.is-showcase .showcase-rail { display: block; }
+  .showcase-rail strong { color: var(--ink); font-weight: 650; }
   .ask-box {
     width: 100%;
     background: var(--panel);
@@ -948,15 +990,13 @@
   }
   .connect-run.warn { border-color: rgba(255,59,48,.25); }
   .plugin-grid {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
+    display: flex;
+    flex-wrap: wrap;
     gap: 16px;
   }
-  @media (max-width: 1100px) {
-    .plugin-grid { grid-template-columns: repeat(2, 1fr); }
-  }
-  @media (max-width: 720px) {
-    .plugin-grid { grid-template-columns: 1fr; }
+  .plugin-grid .plugin-card {
+    flex: 1 1 280px;
+    max-width: 440px;
   }
   .plugin-card {
     background: var(--card);
@@ -1461,7 +1501,7 @@
       </div>
       <div class="workspace-meta">
         <div class="workspace-name">Cutline Desk</div>
-        <div class="workspace-sub">Your AI desk</div>
+        <div class="workspace-sub" id="workspaceMode">Demo</div>
       </div>
     </div>
 
@@ -1503,16 +1543,6 @@
         </span>
         <span class="label">Library</span>
       </button>
-    </nav>
-
-    <div class="section-label">Projects</div>
-    <nav class="project-chips" aria-label="Projects" id="projectNav">
-      <button type="button" data-desk="breaking">Breaking</button>
-      <button type="button" data-desk="business">Business</button>
-      <button type="button" data-desk="culture">Culture</button>
-      <button type="button" data-desk="sports">Sports</button>
-      <button type="button" data-desk="tech">Tech</button>
-      <button type="button" data-desk="world">World</button>
     </nav>
 
     <div class="section-label">Recents</div>
@@ -1565,8 +1595,11 @@
     <!-- HOME -->
     <section class="view active" id="viewHome" aria-label="Home">
       <div class="home-wrap" id="homeWrap">
-        <div class="kicker">Your AI desk</div>
+        <div class="kicker" id="homeKicker">Demo</div>
         <h1>What should we finish today?</h1>
+        <div class="showcase-rail" id="showcaseRail">
+          <strong>See it work.</strong> Find news → open Browser → edit the post → Approve. Public demo never calls Gemini.
+        </div>
 
         <div class="ask-box">
           <textarea id="headline" placeholder="Finish a news post…" rows="4"></textarea>
@@ -1592,11 +1625,22 @@
         <input type="file" id="clipFile" accept="video/mp4,video/webm,video/quicktime,video/x-m4v" hidden/>
         <input type="file" id="askPhotoFile" accept="image/jpeg,image/png,image/webp,image/gif" hidden/>
 
-        <div class="suggestions" id="suggestions">
-          <button type="button" class="sug" id="sugHunt">
-            <span class="plus">+</span>
-            Find news
-          </button>
+        <div class="assign" id="suggestions">
+          <p class="assign-help">Pick a job and a city. Then run — Hunt, post, photo, or Canva.</p>
+          <p class="assign-label">Job</p>
+          <div class="assign-chips" id="assignJobs">
+            <button type="button" class="assign-chip active" data-job="news">Find news</button>
+            <button type="button" class="assign-chip" data-job="post">Finish a post</button>
+            <button type="button" class="assign-chip" data-job="photo">Photo</button>
+            <button type="button" class="assign-chip" data-job="canva">Canva</button>
+          </div>
+          <p class="assign-label">City</p>
+          <div class="assign-chips" id="assignCities">
+            <button type="button" class="assign-chip active" data-desk="pune">Pune</button>
+            <button type="button" class="assign-chip" data-desk="mumbai">Mumbai</button>
+            <button type="button" class="assign-chip" data-desk="delhi">Delhi</button>
+            <button type="button" class="assign-chip" data-desk="bengaluru">Bengaluru</button>
+          </div>
         </div>
 
         <div class="result" id="result">
@@ -1656,24 +1700,22 @@
       <div class="hunt-wrap">
         <div class="kicker">Explore</div>
         <h1>Find news</h1>
-        <p class="hunt-sub">Pick a project, then find news.</p>
+        <p class="hunt-sub">Pick a city, then find news.</p>
 
-        <div class="beat-chips" id="beatChips" role="group" aria-label="Desks">
-          <button type="button" class="beat-chip active" data-desk="breaking">Breaking</button>
-          <button type="button" class="beat-chip" data-desk="business">Business</button>
-          <button type="button" class="beat-chip" data-desk="culture">Culture</button>
-          <button type="button" class="beat-chip" data-desk="sports">Sports</button>
-          <button type="button" class="beat-chip" data-desk="tech">Tech</button>
-          <button type="button" class="beat-chip" data-desk="world">World</button>
+        <div class="beat-chips" id="beatChips" role="group" aria-label="Cities">
+          <button type="button" class="beat-chip active" data-desk="pune">Pune</button>
+          <button type="button" class="beat-chip" data-desk="mumbai">Mumbai</button>
+          <button type="button" class="beat-chip" data-desk="delhi">Delhi</button>
+          <button type="button" class="beat-chip" data-desk="bengaluru">Bengaluru</button>
         </div>
 
         <div class="hunt-bar">
           <button type="button" class="btn-lime" id="huntBtn">Find news</button>
-          <span class="hunt-meta" id="huntMeta">Pick a project, then find news.</span>
+          <span class="hunt-meta" id="huntMeta">Pick a city, then find news.</span>
         </div>
         <div class="err" id="huntErr"></div>
         <div id="hitList" class="hit-list">
-          <div class="hunt-empty" id="huntEmpty">No news yet. Choose a project and find news.</div>
+          <div class="hunt-empty" id="huntEmpty">No news yet. Choose a city and find news.</div>
         </div>
       </div>
     </section>
@@ -1683,7 +1725,7 @@
       <div class="connect-wrap">
         <div class="kicker">Plugins</div>
         <h1>Connect</h1>
-        <p class="connect-sub">One tap for Instagram, YouTube, or Canva. Then post.</p>
+        <p class="connect-sub">Connect Canva with a real OAuth account. Or save a ZIP.</p>
 
         <div class="connect-run" id="connectRunBar">
           <span id="connectRunMsg">Connect an account anytime. Post still needs a story.</span>
@@ -1718,26 +1760,19 @@
       <div class="connect-wrap">
         <div class="kicker">Account</div>
         <h1>Settings</h1>
-        <p class="connect-sub">Your desk. Name, project, cream theme.</p>
+        <p class="connect-sub">Your desk. Name, cream theme, owner key for live Gemini.</p>
         <form class="settings-form" id="settingsForm">
           <label>Name
             <input type="text" id="settingsName" maxlength="40" autocomplete="name"/>
-          </label>
-          <label>Default project
-            <select id="settingsDesk">
-              <option value="breaking">Breaking</option>
-              <option value="business">Business</option>
-              <option value="culture">Culture</option>
-              <option value="sports">Sports</option>
-              <option value="tech">Tech</option>
-              <option value="world">World</option>
-            </select>
           </label>
           <label>Theme
             <select id="settingsTheme">
               <option value="cream">Ace cream</option>
               <option value="paper">Paper cream</option>
             </select>
+          </label>
+          <label>Owner key
+            <input type="password" id="settingsOwnerKey" autocomplete="off" placeholder="Unlock live Gemini"/>
           </label>
           <button type="submit" class="btn btn-lime">Save</button>
         </form>
@@ -1895,10 +1930,11 @@
 <div class="gate" id="signedOutGate" aria-label="Signed out">
   <div class="gate-card">
     <div class="mark" aria-hidden="true"><span class="fallback">C</span></div>
-    <h1>Your AI desk.</h1>
-    <p>Signed out. Open the desk to finish a post.</p>
+    <h1>Demo is open.</h1>
+    <p>Public desk uses fixtures. Enter an owner key only for live Gemini.</p>
     <input type="text" id="gateName" placeholder="Your name" maxlength="40"/>
-    <button type="button" class="btn btn-lime" id="gateOpen">Open desk</button>
+    <input type="password" id="gateOwnerKey" placeholder="Owner key (optional)" autocomplete="off"/>
+    <button type="button" class="btn btn-lime" id="gateOpen">Continue in demo</button>
   </div>
 </div>
 
@@ -1908,7 +1944,9 @@
   let pendingAskPhoto = null;
   let layerSnapshot = {}; // hash of last painted layer values for flash
   let selectedStyle = "tight_news";
-  let selectedDesk = "breaking";
+  let selectedDesk = "pune";
+  let assignJob = "news";
+  let deskMode = "demo";
 
   const $ = (id) => document.getElementById(id);
   const agents = ["wire", "still", "desk", "ship"];
@@ -1972,7 +2010,7 @@
     applySession(next);
   }
   function applySession(session) {
-    const s = session || { name: "You", desk: "breaking", theme: "cream" };
+    const s = session || { name: "You", desk: "pune", theme: "cream" };
     document.documentElement.dataset.theme = s.theme === "paper" ? "paper" : "cream";
     if (s.desk) selectedDesk = s.desk;
     const ini = (s.name || "You").trim().slice(0, 1).toUpperCase() || "Y";
@@ -1981,24 +2019,60 @@
       pic.innerHTML = `<span class="ini">${ini}</span>`;
     }
     if ($("settingsName")) $("settingsName").value = s.name || "You";
-    if ($("settingsDesk")) $("settingsDesk").value = s.desk || "breaking";
     if ($("settingsTheme")) $("settingsTheme").value = s.theme || "cream";
-    document.querySelectorAll("#projectNav [data-desk]").forEach((b) => b.classList.toggle("active", b.dataset.desk === (s.desk || "breaking")));
+    paintCityChips();
+  }
+  function paintMode(mode) {
+    deskMode = mode === "owner" ? "owner" : "demo";
+    const label = deskMode === "owner" ? "Owner desk" : "Demo";
+    if ($("workspaceMode")) $("workspaceMode").textContent = label;
+    if ($("homeKicker")) $("homeKicker").textContent = label;
+  }
+  function paintCityChips() {
+    document.querySelectorAll("#assignCities [data-desk], #beatChips [data-desk]").forEach((b) => {
+      b.classList.toggle("active", b.dataset.desk === selectedDesk);
+    });
   }
   function ensureSession() {
     if (localStorage.getItem("cutline.signedOut") === "1") {
-      applySession({ name: "You", desk: "breaking", theme: "cream" });
+      applySession({ name: "You", desk: "pune", theme: "cream" });
       showSignedOut(true);
       return null;
     }
     let s = readSession();
     if (!s) {
-      s = { name: "You", desk: "breaking", theme: "cream" };
+      s = { name: "You", desk: "pune", theme: "cream" };
       localStorage.setItem(SESSION_KEY, JSON.stringify(s));
     }
     applySession(s);
     showSignedOut(false);
     return s;
+  }
+  async function refreshDeskMode() {
+    try {
+      const res = await fetch("/api/health");
+      const data = await res.json();
+      paintMode(data.mode || (data.owner ? "owner" : "demo"));
+    } catch (_) {
+      paintMode("demo");
+    }
+  }
+  async function unlockOwner(key) {
+    const k = (key || "").trim();
+    if (!k) return false;
+    const res = await fetch("/api/owner/session", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ key: k }),
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) return false;
+    paintMode(data.mode || "owner");
+    return true;
+  }
+  async function lockOwner() {
+    try { await fetch("/api/owner/session", { method: "DELETE" }); } catch (_) {}
+    paintMode("demo");
   }
   function showSignedOut(on) {
     $("signedOutGate")?.classList.toggle("show", !!on);
@@ -2518,7 +2592,7 @@
     setErr("");
     const headline = $("headline").value.trim();
     const sourced = isLiveSourceUrl(pendingSourceUrl) || /^https?:\/\//i.test(headline);
-    if (!headline && !sourced) { setErr("Find a page or add a headline."); switchView("home"); return; }
+    if (!headline && !sourced) { return runAssignment(); }
     $("runBtn").disabled = true;
     setStatus("drafting");
     startStillFill();
@@ -2602,7 +2676,6 @@
   function switchView(name) {
     document.querySelectorAll(".view").forEach((v) => v.classList.remove("active"));
     document.querySelectorAll(".nav-item[data-view]").forEach((n) => n.classList.remove("active"));
-    document.querySelectorAll("#projectNav [data-desk]").forEach((n) => n.classList.remove("active"));
     document.querySelectorAll(".tool-row").forEach((n) => n.classList.remove("active-tool"));
     if (name === "activity" || name === "approvals") {
       $("viewActivity").classList.add("active");
@@ -2614,7 +2687,7 @@
       $("viewHunt").classList.add("active");
       $("navExplore")?.classList.add("active");
       $("toolNews")?.classList.add("active-tool");
-      document.querySelector(`#projectNav [data-desk="${selectedDesk}"]`)?.classList.add("active");
+      paintCityChips();
     } else if (name === "library") {
       $("viewLibrary").classList.add("active");
       $("navLibrary")?.classList.add("active");
@@ -2683,7 +2756,6 @@
     }
   });
 
-  $("sugHunt")?.addEventListener("click", () => switchView("hunt"));
   $("sugLibrary")?.addEventListener("click", () => switchView("library"));
 
   function closeAskPlus() {
@@ -2764,21 +2836,58 @@
     switchView("hunt");
   }
 
-  document.querySelectorAll("#projectNav [data-desk]").forEach((btn) => {
+  function openCanva() {
+    if (currentRun?.id) {
+      savePostEdits();
+      if (typeof doShip === "function") doShip("canva");
+      else switchView("connect");
+      return;
+    }
+    switchView("connect");
+  }
+
+  async function runAssignment() {
+    paintCityChips();
+    if (assignJob === "news") {
+      switchView("hunt");
+      await doHunt();
+      return;
+    }
+    switchView("hunt");
+    await doHunt();
+    const hit = lastHits[0];
+    if (!hit || !isLiveSourceUrl(hit.sourceUrl)) return;
+    $("headline").value = hit.title;
+    pendingSourceUrl = hit.sourceUrl;
+    loadBrowserUrl(hit.sourceUrl, { switchTab: true });
+    switchView("home");
+    await doRun();
+    if (assignJob === "photo") $("toolPhoto")?.click();
+    if (assignJob === "canva") openCanva();
+  }
+
+  document.querySelectorAll("#assignJobs [data-job]").forEach((btn) => {
     btn.addEventListener("click", () => {
-      selectedDesk = btn.dataset.desk || "breaking";
-      document.querySelectorAll(".beat-chip").forEach((b) => b.classList.toggle("active", b.dataset.desk === selectedDesk));
+      document.querySelectorAll("#assignJobs [data-job]").forEach((b) => b.classList.remove("active"));
+      btn.classList.add("active");
+      assignJob = btn.dataset.job || "news";
+    });
+  });
+
+  document.querySelectorAll("#assignCities [data-desk]").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      selectedDesk = btn.dataset.desk || "pune";
+      paintCityChips();
       $("huntMeta").textContent = "Find news · " + selectedDesk;
       $("huntMeta").classList.remove("warn");
-      switchView("hunt");
+      runAssignment();
     });
   });
 
   document.querySelectorAll(".beat-chip").forEach((btn) => {
     btn.addEventListener("click", () => {
-      document.querySelectorAll(".beat-chip").forEach((b) => b.classList.remove("active"));
-      btn.classList.add("active");
-      selectedDesk = btn.dataset.desk || "breaking";
+      selectedDesk = btn.dataset.desk || "pune";
+      paintCityChips();
       $("huntMeta").textContent = "Find news · " + selectedDesk;
       $("huntMeta").classList.remove("warn");
     });
@@ -2792,7 +2901,7 @@
     $("huntMeta").classList.remove("warn");
 
     if (!lastHits.length) {
-      list.innerHTML = `<div class="hunt-empty" id="huntEmpty">No live pages for this project. Every card needs a real URL.</div>`;
+      list.innerHTML = `<div class="hunt-empty" id="huntEmpty">No live pages for this city. Every card needs a real URL.</div>`;
       return;
     }
     list.innerHTML = lastHits.map((h, i) => `
@@ -3001,6 +3110,7 @@
     const grid = $("pluginGrid");
     if (!grid) return;
     const shipOk = canShip();
+    plugins = (plugins || []).filter((p) => p.id === "canva" || p.id === "zip");
     grid.innerHTML = plugins.map((p, i) => {
       const mark = PLUGIN_MARKS[p.id] || PLUGIN_MARKS.zip;
       const num = String(i + 1).padStart(2, "0");
@@ -3016,6 +3126,9 @@
           ? `<button type="button" class="plugin-btn" data-ship="${p.id}">Post</button>`
           : "";
         btn = `${shipBtn}<button type="button" class="plugin-btn ghost" data-disconnect="${p.id}">Disconnect</button>`;
+      } else if (p.id === "canva") {
+        const shipBtn = `<button type="button" class="plugin-btn" data-ship="canva">Open Canva</button>`;
+        btn = `${shipBtn}<button type="button" class="plugin-btn lime" data-connect="${p.id}">Connect Canva</button>`;
       } else {
         btn = `<button type="button" class="plugin-btn lime" data-connect="${p.id}">Connect</button>`;
       }
@@ -3088,12 +3201,7 @@
       renderPluginCards(data.plugins || []);
     } catch (e) {
       const fallback = [
-        { id: "ig", name: "Instagram", description: "Photo + rewrite pack", connected: false, configured: false, missing: ["IG_APP_ID", "IG_APP_SECRET"], primary: true, local: false },
-        { id: "yt", name: "YouTube", description: "Title, description + thumbnail", connected: false, configured: false, missing: ["YT_CLIENT_ID", "YT_CLIENT_SECRET"], primary: true, local: false },
-        { id: "canva", name: "Canva", description: "Open design handoff", connected: false, configured: false, missing: ["CANVA_CLIENT_ID", "CANVA_CLIENT_SECRET"], primary: true, local: false },
-        { id: "telegram", name: "Telegram", description: "Channel message", connected: false, configured: false, missing: ["TELEGRAM_BOT_TOKEN"], primary: false, local: false },
-        { id: "x", name: "X / Twitter", description: "Post + media", connected: false, configured: false, missing: ["X_CLIENT_ID", "X_CLIENT_SECRET"], primary: false, local: false },
-        { id: "tiktok", name: "TikTok", description: "Photo publish via TikTok Login", connected: false, configured: false, missing: ["TIKTOK_CLIENT_KEY", "TIKTOK_CLIENT_SECRET"], primary: false, local: false },
+        { id: "canva", name: "Canva", description: "Open in Canva", connected: false, configured: false, missing: ["CANVA_CLIENT_ID", "CANVA_CLIENT_SECRET"], primary: true, local: false },
         { id: "zip", name: "Download ZIP", description: "Story file — always works", connected: true, configured: true, missing: [], primary: false, local: true },
       ];
       renderPluginCards(fallback);
@@ -3379,30 +3487,38 @@
     if ($("profileMenu")) $("profileMenu").hidden = true;
     switchView("settings");
   });
-  $("profileLogout")?.addEventListener("click", () => {
+  $("profileLogout")?.addEventListener("click", async () => {
     if ($("profileMenu")) $("profileMenu").hidden = true;
+    await lockOwner();
     localStorage.removeItem(SESSION_KEY);
     localStorage.setItem("cutline.signedOut", "1");
     newDesk();
     showSignedOut(true);
   });
-  $("gateOpen")?.addEventListener("click", () => {
+  $("gateOpen")?.addEventListener("click", async () => {
     const name = ($("gateName")?.value || "You").trim() || "You";
+    const key = ($("gateOwnerKey")?.value || "").trim();
     localStorage.removeItem("cutline.signedOut");
-    writeSession({ name, desk: "breaking", theme: "cream" });
+    writeSession({ name, desk: selectedDesk || "pune", theme: "cream" });
+    if (key) await unlockOwner(key);
+    else paintMode("demo");
     showSignedOut(false);
     switchView("home");
   });
-  $("settingsForm")?.addEventListener("submit", (e) => {
+  $("settingsForm")?.addEventListener("submit", async (e) => {
     e.preventDefault();
     writeSession({
       name: ($("settingsName")?.value || "You").trim() || "You",
-      desk: $("settingsDesk")?.value || "breaking",
+      desk: selectedDesk || "pune",
       theme: $("settingsTheme")?.value || "cream",
     });
+    const key = ($("settingsOwnerKey")?.value || "").trim();
+    if (key) await unlockOwner(key);
+    if ($("settingsOwnerKey")) $("settingsOwnerKey").value = "";
     switchView("home");
   });
   ensureSession();
+  refreshDeskMode();
 
   updateNeedLabel();
   setSideRunReady();
@@ -3417,6 +3533,12 @@
         const data = await res.json();
         if (res.ok && data.run) applyRun(data.run);
       } catch (_) { /* ignore */ }
+    }
+    if (q.get("showcase") === "1") {
+      localStorage.removeItem("cutline.signedOut");
+      showSignedOut(false);
+      document.body.classList.add("is-showcase");
+      paintMode("demo");
     }
     const view = (q.get("view") || "").toLowerCase();
     const oauth = q.get("oauth");
@@ -3460,6 +3582,12 @@
       switchView("home");
       $("structureEmpty") && ($("structureEmpty").style.display = "none");
       $("igPost") && ($("igPost").style.display = "");
+    } else if (preview === "flow") {
+      document.body.classList.add("is-showcase");
+      assignJob = "post";
+      selectedDesk = "pune";
+      paintCityChips();
+      await runAssignment();
     }
   })();
 

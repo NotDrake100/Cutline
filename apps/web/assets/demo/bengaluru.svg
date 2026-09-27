@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1080" height="1080" viewBox="0 0 1080 1080">
+  <rect width="1080" height="1080" fill="#EDE6D9"/>
+  <rect x="64" y="64" width="952" height="952" rx="28" fill="#FFFEFB"/>
+  <rect x="64" y="64" width="16" height="952" fill="#E1F435"/>
+  <text x="120" y="200" font-family="Georgia, serif" font-size="42" fill="#0A0A0A">Bengaluru</text>
+  <text x="120" y="280" font-family="Georgia, serif" font-size="64" fill="#0A0A0A">Whitefield feeders</text>
+  <text x="120" y="360" font-family="Georgia, serif" font-size="64" fill="#0A0A0A">add a late last trip.</text>
+  <text x="120" y="980" font-family="ui-sans-serif, system-ui" font-size="28" fill="rgba(10,10,10,.45)">Demo still · City desk</text>
+</svg>

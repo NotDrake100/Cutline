@@ -1,15 +1,12 @@
-# Cutline — 60 seconds
+# Cutline — 60 seconds (public showcase)
 
-Hunt a live page. Edit the Instagram post. Approve. Ship a ZIP.
-
-Connect plugins stay **Connect required** until an account is linked.
+Landing **See it work** → `/studio?showcase=1`. Public traffic is Demo: fixtures + cached city pages. Gemini is never billed.
 
 ## Kill path
 
-1. **Hunt** — Studio → News. Pick a desk. **Hunt latest**.
-2. **Browser URL** — **Open in Browser**. The pane holds the live source URL.
-3. **Magic Layer** — **Use on desk**. The Instagram post fills: source photo, headline, caption. Edit on the post. Pick another photo from the page.
-4. **Approve**.
-5. **ZIP** — on the post, or Connect → Download ZIP.
+1. **Find news** — Home city recs (Pune / Mumbai) or Explore. Pick a story.
+2. **Browser** — **Open in Browser**. The pane holds the live source URL (cached city page in Demo).
+3. **Edit text** — **Use here**. Magic Layer fills the post. Edit headline / caption.
+4. **Approve** — human gate. Then **Canva** or ZIP.
 
-Hunt and Browser work without Gemini. Source photos and page copy fill the post. Approve and ZIP complete with that pack.
+Owner desk (Settings → Owner key) is the only path that may call Gemini. See README “Demo vs owner AI”.

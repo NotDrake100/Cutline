@@ -105,7 +105,21 @@
     font-size: 17px; line-height: 1.55; color: var(--muted);
     max-width: 46ch; margin: 0 auto 28px;
   }
-  .cta-row { display: flex; flex-wrap: wrap; gap: 12px; justify-content: center; margin-bottom: 48px; }
+  .cta-row { display: flex; flex-wrap: wrap; gap: 12px; justify-content: center; margin-bottom: 22px; }
+  .showcase-steps {
+    display: flex; flex-wrap: wrap; justify-content: center; gap: 8px 18px;
+    margin: 0 auto 44px; padding: 0;
+    list-style: none;
+    max-width: 52ch;
+    font-size: 13px; font-weight: 550; color: var(--muted);
+  }
+  .showcase-steps li { display: flex; align-items: center; gap: 8px; }
+  .showcase-steps .n {
+    width: 20px; height: 20px; border-radius: 50%;
+    background: var(--lime); color: var(--lime-ink);
+    display: grid; place-items: center;
+    font-size: 11px; font-weight: 700;
+  }
 
   /* —— lime envelope hero visual —— */
   .pack-stage {
@@ -579,6 +593,9 @@
   }
   .bottom-foot a:hover { color: var(--ink); }
 
+  @media (max-width: 720px) {
+    .nav { display: none; }
+  }
   @media (max-width: 640px) {
     .hero { padding-top: 40px; }
     .hero h1 { font-size: clamp(44px, 12vw, 64px); }
@@ -597,6 +614,7 @@
         <a href="#how">How</a>
       </nav>
       <div class="spacer"></div>
+      <a class="btn btn-lime" href="/studio?showcase=1">See it work</a>
     </div>
   </header>
 
@@ -607,9 +625,15 @@
       <h1>Your AI desk.<br/>News and video, finished.</h1>
       <p class="lede">Cutline is your AI desk. News in, post out. Raw video in, edited cut out. You approve.</p>
       <div class="cta-row">
-        <a class="btn btn-lime" href="/studio.html">Open the desk</a>
-        <a class="btn btn-ghost" href="#how">How it works</a>
+        <a class="btn btn-lime" href="/studio?showcase=1">See it work</a>
+        <a class="btn btn-ghost" href="#how">How news works</a>
       </div>
+      <ol class="showcase-steps">
+        <li><span class="n">1</span> Find a story</li>
+        <li><span class="n">2</span> Open the source</li>
+        <li><span class="n">3</span> Edit the post</li>
+        <li><span class="n">4</span> Approve</li>
+      </ol>
 
       <div class="pack-stage" aria-hidden="true">
         <div class="pack-env">
@@ -702,11 +726,11 @@
           <div class="viz" style="align-items:center">
             <div class="lock-row">
               <div class="lock-box" aria-hidden="true">→</div>
-              <div class="lock-txt">Connect plugins<br/>IG · YT · Canva · ZIP</div>
+              <div class="lock-txt">Connect<br/>Canva · ZIP</div>
             </div>
           </div>
-          <h3>Connect</h3>
-          <p>Instagram, YouTube, Canva, Telegram, X — or download the pack ZIP.</p>
+          <h3>Connect Canva</h3>
+          <p>Real OAuth for the owner desk. Judges open Canva or save a ZIP.</p>
         </article>
       </div>
     </section>
@@ -715,28 +739,28 @@
     <section class="sec wrap" id="how">
       <div class="how">
         <div class="how-left">
-          <div class="kicker">Three steps</div>
-          <h2>Search or upload. Finish. Ship.</h2>
+          <div class="kicker">Showcase</div>
+          <h2>Find news. Open the page. Finish the post.</h2>
           <div class="steps">
             <div class="step">
               <div class="n">01</div>
               <div>
-                <h3>Search or upload</h3>
-                <p>Paste a story, hunt news, or drop a raw video.</p>
+                <h3>Find a story</h3>
+                <p>Pick Pune or Mumbai. Hunt keeps a live source URL.</p>
               </div>
             </div>
             <div class="step">
               <div class="n">02</div>
               <div>
-                <h3>Desk finishes it</h3>
-                <p>Post written, or video fully edited.</p>
+                <h3>Open it in Browser</h3>
+                <p>The pane holds the real page — not a warning banner.</p>
               </div>
             </div>
             <div class="step">
               <div class="n">03</div>
               <div>
-                <h3>Approve and ship</h3>
-                <p>Sign off, then Instagram, YouTube, Canva — or download.</p>
+                <h3>Edit, then approve</h3>
+                <p>Magic Layer edits the post. Nothing ships until you tap yes.</p>
               </div>
             </div>
           </div>
@@ -777,15 +801,15 @@
 
   <!-- 6 · Big lime bottom CTA -->
   <section class="bottom">
-    <h2>Ready for your AI desk?</h2>
-    <p>Search the news or upload a clip. Cutline finishes it.</p>
-    <a class="btn btn-ink" href="/studio.html">Try Cutline</a>
+    <h2>See it work.</h2>
+    <p>Find a story, open the source, edit the post, approve. Public demo never burns Gemini.</p>
+    <a class="btn btn-ink" href="/studio?showcase=1">See it work</a>
     <div class="bottom-foot">
-      <span>Cutline · Your AI desk</span>
+      <span>cutline.dev · Vercel</span>
       <span>
         <a href="#how">How</a> ·
-        <a href="#agents">Agents</a> ·
-        <a href="/studio.html">Studio</a>
+        <a href="#agents">Desk</a> ·
+        <a href="/studio?showcase=1">Desk</a>
       </span>
     </div>
   </section>

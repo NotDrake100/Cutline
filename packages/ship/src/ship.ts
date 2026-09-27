@@ -119,9 +119,12 @@ const PLUGINS: Omit<PluginInfo, "configured" | "missing">[] = [
   },
 ];
 
+/** Connect UI only shows plugins that actually work. Dead IG/YT/X stubs stay out. */
+const WORKING_PLUGIN_IDS: ReadonlySet<ShipChannel> = new Set(["canva", "zip"]);
+
 export function listPlugins(links: readonly ConnectionView[] = []): PluginInfo[] {
   const byChannel = new Map(links.map((link) => [link.channel, link]));
-  return PLUGINS.map((plugin) => {
+  return PLUGINS.filter((plugin) => WORKING_PLUGIN_IDS.has(plugin.id)).map((plugin) => {
     if (plugin.local || !isOauthChannel(plugin.id)) {
       return { ...plugin, connected: plugin.local, configured: true, missing: [] as string[] };
     }
@@ -310,6 +313,17 @@ export async function shipRun(
 
   const account = await getFreshAccount(channel);
   if (!account) {
+    if (channel === "canva") {
+      return {
+        ok: true,
+        channel: "canva",
+        status: "published",
+        connectUrl: canvaCreateUrl(run),
+        nextStep: "Opened Canva with this headline. Finish the layout there.",
+        pack: packPreview(run, shareText),
+        warning,
+      };
+    }
     return connectStub(channel, run, shareText, {
       connectUrl: `/studio.html?view=connect`,
     });
