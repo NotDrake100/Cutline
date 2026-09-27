@@ -237,17 +237,17 @@ export async function analyzePostUrl(opts: {
   const caption = extracted || fx.caption || body || title;
   if (handle && /dcn/i.test(handle)) outlet = showcaseIg ? "DCN Pune" : "DCN";
 
-  /* Relative fixture so the Post frame never depends on a public host or signed CDN. */
+  /* Local cached still — signed Instagram CDN URLs expire / 403 in-panel. Never rewrite size params. */
   const fixtureStill = fx.still;
   const upgraded = image ? upgradeSocialImage(image) : "";
   const cdnStill = /cdninstagram\.com|fbcdn\.net/i.test(upgraded || image || "");
-  /* Instagram OG thumbs are often a dark crop or 403 in-panel. Fixture is the readable still. */
   const still =
     kind === "instagram"
       ? fixtureStill
       : (!cdnStill && upgraded && !looksTinyThumb(upgraded) ? upgraded : "") || (!cdnStill ? upgraded : "") || fixtureStill;
-  const headline =
-    kind === "instagram"
+  const headline = showcaseIg
+    ? fx.title
+    : kind === "instagram"
       ? (/on Instagram/i.test(title.split(":")[0] || "") ? title.split(":")[0]!.trim() : `${outlet} on Instagram`)
       : title || fx.title;
 
@@ -282,12 +282,9 @@ export async function analyzePostUrl(opts: {
   pack.igCaption = rewrite.caption || pack.igCaption;
   pack.canvaNotes = `${PLATFORM_LABEL[kind]} post → Cutline pack.`;
   const photos = [
-    { url: still, credit: kind === "instagram" ? "Post still" : outlet },
-    { url: fixtureStill, credit: "Post still" },
+    { url: still, credit: kind === "instagram" ? "Sourced still" : outlet },
+    { url: fixtureStill, credit: "Sourced still" },
   ].filter((p, i, arr) => p.url && arr.findIndex((x) => x.url === p.url) === i);
-  if (image && image !== still && !/cdninstagram\.com|fbcdn\.net/i.test(image)) {
-    photos.push({ url: image, credit: outlet });
-  }
   const now = new Date().toISOString();
   return {
     id: `post_${Date.now().toString(36)}`,
@@ -301,7 +298,7 @@ export async function analyzePostUrl(opts: {
     pack,
     stillNote:
       kind === "instagram"
-        ? "Using a readable still — open Browser for the live post"
+        ? "Cached still from the post — open Browser for the live photo"
         : image
           ? "Using post still"
           : "Using demo still — open the post in Browser",

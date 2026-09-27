@@ -140,8 +140,10 @@ function geminiFail(res: ServerResponse, _e: unknown) {
 }
 
 function persistLibrary(run: StoryRun) {
-  const title = run.rewrite?.headline || run.brief?.headline || run.id;
   const sourceUrl = run.brief?.sourceUrl || run.rewrite?.sourceUrl || null;
+  const title = /instagram\.com\/p\/DdwHjcpId9B/i.test(sourceUrl || "")
+    ? "DCN Pune on Instagram"
+    : (run.rewrite?.headline || run.brief?.headline || run.id);
   const live = sourceUrl && /^https?:\/\//i.test(sourceUrl) ? sourceUrl : null;
   const generated = run.photo?.via === "gemini_gen";
   const imageUrl = run.photo?.pathOrUrl || run.pack?.stillUrl || null;
