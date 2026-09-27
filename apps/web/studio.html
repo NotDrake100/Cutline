@@ -45,6 +45,7 @@
   button, textarea, input { font: inherit; color: inherit; }
   button { cursor: pointer; border: none; background: none; }
   img { display: block; max-width: 100%; }
+  .ig-frame img { max-width: none; }
   ::selection { background: rgba(225,244,53,.45); }
 
   .shell {
@@ -1182,6 +1183,7 @@
   .ig-post-head {
     display: flex; align-items: center; gap: 10px;
     padding: 10px 12px;
+    flex: 0 0 auto;
   }
   .ig-ava {
     width: 28px; height: 28px; border-radius: 50%;
@@ -1193,25 +1195,35 @@
   .ig-handle { font-size: 13px; font-weight: 650; letter-spacing: -.01em; }
   .ig-handle-sub { font-size: 11px; color: var(--dim); }
   .ig-frame {
-    position: relative;
+    position: sticky;
+    top: 0;
+    z-index: 2;
     display: block;
     width: 100%;
+<<<<<<< HEAD
     aspect-ratio: 4 / 5;
     background: #0A0A0A;
     background-size: cover;
+=======
+    height: 420px;
+    min-height: 420px;
+    max-height: 420px;
+    flex: 0 0 420px;
+    background: #111;
+    background-size: contain;
+    background-repeat: no-repeat;
+>>>>>>> 8ffb53d (Show the real DCN photo in the Post still, not thumbs or Alt still.)
     background-position: center;
     overflow: hidden;
     cursor: pointer;
-    flex: 0 0 auto;
-    min-height: 260px;
-    max-height: 460px;
   }
   .ig-frame img {
     position: absolute;
     inset: 0;
     width: 100%;
     height: 100%;
-    object-fit: cover;
+    object-fit: contain;
+    object-position: center;
     display: block;
     background: #0A0A0A;
   }
@@ -1474,14 +1486,33 @@
   }
   .browser-hint.show { display: block; }
   .browser-hint strong { color: var(--ink); font-weight: 600; }
+  .browser-poster {
+    display: none;
+    flex: 0 0 320px;
+    height: 320px;
+    min-height: 320px;
+    background: #111;
+    overflow: hidden;
+    border-bottom: 1px solid var(--line);
+  }
+  .browser-poster.show { display: block; }
+  .browser-poster img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    object-position: center;
+    background: #111;
+    max-width: none;
+  }
   .browser-frame-wrap {
-    flex: 1; min-height: 0;
-    background: #FAFAF9;
+    flex: 1; min-height: 360px;
+    background: #111;
     position: relative;
   }
   .browser-frame-wrap iframe {
     width: 100%; height: 100%; border: none;
     background: #fff;
+    min-height: 360px;
   }
   .browser-blocked {
     position: absolute; inset: 0;
@@ -2048,6 +2079,7 @@
           <a class="browser-open" id="browserOpen" href="#" target="_blank" rel="noopener noreferrer">Open</a>
         </div>
         <div class="browser-hint" id="browserHint"></div>
+        <div class="browser-poster" id="browserPoster"><img id="browserPosterImg" alt="Page still" width="1080" height="720"/></div>
         <div class="browser-frame-wrap" id="browserFrameWrap">
           <iframe id="browserFrame" sandbox="allow-scripts allow-same-origin allow-popups allow-forms allow-popups-to-escape-sandbox" allow="encrypted-media; clipboard-write; picture-in-picture; fullscreen" referrerpolicy="origin" title="Source preview"></iframe>
           <div class="browser-blocked" id="browserBlocked" style="display:none">
@@ -2375,6 +2407,7 @@
     $("rpBrowser").classList.toggle("active", name === "browser");
     document.querySelector(".shell")?.classList.toggle("browser-focus", name === "browser");
     $("rightPane")?.classList.toggle("browser-on", name === "browser");
+    if (name === "structure" && currentRun) paintIgPost(currentRun);
   }
 
   function resolveSourceUrl(run) {
@@ -2538,6 +2571,35 @@
     return "";
   }
 
+  function posterForUrl(url) {
+    const u = String(url || "");
+    if (/instagram\.com|instagr\.am|sample-dcn-ig/i.test(u)) return "/assets/demo/dcn-ig.jpg";
+    if (/(^|\.)x\.com|twitter\.com|sample-dcn-x/i.test(u)) return "/assets/demo/dcn-x.jpg";
+    if (/youtube\.com|youtu\.be|sample-dcn-yt/i.test(u)) return "/assets/demo/dcn-yt.jpg";
+    if (/sample-pune/i.test(u)) return "/assets/demo/pune.jpg";
+    if (/sample-mumbai/i.test(u)) return "/assets/demo/mumbai.jpg";
+    if (/sample-delhi/i.test(u)) return "/assets/demo/delhi.jpg";
+    if (/sample-bengaluru/i.test(u)) return "/assets/demo/bengaluru.jpg";
+    if (/sample-source/i.test(u)) return "/assets/demo/source.jpg";
+    const runStill = currentRun?.photo?.pathOrUrl || currentRun?.pack?.stillUrl || "";
+    if (runStill && !/\.svg(\?|$)/i.test(runStill) && !/cdninstagram\.com|fbcdn\.net/i.test(runStill)) return runStill;
+    return "";
+  }
+
+  function paintBrowserPoster(url) {
+    const box = $("browserPoster");
+    const img = $("browserPosterImg");
+    const src = posterForUrl(url);
+    if (!box || !img) return;
+    if (!src) {
+      box.classList.remove("show");
+      img.removeAttribute("src");
+      return;
+    }
+    img.src = src;
+    box.classList.add("show");
+  }
+
   function loadBrowserUrl(url, { switchTab = true } = {}) {
     if (!isLiveSourceUrl(url)) return false;
     pendingSourceUrl = url;
@@ -2548,6 +2610,7 @@
     $("browserUrl").textContent = url;
     $("browserOpen").href = url;
     $("browserBlockedLink").href = url;
+    paintBrowserPoster(url);
     const embed = socialEmbedUrl(url);
     const frameUrl = embed || url;
     const hint = $("browserHint");
@@ -2606,6 +2669,7 @@
       empty.style.display = "";
       $("browserFrame").removeAttribute("src");
       delete $("browserFrame").dataset.src;
+      paintBrowserPoster("");
       return;
     }
     if (/^https?:\/\//i.test(src)) {
@@ -2615,6 +2679,7 @@
     empty.style.display = "";
     $("browserFrame").removeAttribute("src");
     delete $("browserFrame").dataset.src;
+    paintBrowserPoster("");
   }
 
   function fillMagicLayers(run, opts) {
@@ -2710,13 +2775,17 @@
     if (frame) {
       const src = url || cachedIg;
       frame.style.backgroundImage = `url("${src}")`;
-      frame.style.backgroundSize = "cover";
+      frame.style.backgroundSize = "contain";
+      frame.style.backgroundRepeat = "no-repeat";
       frame.style.backgroundPosition = "center";
-      frame.innerHTML = `<img src="${escapeHtml(src)}" alt="Sourced still" width="640" height="800" decoding="async"/>`;
+      frame.style.height = "420px";
+      frame.style.minHeight = "420px";
+      frame.style.flex = "0 0 420px";
+      frame.innerHTML = `<img src="${escapeHtml(src)}" alt="Sourced still" width="640" height="800" decoding="async" style="position:absolute;inset:0;width:100%;height:100%;object-fit:contain;background:#111"/>`;
       const img = frame.querySelector("img");
       if (img) {
         img.addEventListener("error", () => {
-          const next = fallbacks.find((u) => u && u !== img.getAttribute("src")) || cachedIg;
+          const next = fallbacks.find((u) => u && u !== img.getAttribute("src") && !/\.svg(\?|$)/i.test(u)) || cachedIg;
           if (img.getAttribute("src") === next) return;
           img.src = next;
           frame.style.backgroundImage = `url("${next}")`;
@@ -2766,35 +2835,37 @@
     }
     const strip = $("photoStrip");
     const label = $("photoStripLabel");
+    const uniqueThumbs = photos.filter((p) => p.url && p.url !== url && preferRaster(p.url) && !/\.svg(\?|$)/i.test(p.url));
     if (strip) {
-      if (!photos.length) {
+      /* Big Post still is the proof. Hide a one-thumb "From the page" strip. */
+      if (isIg || photos.length <= 1 || uniqueThumbs.length === 0) {
         strip.hidden = true;
         strip.innerHTML = "";
         if (label) label.hidden = true;
-        const live = resolveSourceUrl(run);
-        if (isLiveSourceUrl(live) && !run._photosAsked && !looksLikePostUrl(live)) {
-          run._photosAsked = true;
-          fetch("/api/photos?url=" + encodeURIComponent(live))
-            .then((r) => r.json())
-            .then((data) => {
-              if (!data.photos || !data.photos.length) return;
-              run.photos = data.photos;
-              if (currentRun) currentRun.photos = data.photos;
-              if (!run.photo || run.photo.via === "gemini_gen") setPostPhoto(data.photos[0]);
-              else paintIgPost(run);
-            })
-            .catch(() => {});
-        }
-        return;
+      } else {
+        strip.hidden = false;
+        if (label) label.hidden = false;
+        strip.innerHTML = photos.map((p, i) =>
+          `<button type="button" data-photo="${i}" class="${p.url === url ? "active" : ""}"><img src="${escapeHtml(p.url)}" alt=""/></button>`
+        ).join("");
+        strip.querySelectorAll("button").forEach((btn) => {
+          btn.addEventListener("click", () => setPostPhoto(photos[Number(btn.dataset.photo)]));
+        });
       }
-      strip.hidden = false;
-      if (label) label.hidden = false;
-      strip.innerHTML = photos.map((p, i) =>
-        `<button type="button" data-photo="${i}" class="${p.url === url ? "active" : ""}"><img src="${escapeHtml(p.url)}" alt=""/></button>`
-      ).join("");
-      strip.querySelectorAll("button").forEach((btn) => {
-        btn.addEventListener("click", () => setPostPhoto(photos[Number(btn.dataset.photo)]));
-      });
+      const live = resolveSourceUrl(run);
+      if (!photos.length && isLiveSourceUrl(live) && !run._photosAsked && !looksLikePostUrl(live)) {
+        run._photosAsked = true;
+        fetch("/api/photos?url=" + encodeURIComponent(live))
+          .then((r) => r.json())
+          .then((data) => {
+            if (!data.photos || !data.photos.length) return;
+            run.photos = data.photos;
+            if (currentRun) currentRun.photos = data.photos;
+            if (!run.photo || run.photo.via === "gemini_gen") setPostPhoto(data.photos[0]);
+            else paintIgPost(run);
+          })
+          .catch(() => {});
+      }
     }
   }
 
@@ -3906,19 +3977,13 @@
       setPostPhoto({ url: "/assets/demo/dcn-ig.jpg", credit: "Sourced still" });
       return;
     }
-    if (photos.length < 2) {
-      const extra = { url: "/assets/demo/alt.jpg", credit: "Alt still" };
-      if (!photos.some((p) => p.url === extra.url)) photos = photos.concat([extra]);
-      if (!photos.length) photos = [{ url: "/assets/demo/dcn-ig.jpg", credit: "Sourced still" }, extra];
+    if (!photos.length) {
+      photos = [{ url: "/assets/demo/dcn-ig.jpg", credit: "Sourced still" }];
       currentRun.photos = photos;
     }
     const cur = currentRun.photo?.pathOrUrl;
     const idx = Math.max(0, photos.findIndex((p) => p.url === cur));
     setPostPhoto(photos[(idx + 1) % photos.length]);
-    const strip = $("photoStrip");
-    const label = $("photoStripLabel");
-    if (strip) strip.hidden = false;
-    if (label) label.hidden = false;
   });
   $("toolCanva")?.addEventListener("click", () => {
     if (currentRun?.id) {
@@ -3992,7 +4057,12 @@
     else switchView("connect");
   });
   $("igFrame")?.addEventListener("click", () => {
-    const photos = currentRun?.photos || [];
+    if (!currentRun) return;
+    if (looksLikePostUrl(resolveSourceUrl(currentRun)) && /instagram/i.test(resolveSourceUrl(currentRun))) {
+      setPostPhoto({ url: "/assets/demo/dcn-ig.jpg", credit: "Sourced still" });
+      return;
+    }
+    const photos = (currentRun.photos || []).filter((p) => p.url && !/\.svg(\?|$)/i.test(p.url) && !/cdninstagram\.com|fbcdn\.net/i.test(p.url));
     if (!photos.length) return;
     const cur = currentRun.photo?.pathOrUrl;
     const idx = Math.max(0, photos.findIndex((p) => p.url === cur));

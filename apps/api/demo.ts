@@ -152,7 +152,11 @@ export function demoRun(opts: {
   rewrite.caption = story.caption;
   const photo = {
     pathOrUrl: still,
+<<<<<<< HEAD
     credit: "DCN demo",
+=======
+    credit: "Sourced still",
+>>>>>>> 8ffb53d (Show the real DCN photo in the Post still, not thumbs or Alt still.)
     md5: "demo",
     via: "article_og" as const,
     bannedForPrint: false,
@@ -177,12 +181,19 @@ export function demoRun(opts: {
     rewrite,
     photo,
     photos: [
+<<<<<<< HEAD
       { url: still, credit: "DCN demo card" },
       { url: abs(opts.base, story.still.replace("-card.jpg", ".jpg")), credit: "Demo source still" },
       { url: abs(opts.base, "/assets/demo/alt.jpg"), credit: "DCN demo" },
     ],
     pack,
     stillNote: "Using DCN demo card",
+=======
+      { url: still, credit: "Sourced still" },
+    ],
+    pack,
+    stillNote: "Using sourced photo",
+>>>>>>> 8ffb53d (Show the real DCN photo in the Post still, not thumbs or Alt still.)
     styleId: style.id,
     log: [
       { agent: "wire", at: now, action: "brief", ok: true, spendCents: 0, detail: "demo" },
