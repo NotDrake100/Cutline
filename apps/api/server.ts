@@ -141,9 +141,11 @@ function geminiFail(res: ServerResponse, _e: unknown) {
 
 function persistLibrary(run: StoryRun) {
   const sourceUrl = run.brief?.sourceUrl || run.rewrite?.sourceUrl || null;
-  const title = /instagram\.com\/p\/DdwHjcpId9B/i.test(sourceUrl || "")
+  const rawTitle = run.rewrite?.headline || run.brief?.headline || run.id;
+  const tractor = /20[-\s]?year[-\s]?old|vignesh|kawade|visarjan|tractor|trolley|heartbreaking/i.test(rawTitle);
+  const title = /instagram\.com\/p\/DdwHjcpId9B/i.test(sourceUrl || "") || tractor
     ? "DCN Pune on Instagram"
-    : (run.rewrite?.headline || run.brief?.headline || run.id);
+    : rawTitle;
   const live = sourceUrl && /^https?:\/\//i.test(sourceUrl) ? sourceUrl : null;
   const generated = run.photo?.via === "gemini_gen";
   const imageUrl = run.photo?.pathOrUrl || run.pack?.stillUrl || null;

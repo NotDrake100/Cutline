@@ -2064,7 +2064,13 @@
   let selectedDesk = "pune";
   let assignJob = "news";
   let deskMode = "demo";
-  let recentsReset = /(?:\?|&)(?:demo|showcase)=1\b/.test(location.search);
+  const demoForced = /(?:\?|&)(?:demo|showcase)=1\b/.test(location.search);
+  let recentsReset = demoForced;
+  try {
+    localStorage.removeItem("cutline.recents");
+    localStorage.removeItem("cutline.recentList");
+    if (demoForced) localStorage.removeItem("cutline.signedOut");
+  } catch (_) { /* ignore */ }
 
   const $ = (id) => document.getElementById(id);
   const agents = ["wire", "still", "desk", "ship"];
@@ -2141,10 +2147,11 @@
     paintCityChips();
   }
   function paintMode(mode) {
-    deskMode = mode === "owner" ? "owner" : "demo";
+    deskMode = demoForced ? "demo" : (mode === "owner" ? "owner" : "demo");
     const label = deskMode === "owner" ? "Owner desk" : "Demo";
     if ($("workspaceMode")) $("workspaceMode").textContent = label;
     if ($("homeKicker")) $("homeKicker").textContent = label;
+    if (demoForced) recentsReset = true;
   }
   function paintCityChips() {
     document.querySelectorAll("#assignCities [data-desk], #beatChips [data-desk]").forEach((b) => {
@@ -3676,23 +3683,42 @@
     }
   }
 
+  function storyFamily(title, src) {
+    const t = String(title || "").toLowerCase();
+    const s = String(src || "").toLowerCase();
+    if (/instagram\.com\/p\/ddwhjcpid9b/i.test(s)) return "ig:ddwhjcpid9b";
+    if (/20[-\s]?year[-\s]?old|vignesh|kawade|visarjan|tractor|trolley/.test(t) && /die|dies|died|dead|death|kill|killed|fatal|accident|heartbreaking/.test(t)) {
+      return "ig:ddwhjcpid9b";
+    }
+    if (/overnight bus/.test(t) || /sample-pune\.html/i.test(s)) return "pune:buses";
+    if (/harbour line/.test(t) || /sample-mumbai\.html/i.test(s)) return "mumbai:harbour";
+    return "";
+  }
+
   function titleFingerprint(title) {
     return String(title || "")
       .toLowerCase()
       .replace(/https?:\/\/\S+/g, "")
       .replace(/[^a-z0-9\s]/g, " ")
-      .replace(/\b(pune|mumbai|delhi|bengaluru|india|dcn|instagram|youtube|killed|dies|died|dead|death|youth|year|old|tractor|trolley|ganesh|visarjan|kawade|road|heartbreaking|incident|unfolded|news)\b/g, " ")
+      .replace(/\b(pune|mumbai|delhi|bengaluru|india|dcn|instagram|youtube|killed|kill|dies|died|dead|death|fatal|youth|year|old|tractor|trolley|ganesh|visarjan|kawade|road|heartbreaking|incident|unfolded|news|after|from|the|and)\b/g, " ")
+      .replace(/\b\d+\b/g, " ")
       .replace(/\s+/g, " ")
       .trim()
       .slice(0, 48);
   }
 
   function recentKey(title, src) {
+    const family = storyFamily(title, src);
+    if (family) return "fam:" + family;
     const cleanSrc = (src || "").replace(/[?#].*$/, "").replace(/\/$/, "").toLowerCase();
-    if (/instagram\.com\/p\/ddwhjcpid9b/i.test(cleanSrc)) return "src:ig:ddwhjcpid9b";
     if (cleanSrc) return "src:" + cleanSrc;
     const fp = titleFingerprint(title);
     return fp ? "t:" + fp : "";
+  }
+
+  function tidyRecentTitle(title, src) {
+    if (storyFamily(title, src) === "ig:ddwhjcpid9b") return "DCN Pune on Instagram";
+    return (title || "").trim();
   }
 
   function seedRecents() {
@@ -3710,32 +3736,31 @@
     const rows = [];
     const seen = new Set();
     const push = (r) => {
-      const title = (r.title || "").trim();
+      const title = tidyRecentTitle(r.title, r.sourceUrl);
       if (!title || title.length < 8) return;
       if (/^post_|demo_|item_|photo_/i.test(title)) return;
       const key = recentKey(title, r.sourceUrl);
-      if (seen.has(key)) return;
+      if (!key || seen.has(key)) return;
       seen.add(key);
       rows.push({ runId: r.runId || "", title, sourceUrl: r.sourceUrl || "" });
     };
-    if (currentRun?.id) {
-      push({
-        runId: currentRun.id,
-        title: currentRun.rewrite?.headline || currentRun.brief?.headline || "",
-        sourceUrl: resolveSourceUrl(currentRun),
-      });
-    }
-    if (deskMode !== "demo" && !recentsReset) {
+    if (deskMode === "demo" || recentsReset || demoForced) {
+      seedRecents().forEach(push);
+    } else {
+      if (currentRun?.id) {
+        push({
+          runId: currentRun.id,
+          title: currentRun.rewrite?.headline || currentRun.brief?.headline || "",
+          sourceUrl: resolveSourceUrl(currentRun),
+        });
+      }
       (entries || []).forEach((entry) => {
         const item = entry.item || {};
         if (!item.runId && !item.sourceUrl) return;
-        if (/on Instagram:|heartbreaking|desk edit|20-year-old|tractor/i.test(item.title || "")) return;
-        const fp = titleFingerprint(item.title);
-        if (fp && rows.some((r) => titleFingerprint(r.title) === fp)) return;
         push({ runId: item.runId || "", title: item.title, sourceUrl: item.sourceUrl || "" });
       });
+      seedRecents().forEach(push);
     }
-    if (!recentsReset || deskMode === "demo") seedRecents().forEach(push);
     const shown = rows.slice(0, 5);
     root.innerHTML = shown.map((r) =>
       `<button type="button" class="nav-item" data-recent-run="${escapeHtml(r.runId)}" data-recent-title="${escapeHtml(r.title)}" data-recent-src="${escapeHtml(r.sourceUrl)}">

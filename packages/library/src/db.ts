@@ -264,6 +264,16 @@ export function findDeskItemByRunId(runId: string): DeskItem | null {
   return row ? rowItem(row) : null;
 }
 
+export function findDeskItemBySourceUrl(sourceUrl: string): DeskItem | null {
+  const src = (sourceUrl || "").replace(/[?#].*$/, "").replace(/\/$/, "");
+  if (!src) return null;
+  const database = open();
+  const row = database
+    .prepare("SELECT * FROM desk_items WHERE source_url = ? OR source_url LIKE ? ORDER BY created_at DESC LIMIT 1")
+    .get(src, src + "%") as Record<string, unknown> | undefined;
+  return row ? rowItem(row) : null;
+}
+
 export function saveRunToLibrary(input: {
   runId: string;
   desk: string;
@@ -276,7 +286,9 @@ export function saveRunToLibrary(input: {
   caption?: string | null;
   clipUrl?: string | null;
 }): LibraryEntry {
-  const existing = findDeskItemByRunId(input.runId);
+  const existing =
+    findDeskItemByRunId(input.runId) ||
+    (input.sourceUrl ? findDeskItemBySourceUrl(input.sourceUrl) : null);
   const item = upsertDeskItem({
     id: existing?.id,
     desk: input.desk,
