@@ -862,8 +862,19 @@
   .btn:disabled { opacity: .4; cursor: not-allowed; }
   .btn-lime { background: var(--lime); color: var(--lime-ink); }
   .btn-lime:hover:not(:disabled) { filter: brightness(1.04); }
-  .btn-ink { background: var(--ink); color: #fff; }
-  .btn-ink:hover:not(:disabled) { background: #222; }
+  .btn-ink { background: var(--ink); color: var(--on-ink); }
+  .btn-ink:hover:not(:disabled) { filter: brightness(1.08); }
+  /* Black: ink is light — don't paint a white brick; outline secondary instead */
+  html[data-theme="black"] .btn-ink {
+    background: var(--card);
+    color: var(--ink);
+    border: 1px solid var(--line-strong);
+    filter: none;
+  }
+  html[data-theme="black"] .btn-ink:hover:not(:disabled) {
+    background: var(--nav-hover);
+    filter: none;
+  }
   .btn-ghost {
     background: transparent;
     border: 1px solid var(--line);
