@@ -19,6 +19,6 @@ Bake chrome + optional cards via `scripts/bake_dcn_cards.py` (chroma-key green `
 
 `?demo=1` sets `cutline_force_demo` cookie + `x-cutline-demo: 1` so the API never opens Gemini `generateContent` (also `CUTLINE_FORCE_DEMO=1`). Canva without OAuth returns **connect_required** — never a fake Published toast.
 
-Owner desk (Settings → Owner key) is the only path that may call Gemini. See README “Demo vs owner AI”.
+Live desk (Settings → Desk API key) is the only path that may call Gemini. See README “Demo vs owner AI”. The public `/?demo=1` path never calls Gemini `generateContent`.
 
 Optional: turn on **Vercel Deployment Protection** (a password) if the desk should stay judges-only. Public demo still never bills Gemini. Do not put the site on a DCN droplet.

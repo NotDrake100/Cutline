@@ -10,7 +10,7 @@ Landing CTA **Open the desk** opens the public demo (`/studio?demo=1`). Paste an
 
 Public / judges / anonymous traffic is **Demo**. Hunt, Browser, Magic Layer, Approve, and Canva handoff use fixtures and cached source pages. The desk never calls Gemini `generateContent` for that traffic — even if `GEMINI_API_KEY` is set on Vercel.
 
-Owner desk (Archit): set `CUTLINE_OWNER_KEY` on Vercel, then enter it in Settings (or send `x-cutline-owner`). That session may call Gemini. Local `npm run studio` without an owner key is treated as owner.
+Live desk: set `CUTLINE_OWNER_KEY` on Vercel, then enter that Desk API key in Settings (or send `x-cutline-owner`). That session may call Gemini. Local `npm run studio` without a desk API key is treated as live. The public `/?demo=1` path never calls Gemini `generateContent`.
 
 Hard gate: `packages/core/src/gemini.ts` refuses `generateContent` unless `withGeminiPermit()` is open, and the server only opens that permit for an owner session.
 

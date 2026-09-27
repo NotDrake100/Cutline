@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="white">
 <head>
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
@@ -15,6 +15,7 @@
     --panel: #FFFEFB;
     --card: #FFFEFB;
     --cream-dark: #EDE6D9;
+    --on-ink: #FFFFFF;
     --ink: #0A0A0A;
     --muted: rgba(10,10,10,0.55);
     --dim: rgba(10,10,10,0.38);
@@ -37,7 +38,23 @@
     --right-w: 360px;
     --shadow: 0 12px 40px rgba(10,10,10,0.06);
   }
-  html[data-theme="paper"] { --bg: #FFFEFB; --sidebar: #F6F1E8; }
+  html[data-theme="white"] { /* default Ace cream + lime — labeled White in Settings */ }
+  html[data-theme="black"] {
+    --bg: #000000;
+    --sidebar: #0D0D0D;
+    --panel: #111111;
+    --card: #171717;
+    --cream-dark: #0D0D0D;
+    --ink: #F4F4F5;
+    --on-ink: #0A0A0A;
+    --muted: rgba(244,244,245,0.62);
+    --dim: rgba(244,244,245,0.40);
+    --line: rgba(255,255,255,.10);
+    --line-strong: rgba(255,255,255,.16);
+    --nav-hover: rgba(255,255,255,.06);
+    --nav-active: rgba(255,255,255,.10);
+    --shadow: 0 16px 48px rgba(0,0,0,0.55);
+  }
   html[data-density="compact"] { --sidebar-w: 228px; }
   * { box-sizing: border-box; }
   html, body { margin: 0; height: 100%; background: var(--bg); color: var(--ink); font-family: var(--font); -webkit-font-smoothing: antialiased; }
@@ -103,13 +120,189 @@
     .shell { grid-template-columns: var(--sidebar-w) 1fr minmax(280px, 320px); }
     .shell.browser-focus { grid-template-columns: var(--sidebar-w) 0 1fr; }
   }
+  .mobile-bar, .mobile-backdrop, .mobile-post-close, .drawer-search, .drawer-foot, .drawer-search-btn { display: none; }
+  body.mobile-lock { overflow: hidden; }
+  .sidebar:not(.show-archived) .side-archived { display: none; }
+  .nav-item#navArchived.active { background: var(--nav-active); }
   @media (max-width: 860px) {
-    .shell, .shell.browser-focus, .shell.desk-collapsed, .shell.browser-focus.desk-collapsed {
-      grid-template-columns: 1fr; grid-template-rows: auto 1fr auto;
+    :root, html { --mobile-bar-h: 56px; }
+    .shell,
+    .shell.browser-focus,
+    .shell.desk-collapsed,
+    .shell.browser-focus.desk-collapsed {
+      display: block;
+      height: 100dvh;
     }
-    .sidebar { width: 100%; height: auto; border-right: none; border-bottom: 1px solid var(--line); }
-    .right-pane { width: 100%; max-height: 42vh; border-left: none; border-top: 1px solid var(--line); }
-    .shell.desk-collapsed .sidebar { display: none; }
+    .main { height: 100%; }
+    .shell.browser-focus .main {
+      visibility: visible;
+      overflow: auto;
+      pointer-events: auto;
+    }
+    .shell.desk-collapsed .sidebar { display: flex; }
+    .shell.desk-collapsed .panel-restore { display: none; }
+
+    .mobile-bar {
+      display: flex;
+      align-items: center;
+      justify-content: flex-start;
+      gap: 8px;
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      height: var(--mobile-bar-h, 56px);
+      z-index: 48;
+      padding: 10px 12px;
+      background: var(--bg);
+    }
+    .mobile-bar #mobileNavBtn,
+    .mobile-bar #mobileNewBtn { display: grid; }
+    .main { padding-top: var(--mobile-bar-h, 56px); }
+    .mobile-seg {
+      flex: 1;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 0;
+      height: 36px;
+      padding: 3px;
+      border-radius: 999px;
+      background: var(--card);
+      border: 1px solid var(--line);
+      min-width: 0;
+    }
+    .mobile-seg-btn {
+      flex: 1;
+      height: 30px;
+      padding: 0 6px;
+      border-radius: 999px;
+      font-size: 12.5px;
+      font-weight: 650;
+      color: var(--muted);
+      min-width: 0;
+    }
+    .mobile-seg-btn.active {
+      background: var(--bg);
+      color: var(--ink);
+      box-shadow: 0 1px 0 var(--line);
+    }
+    .mobile-backdrop {
+      display: none;
+      position: fixed;
+      inset: 0;
+      z-index: 40;
+      background: rgba(10,10,10,.45);
+    }
+    .shell.nav-open .mobile-backdrop { display: block; }
+
+    .sidebar {
+      position: fixed;
+      top: 0; left: 0; bottom: 0;
+      width: min(300px, 82vw);
+      height: 100dvh;
+      z-index: 50;
+      border-right: 1px solid var(--line);
+      border-bottom: none;
+      transform: translateX(-110%);
+      transition: transform .2s ease;
+      box-shadow: none;
+      padding-bottom: 0;
+    }
+    .shell.nav-open .sidebar {
+      transform: translateX(0);
+      box-shadow: 16px 0 40px rgba(0,0,0,.18);
+    }
+    .sidebar .nav-new,
+    .sidebar .tools,
+    .sidebar .tools-label,
+    .sidebar .sidebar-foot,
+    .sidebar .sidebar-spacer { display: none; }
+    .drawer-search-btn { display: none; }
+    .workspace { padding: 4px 4px 10px; flex-shrink: 0; }
+    .drawer-search {
+      display: block;
+      flex-shrink: 0;
+      padding: 0 4px 12px;
+    }
+    .drawer-search input {
+      width: 100%;
+      height: 40px;
+      padding: 0 12px;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      background: var(--card);
+      color: var(--ink);
+    }
+    .drawer-scroll {
+      display: block;
+      flex: 1;
+      min-height: 0;
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
+      padding-bottom: 8px;
+    }
+    .drawer-foot {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-shrink: 0;
+      padding: 12px 4px calc(12px + env(safe-area-inset-bottom, 0px));
+      border-top: 1px solid var(--line);
+      background: var(--sidebar);
+    }
+    .drawer-foot .btn { flex: 1; height: 42px; border-radius: 999px; }
+    .item-actions { opacity: 1; }
+
+    .right-pane {
+      position: fixed;
+      top: var(--mobile-bar-h, 56px);
+      left: 0; right: 0; bottom: 0;
+      width: 100%;
+      max-width: none;
+      max-height: none;
+      height: auto;
+      z-index: 46;
+      border: none;
+      transform: translateX(110%);
+      transition: transform .22s ease;
+    }
+    .shell.post-open .right-pane { transform: translateX(0); }
+    .mobile-post-close { display: none; }
+
+    .main { overflow: hidden; }
+    .view.active { overflow: auto; }
+    #viewHome.active { min-height: 0; overflow: hidden; }
+    .home-wrap {
+      flex: 1;
+      min-height: 0;
+      overflow: hidden;
+      padding: 8px 14px 0;
+      justify-content: flex-start;
+    }
+    .home-feed {
+      flex: 1;
+      min-height: 0;
+      overflow: auto;
+      width: 100%;
+    }
+    .home-dock {
+      flex-shrink: 0;
+      width: 100%;
+      padding: 8px 0 calc(10px + env(safe-area-inset-bottom, 0px));
+      background: var(--bg);
+    }
+    .purpose-line, .showcase-rail, .kicker,
+    #newsRecs, #suggestions, #result { display: none !important; }
+    .home-wrap h1 { font-size: 16px; margin: 8px 0 14px; }
+    .paste-url { margin-top: 10px; }
+    .paste-url-row { flex-wrap: wrap; }
+    .paste-url-row input { flex: 1 1 100%; }
+    .paste-style-hint, .assign-chips, #styleUrlRow { display: none; }
+    .ask-box {
+      border-radius: 24px;
+      padding: 12px 14px 10px;
+      box-shadow: 0 8px 28px rgba(10,10,10,.06);
+    }
+    .ask-box textarea { min-height: 52px; font-size: 16px; }
   }
 
   /* ——— Sidebar ——— */
@@ -169,7 +362,36 @@
   }
   .nav-item.active .ico { color: var(--ink); }
   .nav-item .ico svg { width: 16px; height: 16px; }
-  .nav-item .label { flex: 1; text-align: left; }
+  .nav-item .label { flex: 1; text-align: left; min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+  .nav-item.has-actions { padding-right: 6px; }
+  .nav-item-main {
+    display: flex; align-items: center; gap: 10px;
+    flex: 1; min-width: 0;
+    text-align: left;
+    background: none; border: none;
+    color: inherit; font: inherit;
+    padding: 0;
+  }
+  .item-actions {
+    display: flex; align-items: center; gap: 2px;
+    margin-left: auto; flex-shrink: 0;
+    opacity: .55;
+  }
+  .nav-item:hover .item-actions,
+  .nav-item:focus-within .item-actions,
+  .nav-item.active .item-actions { opacity: 1; }
+  .item-act {
+    width: 26px; height: 26px;
+    border-radius: 8px;
+    display: grid; place-items: center;
+    color: var(--muted);
+    background: transparent;
+  }
+  .item-act:hover { background: var(--nav-hover); color: var(--ink); }
+  .item-act.danger:hover { background: rgba(255,59,48,.12); color: var(--red); }
+  .item-act svg { width: 13px; height: 13px; }
+  .side-archived { margin-top: 6px; }
+  .side-archived .nav-item { opacity: .78; }
   .nav-dot {
     width: 7px; height: 7px; border-radius: 50%;
     background: var(--red); flex-shrink: 0;
@@ -239,7 +461,14 @@
   .tool-row.t4 .tool-ico { background: #D1DEEA; }
   .tool-row.active-tool { background: var(--card); }
 
+  .drawer-scroll { display: contents; }
   .sidebar-spacer { flex: 1; min-height: 16px; }
+  @media (max-width: 860px) {
+    .sidebar {
+      overflow: hidden;
+      padding: 12px 12px 0;
+    }
+  }
 
   .sidebar-foot {
     display: flex; align-items: center;
@@ -331,6 +560,29 @@
     text-transform: none; letter-spacing: 0;
     color: var(--ink);
   }
+  .settings-help {
+    margin: -6px 0 0;
+    font-size: 12.5px; font-weight: 500; color: var(--dim);
+    letter-spacing: 0; text-transform: none; line-height: 1.4;
+  }
+  .theme-toggle {
+    display: grid; grid-template-columns: 1fr 1fr;
+    height: 44px; padding: 4px;
+    border: 1px solid var(--line); border-radius: 12px;
+    background: var(--bg);
+    text-transform: none; letter-spacing: 0;
+  }
+  .theme-opt {
+    border-radius: 9px;
+    font-size: 14px; font-weight: 650;
+    color: var(--muted);
+  }
+  .theme-opt:hover { color: var(--ink); }
+  .theme-opt.active {
+    background: var(--card);
+    color: var(--ink);
+    box-shadow: 0 1px 0 var(--line);
+  }
 
   /* ——— Main ——— */
   .main {
@@ -353,6 +605,7 @@
     width: 100%;
     margin: 0 auto;
   }
+  .home-feed, .home-dock { width: 100%; }
   .home-wrap.has-run {
     justify-content: flex-start;
     padding-top: 40px;
@@ -475,6 +728,17 @@
   }
   .paste-url .assign-chips { margin-top: 8px; }
   .paste-url-row { flex-wrap: wrap; }
+  @media (max-width: 860px) {
+    .paste-style-hint,
+    .assign-chips,
+    #styleUrlRow { display: none !important; }
+    .paste-url { margin-top: 10px; }
+    .paste-url-row input { flex: 1 1 100%; }
+    .paste-url-row .btn { flex: 1 1 auto; }
+    .ask-box { border-radius: 24px; padding: 10px 12px 8px; }
+    .ask-box textarea { min-height: 44px; height: 44px; font-size: 16px; }
+    .ask-suggest { margin: 0 0 8px; }
+  }
   .paste-style-hint {
     margin: 8px 0 0;
     font-size: 12px;
@@ -598,16 +862,19 @@
   .project-home[hidden] { display: none !important; }
   .home-wrap.has-run .project-home { display: none !important; }
   .project-home .ask-suggest-label { flex: 0 0 100%; margin: 0 0 2px; }
+  .ask-suggest .ask-chip.active,
   .ask-chip.project-chip.active,
   .ask-chip.project-new:hover {
     border-color: var(--ink);
     background: var(--ink);
-    color: #fff;
+    color: var(--on-ink);
   }
+  .ask-suggest .ask-chip.active .k,
+  .ask-suggest .ask-chip.active .t,
   .ask-chip.project-chip.active .k,
   .ask-chip.project-chip.active .t,
   .ask-chip.project-new:hover .k,
-  .ask-chip.project-new:hover .t { color: #fff; }
+  .ask-chip.project-new:hover .t { color: var(--on-ink); }
   .ask-chip.project-new {
     border-style: dashed;
     color: var(--ink);
@@ -653,6 +920,15 @@
     padding: 4px 4px 10px;
   }
   .ask-box textarea::placeholder { color: var(--dim); }
+  @media (max-width: 860px) {
+    .ask-box { border-radius: 24px; padding: 10px 12px 8px; }
+    .ask-box textarea {
+      min-height: 44px;
+      height: 44px;
+      padding: 2px 4px;
+      font-size: 16px;
+    }
+  }
   .ask-attach {
     display: none;
     align-items: center;
@@ -718,7 +994,7 @@
   .btn:disabled { opacity: .4; cursor: not-allowed; }
   .btn-lime { background: var(--lime); color: var(--lime-ink); }
   .btn-lime:hover:not(:disabled) { filter: brightness(1.04); }
-  .btn-ink { background: var(--ink); color: #fff; }
+  .btn-ink { background: var(--ink); color: var(--on-ink); }
   .btn-ink:hover:not(:disabled) { background: #222; }
   .btn-ghost {
     background: transparent;
@@ -1129,7 +1405,7 @@
     border: 1px solid transparent;
     transition: background .12s ease, opacity .12s ease;
   }
-  .pill-approve { background: var(--ink); color: #fff; }
+  .pill-approve { background: var(--ink); color: var(--on-ink); }
   .pill-approve:hover:not(:disabled) { background: #222; }
   .pill-adjust { background: var(--nav-active); color: var(--ink); }
   .pill-adjust:hover:not(:disabled) { background: rgba(0,0,0,.1); }
@@ -1407,10 +1683,10 @@
   .gemini-toast { display: none !important; }
   .ig-post {
     margin: 8px 10px 12px;
-    background: #fff;
+    background: var(--panel);
     border: 1px solid var(--line);
     border-radius: 16px;
-    overflow: auto;
+    overflow: visible;
     flex: 1 1 auto;
     min-height: 0;
     display: flex;
@@ -1432,14 +1708,13 @@
   .ig-handle { font-size: 13px; font-weight: 650; letter-spacing: -.01em; }
   .ig-handle-sub { font-size: 11px; color: var(--dim); }
   .ig-frame {
-    position: sticky;
-    top: 0;
-    z-index: 2;
+    position: relative;
+    z-index: 1;
     display: block;
     width: 100%;
     aspect-ratio: 4 / 5;
-    min-height: 320px;
-    max-height: 460px;
+    min-height: 240px;
+    max-height: min(42vh, 400px);
     flex: 0 0 auto;
     background: #0A0A0A;
     background-size: cover;
@@ -1584,26 +1859,37 @@
     color: var(--ink);
   }
   .photo-strip-label {
-    padding: 0 12px 6px;
+    padding: 8px 12px 6px;
     font-size: 11px; font-weight: 650;
     letter-spacing: .04em; text-transform: uppercase;
     color: var(--dim);
+    flex: 0 0 auto;
   }
   .photo-strip {
-    display: flex; gap: 6px; overflow-x: auto;
-    padding: 0 12px 10px;
+    display: flex; gap: 10px; overflow-x: auto;
+    padding: 0 12px 14px;
+    flex: 0 0 auto;
+    min-height: 72px;
+    scroll-margin-bottom: 72px;
   }
   .photo-strip button {
-    width: 56px; height: 56px; border-radius: 8px;
+    width: 64px; height: 64px; border-radius: 50%;
     overflow: hidden; flex-shrink: 0;
     border: 2px solid transparent;
-    padding: 0; background: #eee;
+    padding: 0; background: var(--nav-active);
   }
   .photo-strip button.active { border-color: var(--ink); }
   .photo-strip img { width: 100%; height: 100%; object-fit: cover; }
   .ig-actions {
     display: flex; gap: 8px;
-    padding: 0 12px 12px;
+    padding: 10px 12px 12px;
+    margin-top: auto;
+    flex: 0 0 auto;
+    position: sticky;
+    bottom: 0;
+    z-index: 4;
+    background: var(--panel);
+    border-top: 1px solid var(--line);
   }
   .ig-still-note {
     padding: 8px 12px 0;
@@ -1637,6 +1923,9 @@
     padding: 10px 10px 0;
     border-bottom: 1px solid var(--line);
     flex-shrink: 0;
+  }
+  @media (max-width: 860px) {
+    .rp-tabs { display: none; }
   }
   .rp-tab {
     display: inline-flex; align-items: center; gap: 6px;
@@ -1975,14 +2264,27 @@
         <div class="workspace-name">Cutline Desk</div>
         <div class="workspace-sub" id="workspaceMode">Demo</div>
       </div>
+      <button type="button" class="panel-toggle drawer-search-btn" id="drawerSearchBtn" title="Search" aria-label="Search desk">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="11" cy="11" r="6"/><path d="m20 20-4.2-4.2"/></svg>
+      </button>
+    </div>
+    <div class="drawer-search" id="drawerSearchWrap">
+      <input type="search" id="drawerSearch" placeholder="Search desk…" autocomplete="off"/>
     </div>
 
+    <div class="drawer-scroll" id="drawerScroll">
     <nav class="nav" aria-label="Primary">
       <button type="button" class="nav-item nav-new active" data-view="home" id="navNew">
         <span class="ico" aria-hidden="true">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
         </span>
         <span class="label">New desk</span>
+      </button>
+      <button type="button" class="nav-item" data-view="library" id="navLibrary">
+        <span class="ico" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="9" cy="11" r="2"/><path d="m3 17 5-4 3 2 4-5 6 7"/></svg>
+        </span>
+        <span class="label">Library</span>
       </button>
       <button type="button" class="nav-item" data-view="activity" id="navApprovals">
         <span class="ico" aria-hidden="true">
@@ -2009,12 +2311,6 @@
         </span>
         <span class="label">Explore</span>
       </button>
-      <button type="button" class="nav-item" data-view="library" id="navLibrary">
-        <span class="ico" aria-hidden="true">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="9" cy="11" r="2"/><path d="m3 17 5-4 3 2 4-5 6 7"/></svg>
-        </span>
-        <span class="label">Library</span>
-      </button>
     </nav>
 
     <div class="section-label">Projects</div>
@@ -2026,8 +2322,14 @@
     <nav class="nav" aria-label="Recents" id="recentList">
       <div class="side-empty">No recent stories</div>
     </nav>
+    <button type="button" class="nav-item" id="navArchived" aria-expanded="false">
+      <span class="ico" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4 8h16v11H4z"/><path d="M4 8l2-3h12l2 3"/><path d="M10 12h4"/></svg>
+      </span>
+      <span class="label">Archived</span>
+    </button>
 
-    <div class="section-label">Tools</div>
+    <div class="section-label tools-label">Tools</div>
     <div class="tools" aria-label="Tools">
       <button type="button" class="tool-row t1" title="News" aria-label="News" id="toolNews">
         <span class="tool-ico" aria-hidden="true">
@@ -2048,6 +2350,7 @@
         <span class="label">Post</span>
       </button>
     </div>
+    </div>
 
     <div class="sidebar-spacer"></div>
 
@@ -2066,12 +2369,32 @@
         <button type="button" id="profileLogout" role="menuitem">Log out</button>
       </div>
     </div>
+    <div class="drawer-foot" id="drawerFoot">
+      <button type="button" class="btn btn-lime" id="drawerChatBtn">Chat</button>
+      <button type="button" class="panel-toggle" id="drawerSettingsBtn" title="Settings" aria-label="Settings">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="3"/><path d="M12 4v2M12 18v2M4 12h2M18 12h2M6.2 6.2l1.4 1.4M16.4 16.4l1.4 1.4M6.2 17.8l1.4-1.4M16.4 7.6l1.4-1.4"/></svg>
+      </button>
+    </div>
   </aside>
 
   <main class="main">
+    <div class="mobile-bar" id="mobileBar">
+      <button type="button" class="panel-toggle" id="mobileNavBtn" title="Open menu" aria-label="Open menu" aria-expanded="false">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4 6h16M4 12h16M4 18h16"/></svg>
+      </button>
+      <div class="mobile-seg" role="tablist" aria-label="Chat, Post, or Browser">
+        <button type="button" class="mobile-seg-btn active" id="mobileChatBtn" aria-pressed="true">Chat</button>
+        <button type="button" class="mobile-seg-btn" id="mobilePostBtn" aria-pressed="false">Post</button>
+        <button type="button" class="mobile-seg-btn" id="mobileBrowserBtn" aria-pressed="false">Browser</button>
+      </div>
+      <button type="button" class="panel-toggle" id="mobileNewBtn" title="New desk" aria-label="New desk">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
+      </button>
+    </div>
     <!-- HOME -->
     <section class="view active" id="viewHome" aria-label="Home">
       <div class="home-wrap" id="homeWrap">
+        <div class="home-feed" id="homeFeed">
         <div class="kicker" id="homeKicker">Demo</div>
         <h1>What should we finish today?</h1>
         <p class="purpose-line" id="purposeLine">Cutline helps news desks finish sourced stories faster — fair use, you approve. Built to make the news industry better, not to steal work.</p>
@@ -2083,16 +2406,18 @@
           <div class="ask-suggest-label">Projects</div>
           <!-- filled by paintProjectChips -->
         </div>
+        <div class="ask-suggest" id="askSuggest" aria-label="News suggestions">
+          <div class="ask-suggest-label">Try a story</div>
+          <!-- filled by paintNewsRecs: 1–3 rotating news-photo tips -->
+        </div>
+        </div>
 
+        <div class="home-dock" id="homeDock">
         <div class="ask-box">
           <textarea id="headline" placeholder="Finish a news post…" rows="4"></textarea>
           <div class="ask-attach" id="askAttach">
             <span class="name" id="askAttachName"></span>
             <button type="button" class="x" id="askAttachClear" aria-label="Remove file">×</button>
-          </div>
-          <div class="ask-suggest" id="askSuggest" aria-label="News suggestions">
-            <div class="ask-suggest-label">Try a story</div>
-            <!-- filled by paintNewsRecs: 1–3 rotating news-photo tips -->
           </div>
           <div class="ask-actions">
             <div class="ask-plus-wrap">
@@ -2116,7 +2441,7 @@
         <div class="paste-url" id="pasteUrlWrap">
           <p class="assign-label">Paste a post URL</p>
           <div class="paste-url-row">
-            <input id="pastePostUrl" type="url" placeholder="Instagram, X, YouTube, or any post link" autocomplete="off" spellcheck="false"/>
+            <input id="pastePostUrl" type="url" value="https://www.instagram.com/p/DdwHjcpId9B/" placeholder="https://www.instagram.com/p/DdwHjcpId9B/" autocomplete="off" spellcheck="false"/>
             <button type="button" class="btn btn-lime" id="analyzeBtn">Analyze</button>
             <button type="button" class="btn btn-ink" id="copyStyleBtn" title="Build a DCN-style card from this URL">Copy this style</button>
           </div>
@@ -2130,6 +2455,7 @@
             <input id="styleUrl" type="text" readonly aria-label="Style source URL"/>
             <button type="button" class="btn btn-ink btn-sm" id="styleUrlCopy">Copy</button>
           </div>
+        </div>
         </div>
 
         <div class="news-recs" id="newsRecs">
@@ -2309,20 +2635,22 @@
       <div class="connect-wrap">
         <div class="kicker">Account</div>
         <h1>Settings</h1>
-        <p class="connect-sub">Your desk. Name, cream theme, owner key for live Gemini.</p>
+        <p class="connect-sub">Your desk. Name, theme, and a desk API key for live AI.</p>
         <form class="settings-form" id="settingsForm">
           <label>Name
             <input type="text" id="settingsName" maxlength="40" autocomplete="name"/>
           </label>
           <label>Theme
-            <select id="settingsTheme">
-              <option value="cream">Ace cream</option>
-              <option value="paper">Paper cream</option>
-            </select>
+            <input type="hidden" id="settingsTheme" value="white"/>
+            <div class="theme-toggle" role="radiogroup" aria-label="Theme">
+              <button type="button" class="theme-opt active" data-theme-opt="white" aria-pressed="true">White</button>
+              <button type="button" class="theme-opt" data-theme-opt="black" aria-pressed="false">Black</button>
+            </div>
           </label>
-          <label>Owner key
-            <input type="password" id="settingsOwnerKey" autocomplete="off" placeholder="Unlock live Gemini"/>
+          <label>Desk API key
+            <input type="password" id="settingsOwnerKey" autocomplete="off" placeholder="Unlocks live AI generation for your desk"/>
           </label>
+          <p class="settings-help">Public demo stays on fixtures without a key. The key is never shown after you save.</p>
           <button type="submit" class="btn btn-lime">Save</button>
         </form>
       </div>
@@ -2345,6 +2673,9 @@
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c2.5 2.8 2.5 15.2 0 18M12 3c-2.5 2.8-2.5 15.2 0 18"/></svg>
         </span>
         Browser
+      </button>
+      <button type="button" class="panel-toggle mobile-post-close" id="mobilePostClose" title="Back to desk" aria-label="Back to desk">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M15 6l-6 6 6 6"/></svg>
       </button>
     </div>
     <div class="rp-magic"><span class="dot" aria-hidden="true"></span> Magic Layer</div>
@@ -2484,6 +2815,7 @@
       </div>
     </div>
   </aside>
+  <div class="mobile-backdrop" id="mobileBackdrop" hidden></div>
 </div>
 <button type="button" class="panel-restore" id="panelRestore" title="Show desk" aria-label="Show desk panel">
   <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4 6h16M4 12h16M4 18h16"/></svg>
@@ -2492,9 +2824,9 @@
   <div class="gate-card">
     <div class="mark" aria-hidden="true"><span class="fallback">C</span></div>
     <h1>Demo is open.</h1>
-    <p>Public desk uses fixtures. Enter an owner key only for live Gemini.</p>
+    <p>Public desk uses fixtures. A desk API key unlocks live AI generation for your desk. Without a key, the demo stays fixture-only.</p>
     <input type="text" id="gateName" placeholder="Your name" maxlength="40"/>
-    <input type="password" id="gateOwnerKey" placeholder="Owner key (optional)" autocomplete="off"/>
+    <input type="password" id="gateOwnerKey" placeholder="Desk API key (optional)" autocomplete="off"/>
     <button type="button" class="btn btn-lime" id="gateOpen">Continue in demo</button>
   </div>
 </div>
@@ -2519,6 +2851,7 @@
 
   let pendingSourceUrl = null; // from Hunt "Use on desk"
   let pendingAskPhoto = null;
+  let selectedNewsTip = null;
   let layerSnapshot = {}; // hash of last painted layer values for flash
   let selectedStyle = "tight_news";
   let selectedDesk = "pune";
@@ -2598,16 +2931,59 @@
   function setSideRunReady() { /* Run lives on the ask box only */ }
 
   const SESSION_KEY = "cutline.session";
+  const DCN_STYLE_URL = "https://www.instagram.com/p/DdwHjcpId9B/";
+  const ICON_ARCHIVE = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4 8h16v11H4z"/><path d="M4 8l2-3h12l2 3"/><path d="M10 12h4"/></svg>`;
+  const ICON_DELETE = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M5 8h14"/><path d="M9 8V6h6v2"/><path d="M8 8l1 11h6l1-11"/></svg>`;
+  const ICON_RESTORE = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M9 14H5l4 4"/><path d="M5 18v-6a7 7 0 1 1 2 5"/></svg>`;
+
+  function normalizeTheme(t) {
+    const v = String(t || "").toLowerCase();
+    if (v === "black" || v === "dark" || v === "ink") return "black";
+    return "white";
+  }
+  function isToySampleUrl(u) {
+    return /\/sample-[a-z0-9-]+\.html(\?|#|$)/i.test(String(u || ""));
+  }
+  function publicStyleUrl(u) {
+    const raw = cleanPastedUrl(u || "");
+    if (!raw || isToySampleUrl(raw) || !isLiveSourceUrl(raw)) return DCN_STYLE_URL;
+    return raw;
+  }
+  function seedPasteUrl() {
+    const el = $("pastePostUrl");
+    if (!el) return;
+    if (!el.value.trim() || isToySampleUrl(el.value)) {
+      el.value = DCN_STYLE_URL;
+    }
+    el.placeholder = DCN_STYLE_URL;
+  }
+  function paintThemeToggle(theme) {
+    const next = normalizeTheme(theme);
+    if ($("settingsTheme")) $("settingsTheme").value = next;
+    document.querySelectorAll("[data-theme-opt]").forEach((btn) => {
+      const on = btn.dataset.themeOpt === next;
+      btn.classList.toggle("active", on);
+      btn.setAttribute("aria-pressed", on ? "true" : "false");
+    });
+  }
   function readSession() {
     try { return JSON.parse(localStorage.getItem(SESSION_KEY) || "null"); } catch (_) { return null; }
   }
   function writeSession(next) {
-    localStorage.setItem(SESSION_KEY, JSON.stringify(next));
-    applySession(next);
+    const mapped = { ...next, theme: normalizeTheme(next?.theme) };
+    localStorage.setItem(SESSION_KEY, JSON.stringify(mapped));
+    applySession(mapped);
   }
   function applySession(session) {
-    const s = session || { name: "You", desk: "pune", theme: "cream" };
-    document.documentElement.dataset.theme = s.theme === "paper" ? "paper" : "cream";
+    const s = session || { name: "You", desk: "pune", theme: "white" };
+    const theme = normalizeTheme(s.theme);
+    if (s.theme !== theme) {
+      try {
+        const cur = readSession() || {};
+        localStorage.setItem(SESSION_KEY, JSON.stringify({ ...cur, ...s, theme }));
+      } catch (_) { /* ignore */ }
+    }
+    document.documentElement.dataset.theme = theme;
     if (s.desk) selectedDesk = s.desk;
     const ini = (s.name || "You").trim().slice(0, 1).toUpperCase() || "Y";
     const pic = $("profilePic");
@@ -2615,12 +2991,12 @@
       pic.innerHTML = `<span class="ini">${ini}</span>`;
     }
     if ($("settingsName")) $("settingsName").value = s.name || "You";
-    if ($("settingsTheme")) $("settingsTheme").value = s.theme || "cream";
+    paintThemeToggle(theme);
     paintCityChips();
   }
   function paintMode(mode) {
     deskMode = demoForced ? "demo" : (mode === "owner" ? "owner" : "demo");
-    const label = deskMode === "owner" ? "Owner desk" : "Demo";
+    const label = deskMode === "owner" ? "Live desk" : "Demo";
     if ($("workspaceMode")) $("workspaceMode").textContent = label;
     if ($("homeKicker")) $("homeKicker").textContent = label;
     if (demoForced) recentsReset = true;
@@ -2680,6 +3056,9 @@
     try {
       localStorage.setItem(PROJECTS_KEY, JSON.stringify({
         activeId: store.activeId || null,
+        removedIds: store.removedIds || [],
+        archivedRecentKeys: store.archivedRecentKeys || [],
+        deletedRecentKeys: store.deletedRecentKeys || [],
         projects: (store.projects || []).map((p) => ({
           id: p.id,
           name: p.name,
@@ -2687,6 +3066,7 @@
           outlet: p.outlet || "DCN",
           styleUrl: p.styleUrl || "",
           chrome: p.chrome || p.city || "pune",
+          archived: !!p.archived,
           recentRunIds: Array.isArray(p.recentRunIds) ? p.recentRunIds.slice(0, 20) : [],
           recents: Array.isArray(p.recents) ? p.recents.slice(0, 8) : [],
         })),
@@ -2696,9 +3076,14 @@
 
   function ensureProjects() {
     const store = readProjectsStore();
+    store.removedIds = Array.isArray(store.removedIds) ? store.removedIds : [];
+    store.archivedRecentKeys = Array.isArray(store.archivedRecentKeys) ? store.archivedRecentKeys : [];
+    store.deletedRecentKeys = Array.isArray(store.deletedRecentKeys) ? store.deletedRecentKeys : [];
     const seeds = demoProjectSeeds();
+    const removed = new Set(store.removedIds);
     const byId = new Map(store.projects.map((p) => [p.id, p]));
     for (const s of seeds) {
+      if (removed.has(s.id)) continue;
       if (!byId.has(s.id)) {
         store.projects.push(s);
         byId.set(s.id, s);
@@ -2713,6 +3098,96 @@
     writeProjectsStore(store);
     activeProjectId = store.activeId || null;
     return store;
+  }
+
+  function isBuiltInProject(id) {
+    return id === "dcn-pune" || id === "dcn-hyderabad";
+  }
+
+  function archiveProject(id) {
+    const store = ensureProjects();
+    const p = store.projects.find((x) => x.id === id);
+    if (!p) return;
+    p.archived = true;
+    if (store.activeId === id) store.activeId = null;
+    writeProjectsStore(store);
+    if (activeProjectId === id) clearActiveProject();
+    else {
+      paintProjectNav();
+      paintProjectChips();
+    }
+  }
+
+  function restoreProject(id) {
+    const store = ensureProjects();
+    const p = store.projects.find((x) => x.id === id);
+    if (!p) return;
+    p.archived = false;
+    writeProjectsStore(store);
+    paintProjectNav();
+    paintProjectChips();
+  }
+
+  function deleteProject(id) {
+    const store = ensureProjects();
+    const p = store.projects.find((x) => x.id === id);
+    if (!p) return;
+    const builtIn = isBuiltInProject(id);
+    const ok = window.confirm(builtIn
+      ? `Delete the built-in “${p.name}” project from this browser? This cannot be undone.`
+      : `Delete “${p.name}”? This cannot be undone.`);
+    if (!ok) return;
+    store.projects = store.projects.filter((x) => x.id !== id);
+    if (builtIn && !store.removedIds.includes(id)) store.removedIds.push(id);
+    if (store.activeId === id) store.activeId = null;
+    writeProjectsStore(store);
+    if (activeProjectId === id) clearActiveProject();
+    else {
+      paintProjectNav();
+      paintProjectChips();
+    }
+  }
+
+  function recentStateSets() {
+    const store = ensureProjects();
+    return {
+      store,
+      archived: new Set(store.archivedRecentKeys || []),
+      deleted: new Set(store.deletedRecentKeys || []),
+    };
+  }
+
+  function archiveRecentItem(title, sourceUrl) {
+    const key = recentKey(title, sourceUrl);
+    if (!key) return;
+    const store = ensureProjects();
+    store.archivedRecentKeys = Array.from(new Set([...(store.archivedRecentKeys || []), key]));
+    store.deletedRecentKeys = (store.deletedRecentKeys || []).filter((k) => k !== key);
+    writeProjectsStore(store);
+    renderRecents([]);
+  }
+
+  function restoreRecentItem(title, sourceUrl) {
+    const key = recentKey(title, sourceUrl);
+    if (!key) return;
+    const store = ensureProjects();
+    store.archivedRecentKeys = (store.archivedRecentKeys || []).filter((k) => k !== key);
+    writeProjectsStore(store);
+    renderRecents([]);
+  }
+
+  function deleteRecentItem(title, sourceUrl) {
+    if (!window.confirm("Remove this recent story? This cannot be undone.")) return;
+    const key = recentKey(title, sourceUrl);
+    if (!key) return;
+    const store = ensureProjects();
+    store.deletedRecentKeys = Array.from(new Set([...(store.deletedRecentKeys || []), key]));
+    store.archivedRecentKeys = (store.archivedRecentKeys || []).filter((k) => k !== key);
+    for (const p of store.projects || []) {
+      p.recents = (p.recents || []).filter((r) => recentKey(r.title, r.sourceUrl) !== key);
+    }
+    writeProjectsStore(store);
+    renderRecents([]);
   }
 
   function listProjects() {
@@ -2793,7 +3268,7 @@
       $("huntMeta").textContent = "Find news · " + selectedDesk;
       $("huntMeta").classList.remove("warn");
     }
-    const mode = deskMode === "owner" ? "Owner desk" : "Demo";
+    const mode = deskMode === "owner" ? "Live desk" : "Demo";
     if ($("workspaceMode")) {
       $("workspaceMode").textContent = proj.name;
       $("workspaceMode").classList.add("project-on");
@@ -2881,25 +3356,51 @@
     const root = $("projectList");
     if (!root) return;
     const projects = listProjects();
+    const live = projects.filter((p) => !p.archived);
+    const archived = projects.filter((p) => p.archived);
     const active = activeProjectId;
     const folderSvg = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M4 8h16v11H4z"/><path d="M8 8V6h8v2"/></svg>`;
     const plusSvg = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>`;
-    if (!projects.length) {
-      root.innerHTML = `<div class="side-empty">No projects yet</div>`;
-      return;
+    const row = (p, archivedRow) =>
+      `<div class="nav-item has-actions${p.id === active ? " active" : ""}" data-project="${escapeHtml(p.id)}" title="${escapeHtml(p.outlet || "DCN")} · ${escapeHtml(p.city || "")}">
+        <button type="button" class="nav-item-main" data-project-open="${escapeHtml(p.id)}">
+          <span class="ico" aria-hidden="true">${folderSvg}</span>
+          <span class="label">${escapeHtml(p.name)}</span>
+        </button>
+        <span class="item-actions">
+          ${archivedRow
+            ? `<button type="button" class="item-act" data-restore-project="${escapeHtml(p.id)}" title="Restore" aria-label="Restore">${ICON_RESTORE}</button>`
+            : `<button type="button" class="item-act" data-archive-project="${escapeHtml(p.id)}" title="Archive" aria-label="Archive">${ICON_ARCHIVE}</button>`}
+          <button type="button" class="item-act danger" data-delete-project="${escapeHtml(p.id)}" title="Delete" aria-label="Delete">${ICON_DELETE}</button>
+        </span>
+      </div>`;
+    if (!live.length && !archived.length) {
+      root.innerHTML = `<div class="side-empty">No projects yet</div>` +
+        `<button type="button" class="nav-item nav-project-new" id="navNewProject" title="New project">
+          <span class="ico" aria-hidden="true">${plusSvg}</span>
+          <span class="label">New project</span>
+        </button>`;
+    } else {
+      root.innerHTML = live.map((p) => row(p, false)).join("") +
+        `<button type="button" class="nav-item nav-project-new" id="navNewProject" title="New project">
+          <span class="ico" aria-hidden="true">${plusSvg}</span>
+          <span class="label">New project</span>
+        </button>` +
+        (archived.length
+          ? `<div class="side-archived"><div class="section-label">Archived</div>${archived.map((p) => row(p, true)).join("")}</div>`
+          : "");
     }
-    root.innerHTML = projects.map((p) =>
-      `<button type="button" class="nav-item${p.id === active ? " active" : ""}" data-project="${escapeHtml(p.id)}" title="${escapeHtml(p.outlet || "DCN")} · ${escapeHtml(p.city || "")}">
-        <span class="ico" aria-hidden="true">${folderSvg}</span>
-        <span class="label">${escapeHtml(p.name)}</span>
-      </button>`
-    ).join("") +
-      `<button type="button" class="nav-item nav-project-new" id="navNewProject" title="New project">
-        <span class="ico" aria-hidden="true">${plusSvg}</span>
-        <span class="label">New project</span>
-      </button>`;
-    root.querySelectorAll("[data-project]").forEach((btn) => {
-      btn.addEventListener("click", () => openOrCreateSeedProject(btn.dataset.project));
+    root.querySelectorAll("[data-project-open]").forEach((btn) => {
+      btn.addEventListener("click", () => openOrCreateSeedProject(btn.dataset.projectOpen));
+    });
+    root.querySelectorAll("[data-archive-project]").forEach((btn) => {
+      btn.addEventListener("click", (e) => { e.stopPropagation(); archiveProject(btn.dataset.archiveProject); });
+    });
+    root.querySelectorAll("[data-restore-project]").forEach((btn) => {
+      btn.addEventListener("click", (e) => { e.stopPropagation(); restoreProject(btn.dataset.restoreProject); });
+    });
+    root.querySelectorAll("[data-delete-project]").forEach((btn) => {
+      btn.addEventListener("click", (e) => { e.stopPropagation(); deleteProject(btn.dataset.deleteProject); });
     });
     $("navNewProject")?.addEventListener("click", () => createProjectFromWork());
   }
@@ -2907,7 +3408,7 @@
   function paintProjectChips() {
     const root = $("projectHome");
     if (!root) return;
-    const projects = listProjects().filter((p) => p.id === "dcn-pune" || p.id === "dcn-hyderabad" || p.id === activeProjectId);
+    const projects = listProjects().filter((p) => !p.archived && (p.id === "dcn-pune" || p.id === "dcn-hyderabad" || p.id === activeProjectId));
     /* Always show the two demo seeds + any other active */
     const seen = new Set();
     const chips = [];
@@ -3372,13 +3873,16 @@
 
   function ensureSession() {
     if (localStorage.getItem("cutline.signedOut") === "1") {
-      applySession({ name: "You", desk: "pune", theme: "cream" });
+      applySession({ name: "You", desk: "pune", theme: "white" });
       showSignedOut(true);
       return null;
     }
     let s = readSession();
     if (!s) {
-      s = { name: "You", desk: "pune", theme: "cream" };
+      s = { name: "You", desk: "pune", theme: "white" };
+      localStorage.setItem(SESSION_KEY, JSON.stringify(s));
+    } else if (s.theme !== normalizeTheme(s.theme)) {
+      s = { ...s, theme: normalizeTheme(s.theme) };
       localStorage.setItem(SESSION_KEY, JSON.stringify(s));
     }
     applySession(s);
@@ -3414,12 +3918,59 @@
   function showSignedOut(on) {
     $("signedOutGate")?.classList.toggle("show", !!on);
   }
+  const NARROW_MQ = window.matchMedia("(max-width: 860px)");
+  function isNarrow() { return NARROW_MQ.matches; }
+  function rightPaneTab() {
+    return $("rpBrowser")?.classList.contains("active") ? "browser" : "structure";
+  }
+  let headerPane = "chat";
+  function syncMobileChrome() {
+    const shell = document.querySelector(".shell");
+    const navOn = !!shell?.classList.contains("nav-open");
+    const postOn = !!shell?.classList.contains("post-open");
+    const pane = isNarrow()
+      ? (postOn ? rightPaneTab() : "chat")
+      : (rightPaneTab() === "browser" ? "browser" : headerPane);
+    $("mobileNavBtn")?.setAttribute("aria-expanded", navOn ? "true" : "false");
+    const setSeg = (id, on) => {
+      $(id)?.classList.toggle("active", on);
+      $(id)?.setAttribute("aria-pressed", on ? "true" : "false");
+    };
+    setSeg("mobileChatBtn", pane === "chat");
+    setSeg("mobilePostBtn", pane === "structure");
+    setSeg("mobileBrowserBtn", pane === "browser");
+    const backdrop = $("mobileBackdrop");
+    if (backdrop) backdrop.hidden = !navOn;
+    document.body.classList.toggle("mobile-lock", isNarrow() && (navOn || postOn));
+    if (isNarrow()) {
+      $("panelToggle")?.setAttribute("aria-label", "Open menu");
+      $("panelToggle")?.setAttribute("title", "Open menu");
+    }
+  }
+  function setNavOpen(on) {
+    document.querySelector(".shell")?.classList.toggle("nav-open", !!on);
+    syncMobileChrome();
+  }
+  function setPostOpen(on) {
+    const shell = document.querySelector(".shell");
+    shell?.classList.toggle("post-open", !!on);
+    if (on) shell?.classList.remove("nav-open");
+    syncMobileChrome();
+  }
   function setDeskCollapsed(on) {
+    if (isNarrow()) {
+      document.querySelector(".shell")?.classList.remove("desk-collapsed");
+      return;
+    }
     document.querySelector(".shell")?.classList.toggle("desk-collapsed", !!on);
     $("panelToggle")?.setAttribute("aria-label", on ? "Show desk panel" : "Hide desk panel");
     $("panelToggle")?.setAttribute("title", on ? "Show desk" : "Hide desk");
   }
   function toggleDeskPanel() {
+    if (isNarrow()) {
+      setNavOpen(!document.querySelector(".shell")?.classList.contains("nav-open"));
+      return;
+    }
     const shell = document.querySelector(".shell");
     setDeskCollapsed(!shell?.classList.contains("desk-collapsed"));
   }
@@ -3572,6 +4123,8 @@
     document.querySelector(".shell")?.classList.toggle("browser-focus", name === "browser");
     $("rightPane")?.classList.toggle("browser-on", name === "browser");
     if (name === "structure" && currentRun) paintIgPost(currentRun);
+    if (isNarrow() && currentRun && (name === "structure" || name === "browser")) setPostOpen(true);
+    syncMobileChrome();
   }
 
   function resolveSourceUrl(run) {
@@ -3823,14 +4376,12 @@
     const row = $("styleUrlRow");
     const field = $("styleUrl");
     if (!row || !field) return;
-    if (!isLiveSourceUrl(url)) {
-      row.classList.remove("show");
-      field.value = "";
-      return;
-    }
-    field.value = url;
+    const shown = publicStyleUrl(url);
+    field.value = shown;
     row.classList.add("show");
-    if ($("pastePostUrl") && !$("pastePostUrl").value) $("pastePostUrl").value = url;
+    if ($("pastePostUrl") && (!$("pastePostUrl").value || isToySampleUrl($("pastePostUrl").value))) {
+      $("pastePostUrl").value = shown;
+    }
   }
 
   function paintBrowser(run) {
@@ -4082,21 +4633,21 @@
     }
     const strip = $("photoStrip");
     const label = $("photoStripLabel");
-    const uniqueThumbs = photos.filter((p) => p.url && p.url !== url && preferRaster(p.url) && !/\.svg(\?|$)/i.test(p.url));
+    const uniqueThumbs = photos.filter((p) => p.url && preferRaster(p.url) && !/\.svg(\?|$)/i.test(p.url));
     if (strip) {
-      /* Big Post still is the proof. Hide a one-thumb "From the page" strip. */
-      if (isIg || photos.length <= 1 || uniqueThumbs.length === 0) {
+      /* Always keep a reachable thumb row above Approve/ZIP when 2+ stills exist. */
+      if (uniqueThumbs.length < 2) {
         strip.hidden = true;
         strip.innerHTML = "";
         if (label) label.hidden = true;
       } else {
         strip.hidden = false;
         if (label) label.hidden = false;
-        strip.innerHTML = photos.map((p, i) =>
-          `<button type="button" data-photo="${i}" class="${p.url === url ? "active" : ""}"><img src="${escapeHtml(p.url)}" alt=""/></button>`
+        strip.innerHTML = uniqueThumbs.map((p, i) =>
+          `<button type="button" data-photo="${i}" class="${p.url === url ? "active" : ""}" title="${escapeHtml(p.credit || "Still")}"><img src="${escapeHtml(p.url)}" alt="${escapeHtml(p.credit || "Still")}"/></button>`
         ).join("");
         strip.querySelectorAll("button").forEach((btn) => {
-          btn.addEventListener("click", () => setPostPhoto(photos[Number(btn.dataset.photo)]));
+          btn.addEventListener("click", () => setPostPhoto(uniqueThumbs[Number(btn.dataset.photo)]));
         });
       }
       const live = resolveSourceUrl(run);
@@ -4155,7 +4706,8 @@
     const social = looksLikePostUrl(src);
     fillMagicLayers(run, { flash: true, preferBrowser: opts?.preferBrowser ?? social });
     setStyleUrl(src);
-    if (isLiveSourceUrl(src) && $("pastePostUrl")) $("pastePostUrl").value = src;
+    if (isLiveSourceUrl(src) && $("pastePostUrl") && !isToySampleUrl(src)) $("pastePostUrl").value = src;
+    else seedPasteUrl();
     if (pendingAskPhoto?.url) {
       currentRun.photos = currentRun.photos || [];
       currentRun.photos.unshift({ url: pendingAskPhoto.url, credit: pendingAskPhoto.credit || "Photo" });
@@ -4329,9 +4881,11 @@
 
   function newDesk() {
     $("headline").value = "";
-    if ($("pastePostUrl")) $("pastePostUrl").value = "";
+    seedPasteUrl();
     pendingSourceUrl = null;
     pendingAskPhoto = null;
+    selectedNewsTip = null;
+    document.querySelectorAll("#askSuggest .ask-chip.active, #newsRecList .news-rec.active").forEach((el) => el.classList.remove("active"));
     showAskAttach("");
     closeAskPlus();
     $("approveBar").style.display = "none";
@@ -4353,9 +4907,11 @@
     recentsReset = true;
     renderRecents([]);
     setSideRunReady();
+    headerPane = "chat";
     switchView("home");
     switchRightTab("structure");
     setDeskCollapsed(false);
+    if (isNarrow()) setPostOpen(false);
     currentRun = null;
     $("headline").focus();
   }
@@ -4398,6 +4954,9 @@
       $("viewHome").classList.add("active");
       $("navNew")?.classList.add("active");
     }
+    setNavOpen(false);
+    if (isNarrow() && name !== "home") setPostOpen(false);
+    if (isNarrow() && name === "home") setPostOpen(false);
   }
 
   $("runBtn").addEventListener("click", doRun);
@@ -4563,6 +5122,7 @@
     switchRightTab("structure");
     if (currentRun) paintIgPost(currentRun);
     else $("structureEmpty") && ($("structureEmpty").style.display = "");
+    if (isNarrow()) setPostOpen(true);
   });
 
   let lastHits = [];
@@ -4741,29 +5301,24 @@
     return out;
   }
 
-  async function runNewsTip(t) {
+  function pickNewsTip(t, btn) {
     if (!t) return;
     selectedDesk = t.desk;
     paintCityChips();
     $("headline").value = t.title;
-    /* Keep tip URL in paste field so Copy this style is one click away */
-    if ($("pastePostUrl")) $("pastePostUrl").value = t.url;
+    /* Hold the tip source for Run. Do not fetch, paint a still, or leave Chat. */
     pendingSourceUrl = t.url;
-    setStyleUrl(t.url);
-    /* Tips = news photo + editable text only — never Hyd chrome */
-    if (currentRun) {
-      currentRun._hydChrome = false;
-      if (currentRun.pack) delete currentRun.pack.templateChrome;
-    }
-    loadBrowserUrl(t.url, { switchTab: true });
+    seedPasteUrl();
+    setStyleUrl(DCN_STYLE_URL);
+    selectedNewsTip = t;
+    document.querySelectorAll("#askSuggest [data-ask-rec], #newsRecList [data-rec]").forEach((el) => {
+      el.classList.toggle("active", el === btn);
+    });
+    headerPane = "chat";
     switchView("home");
-    await doRun();
-    if (currentRun) {
-      currentRun._hydChrome = false;
-      if (currentRun.pack) delete currentRun.pack.templateChrome;
-      paintIgPost(currentRun);
-    }
-    switchRightTab("structure");
+    if (isNarrow()) setPostOpen(false);
+    syncMobileChrome();
+    $("headline")?.focus();
   }
 
   function paintNewsRecs() {
@@ -4778,7 +5333,9 @@
         </button>`
       ).join("");
       ask.querySelectorAll("[data-ask-rec]").forEach((btn) => {
-        btn.addEventListener("click", () => runNewsTip(tips[Number(btn.dataset.askRec)]));
+        const tip = tips[Number(btn.dataset.askRec)];
+        if (selectedNewsTip && tip && selectedNewsTip.title === tip.title) btn.classList.add("active");
+        btn.addEventListener("click", () => pickNewsTip(tip, btn));
       });
     }
     /* Legacy below-fold list kept in DOM but hidden — chips in ask box are primary */
@@ -4791,7 +5348,9 @@
         </button>`
       ).join("");
       list.querySelectorAll("[data-rec]").forEach((btn) => {
-        btn.addEventListener("click", () => runNewsTip(tips[Number(btn.dataset.rec)]));
+        const tip = tips[Number(btn.dataset.rec)];
+        if (selectedNewsTip && tip && selectedNewsTip.title === tip.title) btn.classList.add("active");
+        btn.addEventListener("click", () => pickNewsTip(tip, btn));
       });
     }
   }
@@ -5313,36 +5872,80 @@
       });
       seedRecents().forEach(push);
     }
-    const shown = rows.slice(0, 5);
-    root.innerHTML = shown.map((r) =>
-      `<button type="button" class="nav-item" data-recent-run="${escapeHtml(r.runId)}" data-recent-title="${escapeHtml(r.title)}" data-recent-src="${escapeHtml(r.sourceUrl)}">
-        <span class="label">${escapeHtml(r.title.length > 48 ? r.title.slice(0, 46) + "…" : r.title)}</span>
-      </button>`
-    ).join("");
-    root.querySelectorAll("[data-recent-run]").forEach((btn) => {
-      btn.addEventListener("click", async () => {
-        const runId = btn.dataset.recentRun;
-        const title = btn.dataset.recentTitle || "";
-        const src = btn.dataset.recentSrc || "";
-        switchView("home");
-        if (runId) {
-          try {
-            const res = await fetch("/api/runs/" + encodeURIComponent(runId));
-            const data = await res.json();
-            if (res.ok && data.run) {
-              applyRun(data.run);
-              return;
-            }
-          } catch (_) { /* open as ask */ }
-        }
-        if (looksLikePostUrl(src)) return doAnalyze(src);
-        if (title) $("headline").value = title;
-        if (isLiveSourceUrl(src)) {
-          pendingSourceUrl = src;
-          loadBrowserUrl(src, { switchTab: true });
-          setStyleUrl(src);
-        }
-        setSideRunReady();
+    const { archived, deleted } = recentStateSets();
+    const live = [];
+    const archivedRows = [];
+    for (const r of rows) {
+      const key = recentKey(r.title, r.sourceUrl);
+      if (deleted.has(key)) continue;
+      if (archived.has(key)) archivedRows.push(r);
+      else live.push(r);
+    }
+    const shown = live.slice(0, 5);
+    const recentRow = (r, archivedRow) =>
+      `<div class="nav-item has-actions" data-recent-run="${escapeHtml(r.runId)}" data-recent-title="${escapeHtml(r.title)}" data-recent-src="${escapeHtml(r.sourceUrl)}">
+        <button type="button" class="nav-item-main" data-recent-open="1">
+          <span class="label">${escapeHtml(r.title.length > 48 ? r.title.slice(0, 46) + "…" : r.title)}</span>
+        </button>
+        <span class="item-actions">
+          ${archivedRow
+            ? `<button type="button" class="item-act" data-restore-recent="1" title="Restore" aria-label="Restore">${ICON_RESTORE}</button>`
+            : `<button type="button" class="item-act" data-archive-recent="1" title="Archive" aria-label="Archive">${ICON_ARCHIVE}</button>`}
+          <button type="button" class="item-act danger" data-delete-recent="1" title="Delete" aria-label="Delete">${ICON_DELETE}</button>
+        </span>
+      </div>`;
+    root.innerHTML = (shown.length ? shown.map((r) => recentRow(r, false)).join("") : (archivedRows.length ? "" : `<div class="side-empty">No recent stories</div>`)) +
+      (archivedRows.length
+        ? `<div class="side-archived"><div class="section-label">Archived</div>${archivedRows.map((r) => recentRow(r, true)).join("")}</div>`
+        : "");
+    async function openRecent(btn) {
+      const row = btn.closest("[data-recent-title]");
+      if (!row) return;
+      const runId = row.dataset.recentRun;
+      const title = row.dataset.recentTitle || "";
+      const src = row.dataset.recentSrc || "";
+      switchView("home");
+      if (runId) {
+        try {
+          const res = await fetch("/api/runs/" + encodeURIComponent(runId));
+          const data = await res.json();
+          if (res.ok && data.run) {
+            applyRun(data.run);
+            return;
+          }
+        } catch (_) { /* open as ask */ }
+      }
+      if (looksLikePostUrl(src)) return doAnalyze(src);
+      if (title) $("headline").value = title;
+      if (isLiveSourceUrl(src)) {
+        pendingSourceUrl = src;
+        loadBrowserUrl(src, { switchTab: true });
+        setStyleUrl(isToySampleUrl(src) ? DCN_STYLE_URL : src);
+      }
+      setSideRunReady();
+    }
+    root.querySelectorAll("[data-recent-open]").forEach((btn) => {
+      btn.addEventListener("click", () => openRecent(btn));
+    });
+    root.querySelectorAll("[data-archive-recent]").forEach((btn) => {
+      btn.addEventListener("click", (e) => {
+        e.stopPropagation();
+        const row = btn.closest("[data-recent-title]");
+        if (row) archiveRecentItem(row.dataset.recentTitle, row.dataset.recentSrc);
+      });
+    });
+    root.querySelectorAll("[data-restore-recent]").forEach((btn) => {
+      btn.addEventListener("click", (e) => {
+        e.stopPropagation();
+        const row = btn.closest("[data-recent-title]");
+        if (row) restoreRecentItem(row.dataset.recentTitle, row.dataset.recentSrc);
+      });
+    });
+    root.querySelectorAll("[data-delete-recent]").forEach((btn) => {
+      btn.addEventListener("click", (e) => {
+        e.stopPropagation();
+        const row = btn.closest("[data-recent-title]");
+        if (row) deleteRecentItem(row.dataset.recentTitle, row.dataset.recentSrc);
       });
     });
   }
@@ -5535,6 +6138,73 @@
 
   $("panelToggle")?.addEventListener("click", toggleDeskPanel);
   $("panelRestore")?.addEventListener("click", () => setDeskCollapsed(false));
+  $("mobileNavBtn")?.addEventListener("click", () => setNavOpen(!document.querySelector(".shell")?.classList.contains("nav-open")));
+  $("mobileChatBtn")?.addEventListener("click", () => {
+    headerPane = "chat";
+    setPostOpen(false);
+    if (!isNarrow()) {
+      document.querySelector(".shell")?.classList.remove("browser-focus");
+      $("rightPane")?.classList.remove("browser-on");
+      $("rpStructure")?.classList.add("active");
+      $("rpBrowser")?.classList.remove("active");
+      document.querySelectorAll(".rp-tab").forEach((t) => {
+        const on = t.dataset.rp === "structure";
+        t.classList.toggle("active", on);
+        t.setAttribute("aria-selected", on ? "true" : "false");
+      });
+    }
+    switchView("home");
+    syncMobileChrome();
+  });
+  $("mobilePostBtn")?.addEventListener("click", () => {
+    headerPane = "structure";
+    switchRightTab("structure");
+    setPostOpen(true);
+  });
+  $("mobileBrowserBtn")?.addEventListener("click", () => {
+    headerPane = "browser";
+    switchRightTab("browser");
+    setPostOpen(true);
+  });
+  $("mobileNewBtn")?.addEventListener("click", () => newDesk());
+  $("drawerChatBtn")?.addEventListener("click", () => { newDesk(); setNavOpen(false); });
+  $("drawerSettingsBtn")?.addEventListener("click", () => switchView("settings"));
+  $("navArchived")?.addEventListener("click", () => {
+    const side = document.querySelector(".sidebar");
+    const on = !side?.classList.contains("show-archived");
+    side?.classList.toggle("show-archived", on);
+    $("navArchived")?.classList.toggle("active", on);
+    $("navArchived")?.setAttribute("aria-expanded", on ? "true" : "false");
+  });
+  $("drawerSearchBtn")?.addEventListener("click", () => {
+    const side = document.querySelector(".sidebar");
+    const on = !side?.classList.contains("search-on");
+    side?.classList.toggle("search-on", on);
+    if (on) $("drawerSearch")?.focus();
+  });
+  $("drawerSearch")?.addEventListener("input", () => {
+    const q = ($("drawerSearch").value || "").trim().toLowerCase();
+    document.querySelectorAll(".sidebar .nav-item, .sidebar .section-label").forEach((el) => {
+      if (el.id === "navArchived") return;
+      const t = (el.innerText || "").toLowerCase();
+      el.style.display = !q || t.includes(q) ? "" : "none";
+    });
+  });
+  $("mobilePostClose")?.addEventListener("click", () => setPostOpen(false));
+  $("mobileBackdrop")?.addEventListener("click", () => setNavOpen(false));
+  document.addEventListener("keydown", (e) => {
+    if (e.key !== "Escape" || !isNarrow()) return;
+    const shell = document.querySelector(".shell");
+    if (shell?.classList.contains("nav-open")) setNavOpen(false);
+    else if (shell?.classList.contains("post-open")) setPostOpen(false);
+  });
+  NARROW_MQ.addEventListener?.("change", () => {
+    if (!isNarrow()) {
+      document.querySelector(".shell")?.classList.remove("nav-open", "post-open");
+      document.body.classList.remove("mobile-lock");
+    }
+    syncMobileChrome();
+  });
   $("profileBtn")?.addEventListener("click", (e) => {
     e.stopPropagation();
     const menu = $("profileMenu");
@@ -5565,7 +6235,7 @@
     const name = ($("gateName")?.value || "You").trim() || "You";
     const key = ($("gateOwnerKey")?.value || "").trim();
     localStorage.removeItem("cutline.signedOut");
-    writeSession({ name, desk: selectedDesk || "pune", theme: "cream" });
+    writeSession({ name, desk: selectedDesk || "pune", theme: normalizeTheme(readSession()?.theme) });
     if (key) await unlockOwner(key);
     else paintMode("demo");
     showSignedOut(false);
@@ -5576,7 +6246,7 @@
     writeSession({
       name: ($("settingsName")?.value || "You").trim() || "You",
       desk: selectedDesk || "pune",
-      theme: $("settingsTheme")?.value || "cream",
+      theme: normalizeTheme($("settingsTheme")?.value || "white"),
     });
     const key = ($("settingsOwnerKey")?.value || "").trim();
     if (key) await unlockOwner(key);
@@ -5701,7 +6371,9 @@
   paintProjectChips();
   try {
     const st = readProjectsStore();
-    if (st.activeId) setActiveProject(st.activeId, { openHome: false });
+    if (st.activeId && !(st.projects || []).find((p) => p.id === st.activeId)?.archived) {
+      setActiveProject(st.activeId, { openHome: false });
+    }
   } catch (_) { /* ignore */ }
   $("schedAddBtn")?.addEventListener("click", () => addScheduledJob());
   $("schedName")?.addEventListener("keydown", (e) => {
@@ -5709,6 +6381,14 @@
   });
   refreshLibrary();
   paintNewsRecs();
+  seedPasteUrl();
+  document.querySelectorAll("[data-theme-opt]").forEach((btn) => {
+    btn.addEventListener("click", (e) => {
+      e.preventDefault();
+      paintThemeToggle(btn.dataset.themeOpt);
+      document.documentElement.dataset.theme = normalizeTheme(btn.dataset.themeOpt);
+    });
+  });
   /* Prefill activity dot from seeded approvals */
   try {
     const ap = ensureApprovals();
