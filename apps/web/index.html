@@ -75,6 +75,15 @@
     background: transparent; border-color: var(--line); color: var(--ink);
   }
   .btn-ghost:hover { background: rgba(26,26,26,.04); }
+  .build-badge {
+    display: inline-flex; align-items: center; gap: 8px;
+    margin-top: 18px; padding: 7px 11px;
+    border: 1px solid var(--line); border-radius: var(--radius-pill);
+    color: var(--muted); background: rgba(255,255,255,.35);
+    font-family: var(--mono); font-size: 11px; letter-spacing: .03em;
+  }
+  .build-badge strong { color: var(--ink); font-weight: 600; }
+  .build-badge .spark { color: #4285F4; font-size: 14px; line-height: 1; }
 
   /* —— hero —— */
   .hero {
@@ -610,6 +619,9 @@
         <a class="btn btn-lime" href="/studio.html?demo=1">Open the desk</a>
         <a class="btn btn-ghost" href="#how">How it works</a>
       </div>
+      <div class="build-badge" aria-label="Built with Gemini for the Gemini Online hackathon">
+        <span class="spark" aria-hidden="true">✦</span><strong>Built with Gemini</strong><span>Gemini Online hackathon</span>
+      </div>
 
       <div class="pack-stage" aria-hidden="true">
         <div class="pack-env">
@@ -675,8 +687,8 @@
             <div class="crop-frame"><img src="assets/demo-still.jpg" alt=""/></div>
             <div class="crop-guides">EDIT</div>
           </div>
-          <h3>Video upload</h3>
-          <p>Drop raw footage. Get a fully edited cut.</p>
+          <h3>Video demo</h3>
+          <p>Drop raw footage. Preview a packaged Mumbai before-after reel.</p>
         </article>
 
         <article class="hcard">

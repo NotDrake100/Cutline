@@ -9,6 +9,7 @@ Landing CTA **Open the desk** opens the public demo (`/studio?demo=1`). Paste an
 ## Demo vs owner AI
 
 Public / judges / anonymous traffic is **Demo**. Hunt, Browser, Magic Layer, Approve, and Canva handoff use fixtures and cached source pages. The desk never calls Gemini `generateContent` for that traffic — even if `GEMINI_API_KEY` is set on Vercel.
+The demo video action in `/studio.html?demo=1` briefly shows `Generating…`, then plays the packaged Mumbai/DCN before-after reel. It is a fixture preview, not live Gemini Video or Higgsfield generation.
 
 Owner desk (Archit): set `CUTLINE_OWNER_KEY` on Vercel, then enter it in Settings (or send `x-cutline-owner`). That session may call Gemini. Local `npm run studio` without an owner key is treated as owner.
 

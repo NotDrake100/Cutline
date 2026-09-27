@@ -460,7 +460,7 @@ async function handleApi(req: IncomingMessage, res: ServerResponse, url: URL) {
       if (!ownerMode(req) && demoAiBlocked(requestIp(req))) return json(res, 429, { error: "ai_blocked_demo", mode: "demo" });
       const sourceUrl = sourceUrlEarly;
       if (sourceUrl && !/^https?:\/\//i.test(sourceUrl)) return json(res, 400, { error: "source_needed" });
-      if (demoSample || (sourceUrl && /sample-(pune|mumbai|bengaluru|delhi|source)\.html/i.test(sourceUrl))) {
+      if (demoSample || (sourceUrl && /sample-(pune|mumbai|bengaluru|delhi|hyderabad|source)\.html/i.test(sourceUrl))) {
         const run = sanitizeRun(ensureDeskLog(demoRun({
           sourceUrl,
           title: (body.title || sourceUrl).trim(),

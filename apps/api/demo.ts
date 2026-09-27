@@ -76,7 +76,7 @@ const STORIES: DemoStory[] = [
     title: "HITEC City feeder buses add late trips.",
     outlet: "City desk",
     page: "/sample-hyderabad.html",
-    still: "/assets/demo/source.jpg",
+    still: "/assets/demo/hyderabad.jpg",
     body: "Late feeder trips start on the HITEC City loop this week. Cached demo source for Browser and the Magic Layer.",
     caption: "Hyderabad · HITEC City late feeders. Cached demo pack.",
   },
@@ -85,7 +85,7 @@ const STORIES: DemoStory[] = [
     title: "Tank Bund stretch marked for Sunday cycle hours.",
     outlet: "City desk",
     page: "/sample-hyderabad.html",
-    still: "/assets/demo/source.jpg",
+    still: "/assets/demo/hyderabad.jpg",
     body: "Sunday cycle hours return on a marked Tank Bund stretch. Demo fixture for the public desk.",
     caption: "Hyderabad · Tank Bund Sunday cycle hours. Demo fixture.",
   },
@@ -100,7 +100,7 @@ export function demoStillFor(sourceUrl: string, desk?: string): string | null {
     "sample-mumbai": "/assets/demo/mumbai.jpg",
     "sample-bengaluru": "/assets/demo/bengaluru.jpg",
     "sample-delhi": "/assets/demo/delhi.jpg",
-    "sample-hyderabad": "/assets/demo/source.jpg",
+    "sample-hyderabad": "/assets/demo/hyderabad.jpg",
   };
   for (const [key, path] of Object.entries(map)) {
     if (lower.includes(key)) return path;
