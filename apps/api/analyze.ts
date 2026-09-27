@@ -110,7 +110,7 @@ export const SOCIAL_FIXTURES: Record<"instagram" | "x" | "youtube", SocialFixtur
     title: "DCN: Harbour line late-night window.",
     body: "DCN posted the Harbour line clearance window on X. Cached demo analysis — no Gemini.",
     caption: "DCN · X · Harbour line late-night window. Sourced from the pasted post URL.",
-    page: "/sample-dcn-x.html",
+    page: "https://x.com/dcnpune",
     still: "/assets/demo/dcn-x.jpg",
     outlet: "DCN",
   },
@@ -119,7 +119,7 @@ export const SOCIAL_FIXTURES: Record<"instagram" | "x" | "youtube", SocialFixtur
     title: "DCN: Whitefield feeders add a late last trip.",
     body: "DCN posted the Whitefield feeder update on YouTube. Cached demo analysis — no Gemini.",
     caption: "DCN · YouTube · late last trip on Whitefield feeders. Sourced from the pasted post URL.",
-    page: "/sample-dcn-yt.html",
+    page: "https://www.youtube.com/watch?v=izIvPk-61lA",
     still: "/assets/demo/dcn-yt.jpg",
     outlet: "DCN",
   },
@@ -243,8 +243,9 @@ export async function analyzePostUrl(opts: {
   const fixtureStill = fx.still;
   const upgraded = image ? upgradeSocialImage(image) : "";
   const cdnStill = /cdninstagram\.com|fbcdn\.net/i.test(upgraded || image || "");
+  /* IG stays on the cached DCN photo. X / YouTube use the DCN mark — never a green stock stand-in. */
   const still =
-    kind === "instagram"
+    kind === "instagram" || kind === "x" || kind === "youtube"
       ? fixtureStill
       : (!cdnStill && upgraded && !looksTinyThumb(upgraded) ? upgraded : "") || (!cdnStill ? upgraded : "") || fixtureStill;
   const headline = showcaseIg

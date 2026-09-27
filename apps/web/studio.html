@@ -1526,6 +1526,13 @@
     max-height: 4.2em;
     overflow: hidden;
   }
+  .ig-frame.yt {
+    aspect-ratio: 16 / 9;
+    height: auto !important;
+    min-height: 180px !important;
+    max-height: 280px;
+    flex: 0 0 auto !important;
+  }
   .ig-frame.no-chrome .ig-plate,
   .ig-frame.no-chrome .ig-chrome,
   .ig-frame.no-chrome .ig-card-text { display: none; }
@@ -1816,33 +1823,75 @@
   }
   .browser-hint.show { display: block; }
   .browser-hint strong { color: var(--ink); font-weight: 600; }
+  .browser-stage {
+    flex: 1;
+    min-height: 0;
+    overflow: auto;
+    background: var(--bg);
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    padding: 14px 14px 20px;
+  }
+  .shell.browser-focus.desk-collapsed .browser-stage {
+    align-items: center;
+    padding: 28px 24px;
+  }
+  .browser-preview {
+    width: 100%;
+    max-width: 420px;
+    background: #fff;
+    border: 1px solid var(--line);
+    border-radius: 16px;
+    overflow: hidden;
+    box-shadow: 0 10px 28px rgba(0,0,0,.06);
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+  }
+  .browser-preview[data-kind="youtube"] { max-width: 640px; }
+  .browser-preview[data-kind="page"] { max-width: 560px; }
   .browser-poster {
     display: none;
-    flex: 0 0 320px;
-    height: 320px;
-    min-height: 320px;
-    background: #111;
+    background: #F4F4F2;
+    aspect-ratio: 4 / 5;
+    max-height: 420px;
     overflow: hidden;
-    border-bottom: 1px solid var(--line);
   }
   .browser-poster.show { display: block; }
+  .browser-preview[data-kind="youtube"] .browser-poster {
+    aspect-ratio: 16 / 9;
+    max-height: 360px;
+  }
   .browser-poster img {
     width: 100%;
     height: 100%;
     object-fit: contain;
     object-position: center;
-    background: #111;
+    background: #F4F4F2;
     max-width: none;
   }
   .browser-frame-wrap {
-    flex: 1; min-height: 360px;
-    background: #111;
     position: relative;
+    background: #fff;
+    min-height: 0;
+    display: none;
   }
+  .browser-preview[data-kind="youtube"] .browser-frame-wrap {
+    display: block;
+    aspect-ratio: 16 / 9;
+  }
+  .browser-preview[data-kind="page"] .browser-frame-wrap {
+    display: block;
+    min-height: 280px;
+    height: min(52vh, 420px);
+  }
+  .browser-preview.has-fallback .browser-frame-wrap { display: none; }
   .browser-frame-wrap iframe {
     width: 100%; height: 100%; border: none;
     background: #fff;
-    min-height: 360px;
+    min-height: 0;
+    display: block;
   }
   .browser-blocked {
     position: absolute; inset: 0;
@@ -1852,7 +1901,7 @@
     padding: 24px;
     text-align: center;
     font-size: 13px; color: var(--muted);
-    background: var(--bg);
+    background: #fff;
   }
   .browser-blocked a {
     color: var(--ink); font-weight: 600;
@@ -2116,15 +2165,15 @@
         <div class="paste-url" id="pasteUrlWrap">
           <p class="assign-label">Paste a post URL</p>
           <div class="paste-url-row">
-            <input id="pastePostUrl" type="url" placeholder="Instagram, X, YouTube, or any post link" autocomplete="off" spellcheck="false"/>
+            <input id="pastePostUrl" type="url" value="https://www.instagram.com/p/DdwHjcpId9B/" placeholder="https://www.instagram.com/p/DdwHjcpId9B/" autocomplete="off" spellcheck="false"/>
             <button type="button" class="btn btn-lime" id="analyzeBtn">Analyze</button>
             <button type="button" class="btn btn-ink" id="copyStyleBtn" title="Build a DCN-style card from this URL">Copy this style</button>
           </div>
           <p class="paste-style-hint">Have a post URL? <button type="button" class="linkish" id="copyStyleLink">Copy this style</button> → real template chrome + photo + editable headline.</p>
           <div class="assign-chips" id="socialChips">
             <button type="button" class="assign-chip" data-social="instagram" data-url="https://www.instagram.com/p/DdwHjcpId9B/">DCN · Instagram</button>
-            <button type="button" class="assign-chip" data-social="x">DCN · X</button>
-            <button type="button" class="assign-chip" data-social="youtube">DCN · YouTube</button>
+            <button type="button" class="assign-chip" data-social="x" data-url="https://x.com/dcnpune">DCN · X</button>
+            <button type="button" class="assign-chip" data-social="youtube" data-url="https://www.youtube.com/watch?v=izIvPk-61lA">DCN · YouTube</button>
           </div>
           <div class="style-url" id="styleUrlRow">
             <input id="styleUrl" type="text" readonly aria-label="Style source URL"/>
@@ -2473,12 +2522,16 @@
           <a class="browser-open" id="browserOpen" href="#" target="_blank" rel="noopener noreferrer">Open</a>
         </div>
         <div class="browser-hint" id="browserHint"></div>
-        <div class="browser-poster" id="browserPoster"><img id="browserPosterImg" alt="Page still" width="1080" height="720"/></div>
-        <div class="browser-frame-wrap" id="browserFrameWrap">
-          <iframe id="browserFrame" sandbox="allow-scripts allow-same-origin allow-popups allow-forms allow-popups-to-escape-sandbox" allow="encrypted-media; clipboard-write; picture-in-picture; fullscreen" referrerpolicy="origin" title="Source preview"></iframe>
-          <div class="browser-blocked" id="browserBlocked" style="display:none">
-            <span id="browserBlockedNote">This site blocks in-panel preview.</span>
-            <a id="browserBlockedLink" href="#" target="_blank" rel="noopener noreferrer">Open the post</a>
+        <div class="browser-stage" id="browserStage">
+          <div class="browser-preview" id="browserPreview" data-kind="page">
+            <div class="browser-poster" id="browserPoster"><img id="browserPosterImg" alt="Page still" width="1080" height="720"/></div>
+            <div class="browser-frame-wrap" id="browserFrameWrap">
+              <iframe id="browserFrame" sandbox="allow-scripts allow-same-origin allow-popups allow-forms allow-popups-to-escape-sandbox" allow="encrypted-media; clipboard-write; picture-in-picture; fullscreen" referrerpolicy="origin" title="Source preview"></iframe>
+              <div class="browser-blocked" id="browserBlocked" style="display:none">
+                <span id="browserBlockedNote">This site blocks in-panel preview.</span>
+                <a id="browserBlockedLink" href="#" target="_blank" rel="noopener noreferrer">Open the post</a>
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -2534,6 +2587,44 @@
 
   const $ = (id) => document.getElementById(id);
   const agents = ["wire", "still", "desk", "ship"];
+  const DCN_STYLE_URL = "https://www.instagram.com/p/DdwHjcpId9B/";
+  const DCN_X_URL = "https://x.com/dcnpune";
+  const DCN_YT_URL = "https://www.youtube.com/watch?v=izIvPk-61lA";
+
+  function isToySampleUrl(u) {
+    return /\/sample-[a-z0-9-]+\.html(\?|#|$)/i.test(String(u || ""));
+  }
+  function publicStyleUrl(u) {
+    const raw = typeof cleanPastedUrl === "function" ? cleanPastedUrl(u || "") : String(u || "").trim();
+    if (!raw || isToySampleUrl(raw) || (typeof isLiveSourceUrl === "function" && !isLiveSourceUrl(raw))) return DCN_STYLE_URL;
+    return raw;
+  }
+  function seedPasteUrl() {
+    const el = $("pastePostUrl");
+    if (!el) return;
+    if (!el.value.trim() || isToySampleUrl(el.value)) el.value = DCN_STYLE_URL;
+    el.placeholder = DCN_STYLE_URL;
+  }
+  function projectNameKey(p) {
+    return String(p?.name || "").trim().toLowerCase().replace(/\s+/g, " ");
+  }
+  function uniqueProjects(projects) {
+    const list = Array.isArray(projects) ? projects.slice() : [];
+    const out = [];
+    const seenName = new Set();
+    const seenId = new Set();
+    const take = (p) => {
+      if (!p || seenId.has(p.id)) return;
+      const nk = projectNameKey(p);
+      if (nk && seenName.has(nk)) return;
+      if (nk) seenName.add(nk);
+      seenId.add(p.id);
+      out.push(p);
+    };
+    for (const id of ["dcn-pune", "dcn-hyderabad"]) take(list.find((p) => p.id === id));
+    for (const p of list) take(p);
+    return out;
+  }
   const STILL_FILL_HTML = `<div class="still-fill" aria-busy="true" aria-label="Generating still">
     <div class="still-fill-shimmer"></div>
     <div class="still-fill-wash"></div>
@@ -2707,8 +2798,12 @@
         const cur = byId.get(s.id);
         if (!cur.recents || !cur.recents.length) cur.recents = s.recents;
         if (!cur.chrome) cur.chrome = s.chrome;
-        if (!cur.styleUrl) cur.styleUrl = s.styleUrl;
+        if (!cur.styleUrl || isToySampleUrl(cur.styleUrl)) cur.styleUrl = s.styleUrl;
       }
+    }
+    store.projects = uniqueProjects(store.projects);
+    if (store.activeId && !store.projects.some((p) => p.id === store.activeId)) {
+      store.activeId = store.projects[0]?.id || null;
     }
     writeProjectsStore(store);
     activeProjectId = store.activeId || null;
@@ -2781,10 +2876,10 @@
     writeProjectsStore(store);
     selectedDesk = proj.city || "pune";
     paintCityChips();
-    if (proj.styleUrl && $("pastePostUrl") && !($("pastePostUrl").value || "").trim()) {
-      $("pastePostUrl").value = proj.styleUrl;
+    if (proj.styleUrl && $("pastePostUrl") && (!($("pastePostUrl").value || "").trim() || isToySampleUrl($("pastePostUrl").value))) {
+      $("pastePostUrl").value = publicStyleUrl(proj.styleUrl);
     }
-    if (proj.styleUrl) setStyleUrl(proj.styleUrl);
+    if (proj.styleUrl) setStyleUrl(publicStyleUrl(proj.styleUrl));
     const cityLabel = (proj.city || "pune").replace(/^./, (c) => c.toUpperCase());
     if ($("copyStyleBtn")) {
       $("copyStyleBtn").title = `Build a ${cityLabel}-style ${proj.outlet || "DCN"} card from this URL`;
@@ -2838,6 +2933,11 @@
         : suggested) || suggested;
       name = String(name).trim() || suggested;
     }
+    const existing = store.projects.find((p) =>
+      projectNameKey(p) === projectNameKey({ name })
+      || ((p.outlet || "DCN") === outlet && (p.city || "").toLowerCase() === city && /^dcn\s/i.test(name))
+    );
+    if (existing && !opts.forceNew) return setActiveProject(existing.id);
     let id = opts.id || slugProjectId(name);
     if (store.projects.some((p) => p.id === id)) id = id + "-" + Date.now().toString(36);
     let proj = {
@@ -2880,7 +2980,7 @@
   function paintProjectNav() {
     const root = $("projectList");
     if (!root) return;
-    const projects = listProjects();
+    const projects = uniqueProjects(listProjects());
     const active = activeProjectId;
     const folderSvg = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M4 8h16v11H4z"/><path d="M8 8V6h8v2"/></svg>`;
     const plusSvg = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>`;
@@ -2907,16 +3007,21 @@
   function paintProjectChips() {
     const root = $("projectHome");
     if (!root) return;
-    const projects = listProjects().filter((p) => p.id === "dcn-pune" || p.id === "dcn-hyderabad" || p.id === activeProjectId);
-    /* Always show the two demo seeds + any other active */
+    const projects = uniqueProjects(listProjects());
+    /* Always show the two demo seeds + any other unique active */
     const seen = new Set();
     const chips = [];
     for (const id of ["dcn-pune", "dcn-hyderabad"]) {
-      const p = listProjects().find((x) => x.id === id);
-      if (p) { chips.push(p); seen.add(p.id); }
+      const p = projects.find((x) => x.id === id);
+      if (p) { chips.push(p); seen.add(p.id); seen.add(projectNameKey(p)); }
     }
-    for (const p of listProjects()) {
-      if (!seen.has(p.id) && p.id === activeProjectId) chips.push(p);
+    for (const p of projects) {
+      const nk = projectNameKey(p);
+      if (!seen.has(p.id) && !seen.has(nk) && p.id === activeProjectId) {
+        chips.push(p);
+        seen.add(p.id);
+        if (nk) seen.add(nk);
+      }
     }
     const active = activeProjectId;
     root.innerHTML = `<div class="ask-suggest-label">Projects</div>` +
@@ -3260,7 +3365,7 @@
     const sampleRoot = $("exploreSamples");
     const styleRoot = $("exploreStyles");
     if (projRoot) {
-      const projects = listProjects();
+      const projects = uniqueProjects(listProjects());
       projRoot.innerHTML = projects.map((p) => `
         <button type="button" class="explore-tile" data-ex-project="${escapeHtml(p.id)}">
           <span class="k">${escapeHtml(p.outlet || "DCN")}</span>
@@ -3718,19 +3823,24 @@
     return "";
   }
 
+  function browserKind(url) {
+    const u = String(url || "");
+    if (/instagram\.com|instagr\.am|sample-dcn-ig/i.test(u)) return "instagram";
+    if (/x\.com|twitter\.com|sample-dcn-x/i.test(u)) return "x";
+    if (/youtube\.com|youtu\.be|sample-dcn-yt/i.test(u)) return "youtube";
+    return "page";
+  }
+
   function socialHint(url, embed) {
-    if (/instagram\.com|instagr\.am/i.test(url)) {
-      return embed
-        ? "<strong>Instagram embed</strong> in this panel. Open the original post if it stays blank."
-        : "<strong>Instagram blocks</strong> in-panel preview. Open the post to see it in full.";
+    const kind = browserKind(url);
+    if (kind === "instagram") {
+      return "<strong>Contained preview</strong> of the sourced still. Open the original post for the live page.";
     }
-    if (/(^|\.)x\.com|twitter\.com/i.test(url)) {
-      return embed
-        ? "<strong>X embed</strong> in this panel. Open the original post if it stays blank."
-        : "<strong>X blocks</strong> in-panel preview. Open the post to see it in full.";
+    if (kind === "x") {
+      return "<strong>Contained preview</strong> with the DCN mark. Open the original post for the live page.";
     }
-    if (/youtube\.com|youtu\.be/i.test(url)) {
-      return embed ? "<strong>YouTube</strong> embed in this panel." : "";
+    if (kind === "youtube") {
+      return embed ? "<strong>YouTube</strong> in a 16:9 frame." : "<strong>YouTube preview</strong> — open the video if the embed stays blank.";
     }
     return "";
   }
@@ -3738,10 +3848,10 @@
   function posterForUrl(url) {
     const u = String(url || "");
     if (/instagram\.com|instagr\.am|sample-dcn-ig/i.test(u)) return "/assets/demo/dcn-ig.jpg";
-    if (/(^|\.)x\.com|twitter\.com|sample-dcn-x/i.test(u)) return "/assets/demo/dcn-x.jpg";
+    if (/x\.com|twitter\.com|sample-dcn-x/i.test(u)) return "/assets/demo/dcn-x.jpg";
     if (/youtube\.com|youtu\.be|sample-dcn-yt/i.test(u)) return "/assets/demo/dcn-yt.jpg";
     if (/sample-pune/i.test(u)) return "/assets/demo/pune.jpg";
-    if (/sample-hyderabad/i.test(u)) return "/assets/demo/source.jpg";
+    if (/sample-hyderabad/i.test(u)) return "/assets/demo/hyderabad.jpg";
     if (/sample-mumbai/i.test(u)) return "/assets/demo/mumbai.jpg";
     if (/sample-delhi/i.test(u)) return "/assets/demo/delhi.jpg";
     if (/sample-bengaluru/i.test(u)) return "/assets/demo/bengaluru.jpg";
@@ -3775,9 +3885,16 @@
     $("browserUrl").textContent = url;
     $("browserOpen").href = url;
     $("browserBlockedLink").href = url;
-    paintBrowserPoster(url);
+    const kind = browserKind(url);
+    const preview = $("browserPreview");
     const embed = socialEmbedUrl(url);
-    const frameUrl = embed || url;
+    const usePoster = kind === "instagram" || kind === "x" || (kind === "youtube" && !embed);
+    if (preview) {
+      preview.dataset.kind = kind;
+      preview.classList.toggle("has-fallback", usePoster && kind !== "youtube");
+    }
+    paintBrowserPoster(usePoster ? url : "");
+    const frameUrl = (kind === "youtube" || kind === "page") ? (embed || url) : "";
     const hint = $("browserHint");
     const hintText = socialHint(url, embed);
     if (hint) {
@@ -3787,35 +3904,31 @@
     const frame = $("browserFrame");
     const blocked = $("browserBlocked");
     const note = $("browserBlockedNote");
-    const noEmbedBlock = !embed && /instagram\.com|instagr\.am|x\.com|twitter\.com|facebook\.com|tiktok\.com/i.test(url);
     if (note) {
-      note.textContent = noEmbedBlock
-        ? "This site blocks in-panel preview. Open the post to see it in full — caption is on Post."
-        : "Preview blocked. Open the post to see it in full.";
+      note.textContent = kind === "page"
+        ? "Preview blocked. Open the page to see it in full."
+        : "Open the post to see it in full — caption is on Post.";
     }
-    blocked.style.display = noEmbedBlock ? "flex" : "none";
-    if (frame.dataset.src !== frameUrl) {
+    blocked.style.display = "none";
+    clearTimeout(frame._bt);
+    if (!frameUrl) {
+      frame.removeAttribute("src");
+      delete frame.dataset.src;
+    } else if (frame.dataset.src !== frameUrl) {
       frame.dataset.src = frameUrl;
       frame.src = frameUrl;
-      clearTimeout(frame._bt);
-      if (embed) {
+      if (kind === "youtube" && embed) {
         frame._bt = setTimeout(() => {
-          /* Embed often blanks (IG login wall). Keep cached still poster + clear note — never look broken. */
+          /* If the 16:9 embed stays blank, keep the DCN mark in the same frame. */
           paintBrowserPoster(url);
           const box = $("browserPoster");
           if (box) box.classList.add("show");
-          if (hint) {
-            const stillHint = /instagram/i.test(url)
-              ? "<strong>Instagram embed</strong> may stay blank here. Cached still is on Post — open the original if you need the live page."
-              : hintText;
-            hint.innerHTML = stillHint || hintText;
-            hint.classList.add("show");
-          }
-        }, 1800);
+          if (preview) preview.classList.add("has-fallback");
+        }, 2200);
       }
     }
     if (switchTab) switchRightTab("browser");
-    setStyleUrl(url);
+    setStyleUrl(isToySampleUrl(url) ? DCN_STYLE_URL : url);
     return true;
   }
 
@@ -3828,9 +3941,12 @@
       field.value = "";
       return;
     }
-    field.value = url;
+    const shown = publicStyleUrl(url);
+    field.value = shown;
     row.classList.add("show");
-    if ($("pastePostUrl") && !$("pastePostUrl").value) $("pastePostUrl").value = url;
+    if ($("pastePostUrl") && (!$("pastePostUrl").value || isToySampleUrl($("pastePostUrl").value))) {
+      $("pastePostUrl").value = shown;
+    }
   }
 
   function paintBrowser(run) {
@@ -3955,8 +4071,13 @@
     if (!card) return;
     if (!run) { card.style.display = "none"; return; }
     card.style.display = "";
-    const isIg = looksLikePostUrl(resolveSourceUrl(run)) && /instagram/i.test(resolveSourceUrl(run));
+    const srcUrl = resolveSourceUrl(run);
+    const isIg = looksLikePostUrl(srcUrl) && /instagram/i.test(srcUrl);
+    const isYt = /youtube\.com|youtu\.be|sample-dcn-yt/i.test(srcUrl) || (run.beat || "") === "youtube";
+    const isX = /x\.com|twitter\.com|sample-dcn-x/i.test(srcUrl) || (run.beat || "") === "x";
     const cachedIg = "/assets/demo/dcn-ig.jpg";
+    const cachedX = "/assets/demo/dcn-x.jpg";
+    const cachedYt = "/assets/demo/dcn-yt.jpg";
     const deskAsset = (u) => {
       if (!u) return "";
       /* Signed Instagram CDN expires / 403s — never rewrite size params; use the cached JPG. */
@@ -3972,6 +4093,12 @@
     if (isIg && !photos.some((p) => /dcn-ig\.(jpg|jpeg|png|webp)/i.test(p.url || ""))) {
       photos.unshift({ url: cachedIg, credit: "Sourced still" });
     }
+    if (isX && !photos.some((p) => /dcn-x\.(jpg|jpeg|png|webp)/i.test(p.url || ""))) {
+      photos.unshift({ url: cachedX, credit: "DCN" });
+    }
+    if (isYt && !photos.some((p) => /dcn-yt\.(jpg|jpeg|png|webp)/i.test(p.url || ""))) {
+      photos.unshift({ url: cachedYt, credit: "DCN" });
+    }
     if (photos.length) run.photos = photos;
     if (run.photo?.via === "gemini_gen" && photos[0]) {
       setPostPhoto(photos[0]);
@@ -3983,7 +4110,9 @@
     let current = deskAsset(run.photo?.pathOrUrl) || deskAsset(run.pack?.stillUrl);
     if (current && !preferRaster(current)) current = "";
     /* Prefer the selected still (Photo tool cycle). Only fall back to the cached IG JPG. */
-    let url = (current && preferRaster(current) ? current : "") || (isIg ? cachedIg : "") || rasterStill || safeStill || cachedIg;
+    let url = (isX ? cachedX : "") || (isYt ? cachedYt : "")
+      || (current && preferRaster(current) ? current : "")
+      || (isIg ? cachedIg : "") || rasterStill || safeStill || cachedIg;
     const fallbacks = photos.map((p) => deskAsset(p.url)).filter((u) => u && u !== url && preferRaster(u));
     if (isIg && !fallbacks.includes(cachedIg) && url !== cachedIg) fallbacks.push(cachedIg);
     if (url && run.photo && run.photo.pathOrUrl !== url) {
@@ -4007,9 +4136,17 @@
       if (fill) fill.hidden = true;
       const src = url || cachedIg;
       frame.style.backgroundImage = "none";
-      frame.style.height = "420px";
-      frame.style.minHeight = "420px";
-      frame.style.flex = "0 0 420px";
+      frame.classList.toggle("yt", !!isYt);
+      frame.classList.toggle("x", !!isX);
+      if (isYt) {
+        frame.style.height = "";
+        frame.style.minHeight = "";
+        frame.style.flex = "";
+      } else {
+        frame.style.height = "420px";
+        frame.style.minHeight = "420px";
+        frame.style.flex = "0 0 420px";
+      }
       frame.classList.toggle("no-chrome", !chromeSrc);
       if (photo) {
         photo.hidden = false;
@@ -4155,7 +4292,8 @@
     const social = looksLikePostUrl(src);
     fillMagicLayers(run, { flash: true, preferBrowser: opts?.preferBrowser ?? social });
     setStyleUrl(src);
-    if (isLiveSourceUrl(src) && $("pastePostUrl")) $("pastePostUrl").value = src;
+    if (isLiveSourceUrl(src) && $("pastePostUrl") && !isToySampleUrl(src)) $("pastePostUrl").value = src;
+    else seedPasteUrl();
     if (pendingAskPhoto?.url) {
       currentRun.photos = currentRun.photos || [];
       currentRun.photos.unshift({ url: pendingAskPhoto.url, credit: pendingAskPhoto.credit || "Photo" });
@@ -4270,7 +4408,8 @@
     if (looksLikeStyleMatch(headline) && isLiveSourceUrl(refUrl)) return doStyleMatch(headline);
     const asUrl = looksLikePostUrl(headline) ? headline : "";
     if (asUrl) return doAnalyze(asUrl);
-    if (!samplePending && looksLikePostUrl(pasted) && !currentRun) return doAnalyze(pasted);
+    /* A leftover style URL in Paste must not steal a typed / tip headline. */
+    if (!samplePending && looksLikePostUrl(pasted) && !currentRun && !headline) return doAnalyze(pasted);
     const sourced = isLiveSourceUrl(pendingSourceUrl) || /^https?:\/\//i.test(headline);
     if (!headline && !sourced) { return runAssignment(); }
     $("runBtn").disabled = true;
@@ -4329,7 +4468,7 @@
 
   function newDesk() {
     $("headline").value = "";
-    if ($("pastePostUrl")) $("pastePostUrl").value = "";
+    seedPasteUrl();
     pendingSourceUrl = null;
     pendingAskPhoto = null;
     showAskAttach("");
@@ -4480,9 +4619,9 @@
     btn.addEventListener("click", () => {
       const kind = btn.dataset.social || "instagram";
       const url = btn.dataset.url
-        || (kind === "x" ? location.origin + "/sample-dcn-x.html"
-          : kind === "youtube" ? location.origin + "/sample-dcn-yt.html"
-          : "https://www.instagram.com/p/DdwHjcpId9B/");
+        || (kind === "x" ? DCN_X_URL
+          : kind === "youtube" ? DCN_YT_URL
+          : DCN_STYLE_URL);
       document.querySelectorAll("#socialChips [data-social]").forEach((b) => b.classList.remove("active"));
       btn.classList.add("active");
       doAnalyze(url);
@@ -4705,17 +4844,15 @@
   }
 
   function newsTips() {
-    const origin = location.origin;
-    /* Pool rotates so recommendations feel different across sessions — plain news photos, no DCN chrome */
+    /* Chip click fills the prompt only. Photos attach after Run. No Tank Bund. */
     return [
-      { desk: "pune", kicker: "Pune", title: "Overnight bus routes go to a vote in Pune.", url: origin + "/sample-pune.html" },
-      { desk: "pune", kicker: "Pune", title: "Metro Phase 2 stations get weekend trial hours.", url: origin + "/sample-pune.html" },
-      { desk: "hyderabad", kicker: "Hyderabad", title: "HITEC City feeder buses add late trips.", url: origin + "/sample-hyderabad.html" },
-      { desk: "hyderabad", kicker: "Hyderabad", title: "Tank Bund stretch marked for Sunday cycle hours.", url: origin + "/sample-hyderabad.html" },
-      { desk: "mumbai", kicker: "Mumbai", title: "Harbour line holds a late-night clearance window.", url: origin + "/sample-mumbai.html" },
-      { desk: "mumbai", kicker: "Mumbai", title: "Marine Drive stretch marked for Sunday cycle hours.", url: origin + "/sample-mumbai.html" },
-      { desk: "bengaluru", kicker: "Bengaluru", title: "Whitefield feeder buses add a late last trip.", url: origin + "/sample-bengaluru.html" },
-      { desk: "delhi", kicker: "Delhi", title: "Yellow Line weekend work shifts to early Monday.", url: origin + "/sample-delhi.html" },
+      { desk: "pune", kicker: "Pune", title: "Overnight bus routes go to a vote in Pune.", still: "/assets/demo/pune.jpg" },
+      { desk: "pune", kicker: "Pune", title: "Metro Phase 2 stations get weekend trial hours.", still: "/assets/demo/pune-metro.jpg" },
+      { desk: "hyderabad", kicker: "Hyderabad", title: "HITEC City feeder buses add late trips.", still: "/assets/demo/hyderabad.jpg" },
+      { desk: "hyderabad", kicker: "Hyderabad", title: "ORR express buses add a late evening loop.", still: "/assets/demo/hyderabad.jpg" },
+      { desk: "mumbai", kicker: "Mumbai", title: "Harbour line holds a late-night clearance window.", still: "/assets/demo/mumbai.jpg" },
+      { desk: "bengaluru", kicker: "Bengaluru", title: "Whitefield feeder buses add a late last trip.", still: "/assets/demo/bengaluru.jpg" },
+      { desk: "delhi", kicker: "Delhi", title: "Yellow Line weekend work shifts to early Monday.", still: "/assets/demo/delhi.jpg" },
     ];
   }
 
@@ -4741,29 +4878,22 @@
     return out;
   }
 
-  async function runNewsTip(t) {
+  function fillNewsTip(t) {
     if (!t) return;
     selectedDesk = t.desk;
     paintCityChips();
     $("headline").value = t.title;
-    /* Keep tip URL in paste field so Copy this style is one click away */
-    if ($("pastePostUrl")) $("pastePostUrl").value = t.url;
-    pendingSourceUrl = t.url;
-    setStyleUrl(t.url);
-    /* Tips = news photo + editable text only — never Hyd chrome */
-    if (currentRun) {
-      currentRun._hydChrome = false;
-      if (currentRun.pack) delete currentRun.pack.templateChrome;
-    }
-    loadBrowserUrl(t.url, { switchTab: true });
+    pendingSourceUrl = null;
+    seedPasteUrl();
+    setStyleUrl(DCN_STYLE_URL);
+    setSideRunReady();
     switchView("home");
-    await doRun();
-    if (currentRun) {
-      currentRun._hydChrome = false;
-      if (currentRun.pack) delete currentRun.pack.templateChrome;
-      paintIgPost(currentRun);
-    }
     switchRightTab("structure");
+    $("headline")?.focus();
+  }
+
+  async function runNewsTip(t) {
+    fillNewsTip(t);
   }
 
   function paintNewsRecs() {
@@ -4778,7 +4908,7 @@
         </button>`
       ).join("");
       ask.querySelectorAll("[data-ask-rec]").forEach((btn) => {
-        btn.addEventListener("click", () => runNewsTip(tips[Number(btn.dataset.askRec)]));
+        btn.addEventListener("click", () => fillNewsTip(tips[Number(btn.dataset.askRec)]));
       });
     }
     /* Legacy below-fold list kept in DOM but hidden — chips in ask box are primary */
@@ -4791,7 +4921,7 @@
         </button>`
       ).join("");
       list.querySelectorAll("[data-rec]").forEach((btn) => {
-        btn.addEventListener("click", () => runNewsTip(tips[Number(btn.dataset.rec)]));
+        btn.addEventListener("click", () => fillNewsTip(tips[Number(btn.dataset.rec)]));
       });
     }
   }
@@ -5697,6 +5827,7 @@
   ensureProjects();
   ensureScheduled();
   ensureApprovals();
+  seedPasteUrl();
   paintProjectNav();
   paintProjectChips();
   try {
