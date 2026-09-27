@@ -14,6 +14,15 @@ import { BEATS, listBeats, getBeat } from "../../packages/scout/src/beats";
 import { scoutBeat } from "../../packages/scout/src/scout";
 import { createScoutDeps, hasTinyfishKey } from "../../packages/scout/src/http";
 import { listPlugins, shipRun, type ShipChannel } from "../../packages/ship/src/ship";
+import {
+  connectionViews,
+  disconnectChannel,
+  finishConnect,
+  isOauthChannel,
+  missingEnv,
+  redirectUri,
+  startConnect,
+} from "../../packages/ship/src/oauth";
 
 const PORT = Number(process.env.PORT) || 8787;
 const ROOT = join(import.meta.dirname, "../..");
@@ -56,6 +65,11 @@ const MIME: Record<string, string> = {
   ".ico": "image/x-icon",
   ".woff2": "font/woff2",
 };
+
+function redirect(res: ServerResponse, location: string) {
+  res.writeHead(302, { Location: location, "Cache-Control": "no-store" });
+  res.end();
+}
 
 function json(res: ServerResponse, status: number, body: unknown) {
   const payload = JSON.stringify(body);
@@ -179,7 +193,61 @@ async function handleApi(req: IncomingMessage, res: ServerResponse, url: URL) {
 
 
   if (method === "GET" && path === "/api/plugins") {
-    return json(res, 200, { plugins: listPlugins() });
+    const links = await connectionViews();
+    return json(res, 200, { plugins: listPlugins(links) });
+  }
+
+  const connectMatch = path.match(/^\/api\/connect\/([a-z]+)(\/disconnect)?$/);
+  if (connectMatch) {
+    const channelName = connectMatch[1] || "";
+    const disconnecting = !!connectMatch[2];
+    if (!isOauthChannel(channelName)) {
+      return json(res, 400, { error: "unknown_channel" });
+    }
+    if (disconnecting) {
+      if (method !== "POST") return json(res, 405, { error: "method_not_allowed" });
+      await disconnectChannel(channelName);
+      return json(res, 200, { ok: true, channel: channelName, connected: false });
+    }
+    if (method !== "GET") return json(res, 405, { error: "method_not_allowed" });
+    const missing = missingEnv(channelName);
+    if (missing.length) {
+      return json(res, 409, {
+        error: "oauth_not_configured",
+        missing,
+        redirectUri: redirectUri(channelName),
+      });
+    }
+    try {
+      const started = await startConnect(channelName);
+      return json(res, 200, { authorizeUrl: started.authorizeUrl, redirectUri: started.redirectUri });
+    } catch (e) {
+      const message = (e as Error).message || "connect_failed";
+      if (message.startsWith("oauth_not_configured:")) {
+        return json(res, 409, {
+          error: "oauth_not_configured",
+          missing: message.slice("oauth_not_configured:".length).split(",").filter(Boolean),
+          redirectUri: redirectUri(channelName),
+        });
+      }
+      return json(res, 500, { error: "connect_failed" });
+    }
+  }
+
+  const callbackMatch = path.match(/^\/api\/oauth\/callback\/([a-z]+)$/);
+  if (callbackMatch && method === "GET") {
+    const channelName = callbackMatch[1] || "";
+    if (!isOauthChannel(channelName)) {
+      return redirect(res, "/studio.html?view=connect&oauth=error&reason=unknown_channel");
+    }
+    const done = await finishConnect(channelName, url.searchParams);
+    if (!done.ok) {
+      return redirect(res, `/studio.html?view=connect&oauth=error&channel=${channelName}&reason=${encodeURIComponent(done.reason)}`);
+    }
+    return redirect(
+      res,
+      `/studio.html?view=connect&oauth=ok&channel=${channelName}&account=${encodeURIComponent(done.accountLabel)}`
+    );
   }
 
   if (method === "POST" && path === "/api/ship") {
@@ -214,8 +282,8 @@ async function handleApi(req: IncomingMessage, res: ServerResponse, url: URL) {
         detail: result.status + (result.warning ? ` · ${result.warning}` : ""),
         spendCents: 0,
       });
-      if (channel === "zip" && result.status === "downloaded") {
-        // ZIP is a real local export; do not flip to shipped (OAuth not done)
+      if (result.status === "published") {
+        run.status = "shipped";
       }
       await saveRun(run);
       return json(res, 200, { ...result, runId: run.id, runStatus: run.status });
@@ -248,7 +316,14 @@ async function handleApi(req: IncomingMessage, res: ServerResponse, url: URL) {
       ok: true,
       gemini: gemini.hasKey(),
       tinyfish: hasTinyfishKey(),
-      // names only — never values
+      oauth: {
+        ig: missingEnv("ig").length === 0,
+        yt: missingEnv("yt").length === 0,
+        canva: missingEnv("canva").length === 0,
+        telegram: missingEnv("telegram").length === 0,
+        x: missingEnv("x").length === 0,
+        tiktok: missingEnv("tiktok").length === 0,
+      },
     });
   }
 

@@ -1156,10 +1156,6 @@
     <div class="sidebar-spacer"></div>
 
     <div class="sidebar-foot">
-      <div class="status-row" id="geminiStatus">
-        <span class="pulse" aria-hidden="true"></span>
-        <span id="geminiStatusText">Gemini · checking…</span>
-      </div>
       <button type="button" class="btn-run-side" id="sideRunBtn">Run</button>
     </div>
   </aside>
@@ -1311,10 +1307,10 @@
       <div class="connect-wrap">
         <div class="kicker">Ship · Plugins</div>
         <h1>Connect</h1>
-        <p class="connect-sub">Ship packs to Instagram, YouTube, Canva, and more. OAuth publish is stubbed — Download ZIP always works.</p>
+        <p class="connect-sub">Link Instagram, YouTube, Canva, Telegram, X, or TikTok before you run a story. Ship uses the linked account. Download ZIP stays local.</p>
 
         <div class="connect-run" id="connectRunBar">
-          <span id="connectRunMsg">Run a story first — then Ship to a channel.</span>
+          <span id="connectRunMsg">Connect an account anytime. Ship still needs a story.</span>
         </div>
 
         <div class="plugin-grid" id="pluginGrid" aria-label="Plugins">
@@ -2155,8 +2151,6 @@
     zip: { cls: "zip", svg: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M7 3h7l5 5v13a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1z"/><path d="M14 3v5h5M10 12h2M10 15h2M10 18h2"/></svg>' },
   };
 
-  let pluginsCache = null;
-
   function canShip() {
     return !!(currentRun?.id && (currentRun.status === "approved" || currentRun.status === "needs_input") && currentRun.pack);
   }
@@ -2173,7 +2167,7 @@
       bar.innerHTML = `<strong>Run ${escapeHtml(currentRun.id)}</strong> — status ${escapeHtml(currentRun.status)}. Approve or wait for pack before ship.`;
     } else {
       bar.classList.remove("warn");
-      bar.innerHTML = `<span id="connectRunMsg">Run a story first — then Ship to a channel.</span>`;
+      bar.innerHTML = `<span id="connectRunMsg">Connect an account anytime. Ship still needs a story.</span>`;
     }
   }
 
@@ -2229,6 +2223,22 @@
         return;
       }
 
+      if (data.status === "published") {
+        const link = data.connectUrl
+          ? ` <a href="${escapeHtml(data.connectUrl)}" target="_blank" rel="noopener noreferrer">Open</a>`
+          : "";
+        showConnectToast("<strong>Published.</strong> " + escapeHtml(data.nextStep || channel) + link, "ok");
+        if (channel === "canva" && data.connectUrl) {
+          window.open(data.connectUrl, "_blank", "noopener,noreferrer");
+        }
+        return;
+      }
+
+      if (data.status === "failed") {
+        showConnectToast("<strong>Ship failed.</strong> " + escapeHtml(data.nextStep || data.error || "The channel rejected the post."), "warn");
+        return;
+      }
+
       if (data.status === "connect_required") {
         const link = data.connectUrl
           ? ` <a href="${escapeHtml(data.connectUrl)}" target="_blank" rel="noopener noreferrer">Open ${escapeHtml(channel)}</a>`
@@ -2239,10 +2249,6 @@
           ? `<br/><br/><strong>Pack preview</strong><br/><pre style="white-space:pre-wrap;margin:6px 0 0;font-size:11.5px;font-family:var(--mono)">${escapeHtml((data.pack.shareText || data.pack.igCaption || "").slice(0, 500))}</pre>`
           : "";
         showConnectToast(`<strong>Connect required.</strong>${next}${link}${warn}${preview}`, "warn");
-        if (channel === "canva" && data.connectUrl) {
-          // soft open canva handoff
-          window.open(data.connectUrl, "_blank", "noopener,noreferrer");
-        }
         return;
       }
 
@@ -2259,27 +2265,30 @@
     grid.innerHTML = plugins.map((p) => {
       const mark = PLUGIN_MARKS[p.id] || PLUGIN_MARKS.zip;
       let badge = "";
-      if (p.comingSoon) badge = '<span class="plugin-badge soon">Coming soon</span>';
-      else if (p.local) badge = '<span class="plugin-badge local">Always on</span>';
-      else if (p.connected) badge = '<span class="plugin-badge">Connected</span>';
+      if (p.local) badge = '<span class="plugin-badge local">Always on</span>';
+      else if (p.connected) badge = `<span class="plugin-badge local">Connected${p.accountLabel ? " · " + escapeHtml(p.accountLabel) : ""}</span>`;
       else badge = '<span class="plugin-badge">Not connected</span>';
 
       let btn = "";
       let hint = "";
-      if (p.comingSoon) {
-        btn = `<button type="button" class="plugin-btn ghost" disabled>Coming soon</button>`;
-        hint = `<div class="plugin-hint">Optional — not wired yet</div>`;
-      } else if (p.local) {
+      if (p.local) {
         btn = `<button type="button" class="plugin-btn lime" data-ship="${p.id}" ${shipOk ? "" : "disabled"}>Download pack</button>`;
         hint = shipOk
           ? `<div class="plugin-hint">Exports JSON + caption for this run</div>`
           : `<div class="plugin-hint">Run a story first</div>`;
-      } else if (shipOk) {
-        btn = `<button type="button" class="plugin-btn" data-ship="${p.id}">Ship to ${escapeHtml(p.name)}</button>`;
-        hint = `<div class="plugin-hint">Returns pack + connect step (OAuth not live)</div>`;
+      } else if (p.connected) {
+        const shipBtn = shipOk
+          ? `<button type="button" class="plugin-btn" data-ship="${p.id}">Ship to ${escapeHtml(p.name)}</button>`
+          : "";
+        btn = `${shipBtn}<button type="button" class="plugin-btn ghost" data-disconnect="${p.id}">Disconnect</button>`;
+        hint = shipOk
+          ? `<div class="plugin-hint">Linked${p.accountLabel ? " as " + escapeHtml(p.accountLabel) : ""}. Ship this run.</div>`
+          : `<div class="plugin-hint">Linked${p.accountLabel ? " as " + escapeHtml(p.accountLabel) : ""}. Run a story when you want to ship.</div>`;
       } else {
-        btn = `<button type="button" class="plugin-btn ghost" data-ship="${p.id}" disabled>Connect</button>`;
-        hint = `<div class="plugin-hint">Run a story first</div>`;
+        btn = `<button type="button" class="plugin-btn lime" data-connect="${p.id}">Connect</button>`;
+        hint = p.configured
+          ? `<div class="plugin-hint">OAuth — no story required</div>`
+          : `<div class="plugin-hint">Needs ${(p.missing || []).map(escapeHtml).join(", ") || "app credentials"} in .env</div>`;
       }
 
       return `<article class="plugin-card ${p.primary ? "primary" : ""}" data-plugin="${p.id}">
@@ -2300,27 +2309,62 @@
         doShip(btn.dataset.ship);
       });
     });
+    grid.querySelectorAll("[data-connect]").forEach((btn) => {
+      btn.addEventListener("click", () => doConnect(btn.dataset.connect));
+    });
+    grid.querySelectorAll("[data-disconnect]").forEach((btn) => {
+      btn.addEventListener("click", () => doDisconnect(btn.dataset.disconnect));
+    });
+  }
+
+  async function doConnect(channel) {
+    showConnectToast("Opening " + escapeHtml(channel) + "…");
+    try {
+      const res = await fetch("/api/connect/" + encodeURIComponent(channel));
+      const data = await res.json();
+      if (!res.ok) {
+        const missing = (data.missing || []).join(", ");
+        const redir = data.redirectUri ? " Register redirect " + data.redirectUri + "." : "";
+        showConnectToast("<strong>Add credentials.</strong> " + escapeHtml(missing || data.error || "oauth") + " in .env, then restart." + escapeHtml(redir), "warn");
+        return;
+      }
+      if (data.authorizeUrl) {
+        location.href = data.authorizeUrl;
+        return;
+      }
+      showConnectToast("<strong>No authorize URL.</strong>", "warn");
+    } catch (e) {
+      showConnectToast("<strong>Connect failed.</strong> " + escapeHtml(e.message || String(e)), "warn");
+    }
+  }
+
+  async function doDisconnect(channel) {
+    try {
+      const res = await fetch("/api/connect/" + encodeURIComponent(channel) + "/disconnect", { method: "POST" });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "disconnect failed");
+      showConnectToast("<strong>Disconnected.</strong> " + escapeHtml(channel), "ok");
+      await refreshConnect();
+    } catch (e) {
+      showConnectToast("<strong>Disconnect failed.</strong> " + escapeHtml(e.message || String(e)), "warn");
+    }
   }
 
   async function refreshConnect() {
     refreshConnectBar();
     try {
-      if (!pluginsCache) {
-        const res = await fetch("/api/plugins");
-        const data = await res.json();
-        pluginsCache = data.plugins || [];
-      }
-      renderPluginCards(pluginsCache);
+      const res = await fetch("/api/plugins");
+      const data = await res.json();
+      renderPluginCards(data.plugins || []);
     } catch (e) {
-      // fallback static list if API down
       const fallback = [
-        { id: "ig", name: "Instagram", description: "Still + IG caption pack", connected: false, primary: true, local: false },
-        { id: "yt", name: "YouTube", description: "Title, description + thumbnail", connected: false, primary: true, local: false },
-        { id: "canva", name: "Canva", description: "Open design handoff", connected: false, primary: true, local: false },
-        { id: "telegram", name: "Telegram", description: "DCN-proven ship lane", connected: false, primary: false, local: false },
-        { id: "x", name: "X / Twitter", description: "Post + media", connected: false, primary: false, local: false },
-        { id: "tiktok", name: "TikTok", description: "Shorts handoff", connected: false, primary: false, local: false, comingSoon: true },
-        { id: "zip", name: "Download ZIP", description: "JSON + caption bundle — always works", connected: true, primary: false, local: true },
+        { id: "ig", name: "Instagram", description: "Still + IG caption pack", connected: false, configured: false, missing: ["IG_APP_ID", "IG_APP_SECRET"], primary: true, local: false },
+        { id: "yt", name: "YouTube", description: "Title, description + thumbnail", connected: false, configured: false, missing: ["YT_CLIENT_ID", "YT_CLIENT_SECRET"], primary: true, local: false },
+        { id: "canva", name: "Canva", description: "Open design handoff", connected: false, configured: false, missing: ["CANVA_CLIENT_ID", "CANVA_CLIENT_SECRET"], primary: true, local: false },
+        { id: "telegram", name: "Telegram", description: "DCN-proven ship lane", connected: false, configured: false, missing: ["TELEGRAM_BOT_TOKEN"], primary: false, local: false },
+        { id: "x", name: "X / Twitter", description: "Post + media", connected: false, configured: false, missing: ["X_CLIENT_ID", "X_CLIENT_SECRET"], primary: false, local: false },
+        { id: "tiktok", name: "TikTok", description: "Photo publish via TikTok Login", connected: false, configured: false, missing: ["TIKTOK_CLIENT_KEY", "TIKTOK_CLIENT_SECRET"], primary: false, local: false },
+        { id: "zip", name: "Download ZIP", description: "JSON + caption bundle — always works", connected: true, configured: true, missing: [], primary: false, local: true },
       ];
       renderPluginCards(fallback);
       showConnectToast("<strong>Plugins API offline.</strong> Showing local catalog.", "warn");
@@ -2334,19 +2378,6 @@
     if ($("viewConnect")?.classList.contains("active")) refreshConnect();
   };
 
-
-  // Honest Gemini / TinyFish status (names only — never key values)
-  fetch("/api/health").then((r) => r.json()).then((h) => {
-    const g = !!h.gemini;
-    const tf = !!h.tinyfish;
-    const el = $("geminiStatusText");
-    if (el) el.textContent = g ? "Gemini · live" : "Gemini · stub (add key in Cursor)";
-    const row = $("geminiStatus");
-    if (row) row.title = "tinyfish=" + (tf ? "live" : "stub");
-  }).catch(() => {
-    const el = $("geminiStatusText");
-    if (el) el.textContent = "Gemini · unknown";
-  });
 
   document.querySelectorAll(".rp-tab").forEach((tab) => {
     tab.addEventListener("click", () => switchRightTab(tab.dataset.rp));
@@ -2378,7 +2409,17 @@
       } catch (_) { /* ignore */ }
     }
     const view = (q.get("view") || "").toLowerCase();
-    if (view === "connect" || view === "activity" || view === "hunt") {
+    const oauth = q.get("oauth");
+    if (oauth) {
+      switchView("connect");
+      const channel = q.get("channel") || "";
+      const account = q.get("account") || "";
+      if (oauth === "ok") {
+        showConnectToast("<strong>Connected.</strong> " + escapeHtml(account || channel), "ok");
+      } else {
+        showConnectToast("<strong>Connect failed.</strong> " + escapeHtml(q.get("reason") || "error") + (channel ? " · " + escapeHtml(channel) : ""), "warn");
+      }
+    } else if (view === "connect" || view === "activity" || view === "hunt") {
       switchView(view);
     }
   })();

@@ -2,6 +2,8 @@ import { mkdir, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import type { Pack, StoryRun } from "../../core/src/types";
 import { runsRoot } from "../../core/src/runs";
+import { getFreshAccount, isOauthChannel, type ConnectionView } from "./oauth";
+import { publishConnected } from "./publish";
 
 export type ShipChannel =
   | "ig"
@@ -12,7 +14,7 @@ export type ShipChannel =
   | "x"
   | "tiktok";
 
-export type ShipStatus = "ready" | "queued" | "connect_required" | "downloaded";
+export type ShipStatus = "ready" | "queued" | "connect_required" | "downloaded" | "published" | "failed";
 
 export interface PluginInfo {
   id: ShipChannel;
@@ -23,6 +25,11 @@ export interface PluginInfo {
   /** Always-available local export — no OAuth. */
   local: boolean;
   comingSoon?: boolean;
+  /** App credentials are in the environment. */
+  configured: boolean;
+  /** Env names still empty. Never values. */
+  missing: string[];
+  accountLabel?: string;
 }
 
 export interface PackPreview {
@@ -53,7 +60,7 @@ export interface ShipResult {
   };
 }
 
-const PLUGINS: PluginInfo[] = [
+const PLUGINS: Omit<PluginInfo, "configured" | "missing">[] = [
   {
     id: "ig",
     name: "Instagram",
@@ -97,11 +104,10 @@ const PLUGINS: PluginInfo[] = [
   {
     id: "tiktok",
     name: "TikTok",
-    description: "Shorts handoff",
+    description: "Photo publish via TikTok Login",
     connected: false,
     primary: false,
     local: false,
-    comingSoon: true,
   },
   {
     id: "zip",
@@ -113,12 +119,21 @@ const PLUGINS: PluginInfo[] = [
   },
 ];
 
-export function listPlugins(): PluginInfo[] {
-  // Honest: nothing OAuth-connected yet
-  return PLUGINS.map((p) => ({
-    ...p,
-    connected: p.local ? true : false,
-  }));
+export function listPlugins(links: readonly ConnectionView[] = []): PluginInfo[] {
+  const byChannel = new Map(links.map((link) => [link.channel, link]));
+  return PLUGINS.map((plugin) => {
+    if (plugin.local || !isOauthChannel(plugin.id)) {
+      return { ...plugin, connected: plugin.local, configured: true, missing: [] as string[] };
+    }
+    const link = byChannel.get(plugin.id);
+    return {
+      ...plugin,
+      connected: !!link?.connected,
+      configured: !!link?.configured,
+      missing: link?.missing ?? [],
+      accountLabel: link?.accountLabel,
+    };
+  });
 }
 
 /** Real post still needs approved; preview/pack OK at needs_input. */
@@ -203,7 +218,7 @@ function connectStub(
     channel,
     status: "connect_required",
     connectUrl: connectUrls[channel],
-    nextStep: `Connect ${names[channel] || channel} OAuth (not live yet). Copy pack below, or download ZIP.`,
+    nextStep: `Connect ${names[channel] || channel} on the Connect page first. No story required to link the account.`,
     pack: packPreview(run, shareText),
     warning:
       run.status === "needs_input"
@@ -215,8 +230,8 @@ function connectStub(
 
 /**
  * Ship a run to a channel.
- * - zip: always writes pack files + returns download payload (works at needs_input or approved)
- * - ig/yt/canva/telegram/x/tiktok: honest connect_required stubs — never fake publish
+ * - zip: local pack download
+ * - oauth channels: publish with the linked account, or connect_required when none is linked
  */
 export async function shipRun(
   run: StoryRun,
@@ -289,24 +304,20 @@ export async function shipRun(
     };
   }
 
-  if (channel === "canva") {
-    // Handoff: return connect to Canva create + pack; never claim published
-    return connectStub("canva", run, shareText, {
-      nextStep:
-        "Copy pack (caption + still), then Open in Canva — or paste into canva.com/create. OAuth publish not live.",
-      connectUrl: canvaCreateUrl(run),
+  if (!isOauthChannel(channel)) {
+    throw new Error(`unknown_channel: ${channel}`);
+  }
+
+  const account = await getFreshAccount(channel);
+  if (!account) {
+    return connectStub(channel, run, shareText, {
+      connectUrl: `/studio.html?view=connect`,
     });
   }
-
-  if (
-    channel === "ig" ||
-    channel === "yt" ||
-    channel === "telegram" ||
-    channel === "x" ||
-    channel === "tiktok"
-  ) {
-    return connectStub(channel, run, shareText);
-  }
-
-  throw new Error(`unknown_channel: ${channel}`);
+  const published = await publishConnected(account, run, shareText);
+  return {
+    ...published,
+    warning,
+    pack: packPreview(run, shareText),
+  };
 }
