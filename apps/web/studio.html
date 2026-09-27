@@ -664,6 +664,35 @@
     font-weight: 500;
   }
   .nav-item.nav-project-new .label { font-size: 13px; }
+  .nav-item.has-actions {
+    display: flex; align-items: center;
+    padding: 0; gap: 0;
+  }
+  .nav-item-main {
+    display: flex; align-items: center; gap: 10px;
+    flex: 1; min-width: 0;
+    padding: 9px 8px 9px 12px;
+    text-align: left;
+    color: inherit;
+  }
+  .item-actions {
+    display: flex; align-items: center; gap: 2px;
+    padding-right: 6px;
+    flex-shrink: 0;
+  }
+  .item-act {
+    width: 28px; height: 28px;
+    border-radius: 8px;
+    display: grid; place-items: center;
+    color: var(--dim);
+  }
+  .item-act:hover { background: var(--nav-hover); color: var(--ink); }
+  .item-act.danger:hover { background: rgba(255,59,48,.12); color: var(--red); }
+  .item-act svg { width: 13px; height: 13px; }
+  .side-archived { margin-top: 6px; }
+  .side-archived .nav-item { opacity: .82; }
+  .sidebar-reach { display: flex; flex-direction: column; gap: 2px; padding-top: 8px; }
+  .sidebar-reach .nav-item { width: 100%; }
   .workspace-sub.project-on {
     text-transform: none;
     letter-spacing: -.01em;
@@ -2155,11 +2184,214 @@
   .lib-card a { color: inherit; text-decoration: underline; text-underline-offset: 2px; }
   .lib-thumb { width: 72px; height: 72px; border-radius: 8px; overflow: hidden; background: #111; margin: 8px 0; }
   .lib-thumb img { width: 100%; height: 100%; object-fit: cover; }
+
+  /* ——— Phone chrome (drawer + Chat | Post | Browser + Work-mode tip list). Desktop stays 3-col. ——— */
+  .phone-bar, .phone-backdrop { display: none; }
+  .ask-tip-ico { display: none; }
+
+  @media (max-width: 767px) {
+    html, body { height: 100%; overflow: hidden; }
+    body.phone-lock { overflow: hidden; }
+
+    .phone-bar {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-shrink: 0;
+      position: relative;
+      height: 56px;
+      padding: 8px 10px;
+      background: var(--bg);
+      border-bottom: 1px solid var(--line);
+      z-index: 21;
+    }
+    .phone-menu-btn {
+      width: 40px; height: 40px;
+      border-radius: 12px;
+      display: grid; place-items: center;
+      color: var(--ink);
+      flex-shrink: 0;
+    }
+    .phone-menu-btn:hover { background: var(--nav-hover); }
+    .phone-menu-btn svg { width: 20px; height: 20px; }
+    .phone-seg {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex: 0 1 260px;
+      margin: 0 auto;
+      min-width: 0;
+      height: 38px;
+      padding: 3px;
+      border-radius: var(--radius-pill);
+      background: var(--nav-active);
+      border: 1px solid var(--line);
+    }
+    .phone-seg-btn {
+      flex: 1;
+      height: 100%;
+      border-radius: var(--radius-pill);
+      font-size: 13.5px;
+      font-weight: 650;
+      color: var(--dim);
+      letter-spacing: -.01em;
+    }
+    .phone-seg-btn.active {
+      background: var(--card);
+      color: var(--ink);
+      box-shadow: 0 1px 2px rgba(10,10,10,.10);
+    }
+
+    .phone-backdrop {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(10,10,10,.38);
+      z-index: 28;
+    }
+    .shell.phone-nav-open .phone-backdrop { display: block; }
+
+    .shell,
+    .shell.browser-focus,
+    .shell.desk-collapsed,
+    .shell.browser-focus.desk-collapsed {
+      display: flex;
+      flex-direction: column;
+      grid-template-columns: none;
+      grid-template-rows: none;
+      height: 100dvh;
+      min-height: 0;
+    }
+    .shell.browser-focus .main {
+      visibility: visible;
+      overflow: auto;
+      pointer-events: auto;
+    }
+    .shell.desk-collapsed .sidebar { display: flex; }
+    .shell.desk-collapsed .panel-restore { display: none; }
+
+    .sidebar {
+      position: fixed;
+      top: 0; left: 0; bottom: 0;
+      width: min(86vw, 320px);
+      height: 100dvh;
+      z-index: 30;
+      transform: translateX(-104%);
+      transition: transform .2s ease;
+      border-right: 1px solid var(--line);
+      border-bottom: none;
+      box-shadow: none;
+    }
+    .shell.phone-nav-open .sidebar {
+      transform: translateX(0);
+      box-shadow: 16px 0 40px rgba(10,10,10,.16);
+    }
+
+    .main {
+      flex: 1 1 auto;
+      min-height: 0;
+      width: 100%;
+    }
+    .right-pane {
+      display: none;
+      flex: 1 1 auto;
+      width: 100%;
+      max-height: none;
+      min-height: 0;
+      border-left: none;
+      border-top: none;
+    }
+    .shell.phone-pane-post .main,
+    .shell.phone-pane-browser .main { display: none; }
+    .shell.phone-pane-post .right-pane,
+    .shell.phone-pane-browser .right-pane { display: flex; }
+    .rp-tabs { display: none; }
+
+    .home-wrap {
+      justify-content: flex-start;
+      padding: 12px 18px 24px;
+    }
+    .home-wrap h1 { margin-bottom: 8px; font-size: 16px; }
+    .home-wrap .kicker { margin-bottom: 6px; }
+    .purpose-line,
+    .showcase-rail,
+    body.is-showcase .showcase-rail,
+    .project-home { display: none !important; }
+    .assign { display: none; }
+    .item-actions { opacity: 1; }
+    .item-act { width: 34px; height: 34px; }
+    .paste-url-row { flex-wrap: wrap; }
+    .paste-url-row input { flex: 1 1 100%; }
+    .paste-url-row .btn { flex: 1 1 auto; min-width: 0; }
+
+    .ask-suggest,
+    .ask-suggest.ask-tip-list {
+      display: flex;
+      flex-direction: column;
+      flex-wrap: nowrap;
+      gap: 22px;
+      width: 100%;
+      padding: 22px 4px 28px;
+      margin: 0;
+    }
+    .ask-suggest .ask-suggest-label { display: none; }
+    .ask-chip.ask-tip {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      width: 100%;
+      max-width: none;
+      padding: 0;
+      border: none;
+      border-radius: 0;
+      background: transparent;
+    }
+    .ask-chip.ask-tip:hover,
+    .ask-chip.ask-tip:active { background: transparent; transform: none; }
+    .ask-chip.ask-tip .k { display: none !important; }
+    .ask-chip.ask-tip .t {
+      white-space: nowrap !important;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: none !important;
+      font-size: 15px;
+      font-weight: 400;
+      letter-spacing: -.015em;
+      line-height: 1.35;
+      color: var(--ink);
+    }
+    .ask-tip-ico {
+      width: 20px; height: 20px;
+      border-radius: 0;
+      background: transparent;
+      color: var(--muted);
+      display: grid; place-items: center;
+      flex-shrink: 0;
+    }
+    .ask-tip-ico svg { width: 18px; height: 18px; }
+    .ask-box { padding: 12px 14px 10px; border-radius: 18px; }
+    .ask-box textarea { min-height: 56px; font-size: 15px; }
+    .shell.phone-pane-post .right-pane,
+    .shell.phone-pane-browser .right-pane { overflow: hidden; }
+    .shell.phone-pane-post .rp-body,
+    .shell.phone-pane-browser .rp-body { overflow: auto; -webkit-overflow-scrolling: touch; }
+  }
 </style>
 </head>
 <body>
-<div class="shell">
-  <aside class="sidebar" aria-label="Workspace">
+<div class="shell phone-pane-chat" id="deskShell">
+  <header class="phone-bar" id="phoneBar">
+    <button type="button" class="phone-menu-btn" id="phoneMenuBtn" aria-label="Open menu" aria-controls="deskSidebar" aria-expanded="false">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+    </button>
+    <div class="phone-seg" role="tablist" aria-label="Desk pane">
+      <button type="button" class="phone-seg-btn active" role="tab" aria-selected="true" data-phone-pane="chat" id="phoneChatBtn">Chat</button>
+      <button type="button" class="phone-seg-btn" role="tab" aria-selected="false" data-phone-pane="post" id="phonePostBtn">Post</button>
+      <button type="button" class="phone-seg-btn" role="tab" aria-selected="false" data-phone-pane="browser" id="phoneBrowserBtn">Browser</button>
+    </div>
+  </header>
+  <div class="phone-backdrop" id="phoneBackdrop" hidden></div>
+  <aside class="sidebar" id="deskSidebar" aria-label="Workspace">
     <div class="workspace">
       <div class="mark" aria-hidden="true">
         <img src="assets/cutline-mark.png" alt="" onerror="this.style.display='none';this.nextElementSibling.style.display='grid'"/>
@@ -2219,6 +2451,27 @@
     <div class="section-label">Recents</div>
     <nav class="nav" aria-label="Recents" id="recentList">
       <div class="side-empty">No recent stories</div>
+    </nav>
+
+    <nav class="sidebar-reach" aria-label="Account">
+      <button type="button" class="nav-item" data-view="chat" id="navChat">
+        <span class="ico" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M5 6h14v10H8l-3 3V6z"/></svg>
+        </span>
+        <span class="label">Chat</span>
+      </button>
+      <button type="button" class="nav-item" data-view="archived" id="navArchived">
+        <span class="ico" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M4 7h16v12H4z"/><path d="M9 7V5h6v2"/></svg>
+        </span>
+        <span class="label">Archived</span>
+      </button>
+      <button type="button" class="nav-item" data-view="settings" id="navSettings">
+        <span class="ico" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9c.3.6.9 1 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg>
+        </span>
+        <span class="label">Settings</span>
+      </button>
     </nav>
 
     <div class="section-label">Tools</div>
@@ -2515,6 +2768,16 @@
       </div>
     </section>
 
+    <section class="view" id="viewArchived" aria-label="Archived">
+      <div class="activity-wrap">
+        <h1>Archived</h1>
+        <p class="activity-sub">Stories you put aside. Restore them from Recents or open them here.</p>
+        <div class="need-list" id="archivedMainList">
+          <div class="side-empty">Nothing archived yet.</div>
+        </div>
+      </div>
+    </section>
+
     <section class="view" id="viewSettings" aria-label="Settings">
       <div class="connect-wrap">
         <div class="kicker">Account</div>
@@ -2757,6 +3020,14 @@
   } catch (_) { /* ignore */ }
 
   const $ = (id) => document.getElementById(id);
+  const ICON_ARCHIVE = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4 8h16v11H4z"/><path d="M4 8l2-3h12l2 3"/><path d="M10 12h4"/></svg>`;
+  const ICON_DELETE = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M5 8h14"/><path d="M9 8V6h6v2"/><path d="M8 8l1 11h6l1-11"/></svg>`;
+  const ICON_RESTORE = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M9 14H5l4 4"/><path d="M5 18v-6a7 7 0 1 1 2 5"/></svg>`;
+  const TIP_ICOS = [
+    `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M4 7h12v13H6a2 2 0 0 1-2-2V7z"/><path d="M16 9h3v9a2 2 0 0 1-2 2h-1"/><path d="M7 11h6M7 15h4"/></svg>`,
+    `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><circle cx="12" cy="12" r="8"/><path d="M12 8v5l3 2"/></svg>`,
+    `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M12 21s7-5.2 7-11a7 7 0 1 0-14 0c0 5.8 7 11 7 11z"/><circle cx="12" cy="10" r="2.2"/></svg>`,
+  ];
   const agents = ["wire", "still", "desk", "ship"];
   const STILL_FILL_HTML = `<div class="still-fill" aria-busy="true" aria-label="Generating still">
     <div class="still-fill-shimmer"></div>
@@ -2904,6 +3175,8 @@
     try {
       localStorage.setItem(PROJECTS_KEY, JSON.stringify({
         activeId: store.activeId || null,
+        archivedRecentKeys: store.archivedRecentKeys || [],
+        deletedRecentKeys: store.deletedRecentKeys || [],
         projects: (store.projects || []).map((p) => ({
           id: p.id,
           name: p.name,
@@ -2920,6 +3193,8 @@
 
   function ensureProjects() {
     const store = readProjectsStore();
+    store.archivedRecentKeys = Array.isArray(store.archivedRecentKeys) ? store.archivedRecentKeys : [];
+    store.deletedRecentKeys = Array.isArray(store.deletedRecentKeys) ? store.deletedRecentKeys : [];
     const seeds = demoProjectSeeds();
     const byId = new Map(store.projects.map((p) => [p.id, p]));
     for (const s of seeds) {
@@ -2937,6 +3212,48 @@
     writeProjectsStore(store);
     activeProjectId = store.activeId || null;
     return store;
+  }
+
+  function recentStateSets() {
+    const store = ensureProjects();
+    return {
+      store,
+      archived: new Set(store.archivedRecentKeys || []),
+      deleted: new Set(store.deletedRecentKeys || []),
+    };
+  }
+  function archiveRecentItem(title, sourceUrl) {
+    const key = recentKey(title, sourceUrl);
+    if (!key) return;
+    const store = ensureProjects();
+    store.archivedRecentKeys = Array.from(new Set([...(store.archivedRecentKeys || []), key]));
+    store.deletedRecentKeys = (store.deletedRecentKeys || []).filter((k) => k !== key);
+    writeProjectsStore(store);
+    renderRecents([]);
+    if (typeof paintArchived === "function") paintArchived();
+  }
+  function restoreRecentItem(title, sourceUrl) {
+    const key = recentKey(title, sourceUrl);
+    if (!key) return;
+    const store = ensureProjects();
+    store.archivedRecentKeys = (store.archivedRecentKeys || []).filter((k) => k !== key);
+    writeProjectsStore(store);
+    renderRecents([]);
+    if (typeof paintArchived === "function") paintArchived();
+  }
+  function deleteRecentItem(title, sourceUrl) {
+    if (!window.confirm("Remove this recent story? This cannot be undone.")) return;
+    const key = recentKey(title, sourceUrl);
+    if (!key) return;
+    const store = ensureProjects();
+    store.deletedRecentKeys = Array.from(new Set([...(store.deletedRecentKeys || []), key]));
+    store.archivedRecentKeys = (store.archivedRecentKeys || []).filter((k) => k !== key);
+    for (const p of store.projects || []) {
+      p.recents = (p.recents || []).filter((r) => recentKey(r.title, r.sourceUrl) !== key);
+    }
+    writeProjectsStore(store);
+    renderRecents([]);
+    if (typeof paintArchived === "function") paintArchived();
   }
 
   function listProjects() {
@@ -4753,9 +5070,17 @@
       $("navPlugins")?.classList.add("active");
       $("toolShip")?.classList.add("active-tool");
       if (typeof refreshConnect === "function") refreshConnect();
+    } else if (name === "archived") {
+      $("viewArchived")?.classList.add("active");
+      $("navArchived")?.classList.add("active");
+      if (typeof paintArchived === "function") paintArchived();
     } else if (name === "settings") {
       $("viewSettings")?.classList.add("active");
+      $("navSettings")?.classList.add("active");
       applySession(readSession() || ensureSession());
+    } else if (name === "chat") {
+      $("viewHome").classList.add("active");
+      $("navChat")?.classList.add("active");
     } else {
       $("viewHome").classList.add("active");
       $("navNew")?.classList.add("active");
@@ -4967,6 +5292,12 @@
   });
 
   $("navNew")?.addEventListener("click", () => newDesk());
+  $("navChat")?.addEventListener("click", () => {
+    switchView("chat");
+    if (typeof setPhonePane === "function") setPhonePane("chat");
+  });
+  $("navArchived")?.addEventListener("click", () => switchView("archived"));
+  $("navSettings")?.addEventListener("click", () => switchView("settings"));
   $("navApprovals")?.addEventListener("click", () => switchView("activity"));
   $("navScheduled")?.addEventListener("click", () => switchView("scheduled"));
   $("navPlugins")?.addEventListener("click", () => switchView("connect"));
@@ -5156,6 +5487,21 @@
     return out;
   }
 
+  function isPhoneViewport() {
+    return window.matchMedia("(max-width: 767px)").matches;
+  }
+  function placeAskSuggest() {
+    const ask = $("askSuggest");
+    const box = document.querySelector("#viewHome .ask-box");
+    const home = $("homeWrap");
+    if (!ask || !box || !home) return;
+    if (isPhoneViewport()) {
+      if (ask.parentElement !== home || ask.nextElementSibling !== box) home.insertBefore(ask, box);
+    } else {
+      const actions = box.querySelector(".ask-actions");
+      if (actions && ask.nextElementSibling !== actions) box.insertBefore(ask, actions);
+    }
+  }
   function pickNewsTip(t) {
     if (!t) return;
     selectedDesk = t.desk;
@@ -5168,16 +5514,20 @@
     setStyleUrl(t.url);
     /* Stay on Chat/home. Run is the only action that opens a result or fetches a still. */
     switchView("home");
+    if (typeof setPhonePane === "function") setPhonePane("chat");
     $("headline")?.focus();
   }
 
   function paintNewsRecs() {
     const tips = rotatedTips(3);
+    placeAskSuggest();
     const ask = $("askSuggest");
     if (ask) {
       ask.hidden = tips.length === 0;
+      ask.classList.add("ask-tip-list");
       ask.innerHTML = `<div class="ask-suggest-label">Try a story</div>` + tips.map((t, i) =>
-        `<button type="button" class="ask-chip" data-ask-rec="${i}" title="${escapeHtml(t.title)}">
+        `<button type="button" class="ask-chip ask-tip" data-ask-rec="${i}" title="${escapeHtml(t.title)}">
+          <span class="ask-tip-ico" aria-hidden="true">${TIP_ICOS[i % TIP_ICOS.length]}</span>
           <span class="k">${escapeHtml(t.kicker)}</span>
           <span class="t">${escapeHtml(t.title)}</span>
         </button>`
@@ -5718,36 +6068,81 @@
       });
       seedRecents().forEach(push);
     }
-    const shown = rows.slice(0, 5);
-    root.innerHTML = shown.map((r) =>
-      `<button type="button" class="nav-item" data-recent-run="${escapeHtml(r.runId)}" data-recent-title="${escapeHtml(r.title)}" data-recent-src="${escapeHtml(r.sourceUrl)}">
-        <span class="label">${escapeHtml(r.title.length > 48 ? r.title.slice(0, 46) + "…" : r.title)}</span>
-      </button>`
-    ).join("");
-    root.querySelectorAll("[data-recent-run]").forEach((btn) => {
-      btn.addEventListener("click", async () => {
-        const runId = btn.dataset.recentRun;
-        const title = btn.dataset.recentTitle || "";
-        const src = btn.dataset.recentSrc || "";
-        switchView("home");
-        if (runId) {
-          try {
-            const res = await fetch("/api/runs/" + encodeURIComponent(runId));
-            const data = await res.json();
-            if (res.ok && data.run) {
-              applyRun(data.run);
-              return;
-            }
-          } catch (_) { /* open as ask */ }
-        }
-        if (looksLikePostUrl(src)) return doAnalyze(src);
-        if (title) $("headline").value = title;
-        if (isLiveSourceUrl(src)) {
-          pendingSourceUrl = src;
-          loadBrowserUrl(src, { switchTab: true });
-          setStyleUrl(src);
-        }
-        setSideRunReady();
+    const { archived, deleted } = recentStateSets();
+    const live = [];
+    const archivedRows = [];
+    for (const r of rows) {
+      const key = recentKey(r.title, r.sourceUrl);
+      if (deleted.has(key)) continue;
+      if (archived.has(key)) archivedRows.push(r);
+      else live.push(r);
+    }
+    const shown = live.slice(0, 5);
+    const recentRow = (r, archivedRow) =>
+      `<div class="nav-item has-actions" data-recent-run="${escapeHtml(r.runId)}" data-recent-title="${escapeHtml(r.title)}" data-recent-src="${escapeHtml(r.sourceUrl)}">
+        <button type="button" class="nav-item-main" data-recent-open="1">
+          <span class="label">${escapeHtml(r.title.length > 48 ? r.title.slice(0, 46) + "…" : r.title)}</span>
+        </button>
+        <span class="item-actions">
+          ${archivedRow
+            ? `<button type="button" class="item-act" data-restore-recent="1" title="Restore" aria-label="Restore">${ICON_RESTORE}</button>`
+            : `<button type="button" class="item-act" data-archive-recent="1" title="Archive" aria-label="Archive">${ICON_ARCHIVE}</button>`}
+          <button type="button" class="item-act danger" data-delete-recent="1" title="Delete" aria-label="Delete">${ICON_DELETE}</button>
+        </span>
+      </div>`;
+    root.innerHTML = (shown.length ? shown.map((r) => recentRow(r, false)).join("") : (archivedRows.length ? "" : `<div class="side-empty">No recent stories</div>`)) +
+      (archivedRows.length
+        ? `<div class="side-archived"><div class="section-label">Archived</div>${archivedRows.map((r) => recentRow(r, true)).join("")}</div>`
+        : "");
+    async function openRecent(btn) {
+      const row = btn.closest("[data-recent-title]");
+      if (!row) return;
+      const runId = row.dataset.recentRun;
+      const title = row.dataset.recentTitle || "";
+      const src = row.dataset.recentSrc || "";
+      switchView("chat");
+      if (typeof setPhonePane === "function") setPhonePane("chat");
+      if (runId) {
+        try {
+          const res = await fetch("/api/runs/" + encodeURIComponent(runId));
+          const data = await res.json();
+          if (res.ok && data.run) {
+            applyRun(data.run);
+            return;
+          }
+        } catch (_) { /* open as ask */ }
+      }
+      if (looksLikePostUrl(src)) return doAnalyze(src);
+      if (title) $("headline").value = title;
+      if (isLiveSourceUrl(src)) {
+        pendingSourceUrl = src;
+        loadBrowserUrl(src, { switchTab: true });
+        setStyleUrl(src);
+      }
+      setSideRunReady();
+    }
+    root.querySelectorAll("[data-recent-open]").forEach((btn) => {
+      btn.addEventListener("click", () => openRecent(btn));
+    });
+    root.querySelectorAll("[data-archive-recent]").forEach((btn) => {
+      btn.addEventListener("click", (e) => {
+        e.stopPropagation();
+        const row = btn.closest("[data-recent-title]");
+        if (row) archiveRecentItem(row.dataset.recentTitle, row.dataset.recentSrc);
+      });
+    });
+    root.querySelectorAll("[data-restore-recent]").forEach((btn) => {
+      btn.addEventListener("click", (e) => {
+        e.stopPropagation();
+        const row = btn.closest("[data-recent-title]");
+        if (row) restoreRecentItem(row.dataset.recentTitle, row.dataset.recentSrc);
+      });
+    });
+    root.querySelectorAll("[data-delete-recent]").forEach((btn) => {
+      btn.addEventListener("click", (e) => {
+        e.stopPropagation();
+        const row = btn.closest("[data-recent-title]");
+        if (row) deleteRecentItem(row.dataset.recentTitle, row.dataset.recentSrc);
       });
     });
   }
@@ -6120,6 +6515,131 @@
     const n = (ap.pending || []).length;
     if ($("activityDot")) $("activityDot").style.display = n > 0 ? "" : "none";
   } catch (_) { /* ignore */ }
+
+  /* ——— Phone chrome: overlay drawer + Chat | Post | Browser ——— */
+  const PHONE_MQ = window.matchMedia("(max-width: 767px)");
+  function isPhone() { return PHONE_MQ.matches; }
+  function deskShell() { return document.getElementById("deskShell") || document.querySelector(".shell"); }
+
+  function setPhoneNavOpen(on) {
+    const shell = deskShell();
+    if (!shell) return;
+    const open = !!on && isPhone();
+    shell.classList.toggle("phone-nav-open", open);
+    $("phoneMenuBtn")?.setAttribute("aria-expanded", open ? "true" : "false");
+    $("phoneMenuBtn")?.setAttribute("aria-label", open ? "Close menu" : "Open menu");
+    const backdrop = $("phoneBackdrop");
+    if (backdrop) backdrop.hidden = !open;
+    document.body.classList.toggle("phone-lock", open);
+  }
+
+  function setPhonePane(pane) {
+    const next = pane === "post" || pane === "browser" ? pane : "chat";
+    const shell = deskShell();
+    if (!shell) return;
+    shell.classList.toggle("phone-pane-chat", next === "chat");
+    shell.classList.toggle("phone-pane-post", next === "post");
+    shell.classList.toggle("phone-pane-browser", next === "browser");
+    document.querySelectorAll(".phone-seg-btn").forEach((btn) => {
+      const on = btn.dataset.phonePane === next;
+      btn.classList.toggle("active", on);
+      btn.setAttribute("aria-selected", on ? "true" : "false");
+    });
+    if (next === "post") switchRightTab("structure");
+    if (next === "browser") switchRightTab("browser");
+    if (next === "chat" && isPhone()) {
+      shell.classList.remove("browser-focus");
+    }
+    if (isPhone()) setPhoneNavOpen(false);
+  }
+
+  function paintArchived() {
+    const root = $("archivedMainList");
+    if (!root) return;
+    const { archived } = recentStateSets();
+    const recentRows = seedRecents().filter((r) => archived.has(recentKey(r.title, r.sourceUrl)));
+    if (!recentRows.length) {
+      root.innerHTML = `<div class="side-empty">Nothing archived yet.</div>`;
+      return;
+    }
+    root.innerHTML = recentRows.map((r, i) => `
+      <article class="need-card">
+        <h3>${escapeHtml(r.title || "Archived story")}</h3>
+        <p>${escapeHtml(r.sourceUrl || "No source URL")}</p>
+        <div class="need-actions">
+          <button type="button" class="pill pill-adjust" data-archived-open="${i}">Open in Chat</button>
+        </div>
+      </article>`).join("");
+    root.querySelectorAll("[data-archived-open]").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        const item = recentRows[Number(btn.dataset.archivedOpen)];
+        if (!item) return;
+        switchView("chat");
+        setPhonePane("chat");
+        if (item.title && $("headline")) $("headline").value = item.title;
+        if (item.sourceUrl) pendingSourceUrl = item.sourceUrl;
+      });
+    });
+  }
+
+  $("phoneMenuBtn")?.addEventListener("click", () => {
+    const open = deskShell()?.classList.contains("phone-nav-open");
+    setPhoneNavOpen(!open);
+  });
+  $("phoneBackdrop")?.addEventListener("click", () => setPhoneNavOpen(false));
+  document.querySelectorAll(".phone-seg-btn").forEach((btn) => {
+    btn.addEventListener("click", () => setPhonePane(btn.dataset.phonePane || "chat"));
+  });
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape") setPhoneNavOpen(false);
+  });
+  PHONE_MQ.addEventListener?.("change", () => {
+    placeAskSuggest();
+    if (!isPhone()) {
+      setPhoneNavOpen(false);
+      document.body.classList.remove("phone-lock");
+    } else {
+      setPhonePane("chat");
+    }
+  });
+
+  const _switchViewPhone = switchView;
+  switchView = function(name) {
+    _switchViewPhone(name);
+    if (isPhone()) {
+      setPhoneNavOpen(false);
+      if (name === "home" || name === "chat" || name === "activity" || name === "scheduled" || name === "hunt" || name === "explore" || name === "library" || name === "connect" || name === "plugins" || name === "settings" || name === "archived") {
+        setPhonePane("chat");
+      }
+    }
+  };
+
+  const _switchRightTabPhone = switchRightTab;
+  switchRightTab = function(name) {
+    _switchRightTabPhone(name);
+    if (!isPhone()) return;
+    if (name === "browser") {
+      const shell = deskShell();
+      if (shell?.classList.contains("phone-pane-chat") && !shell.classList.contains("phone-nav-open")) {
+        shell.classList.remove("phone-pane-chat", "phone-pane-post");
+        shell.classList.add("phone-pane-browser");
+        document.querySelectorAll(".phone-seg-btn").forEach((btn) => {
+          const on = btn.dataset.phonePane === "browser";
+          btn.classList.toggle("active", on);
+          btn.setAttribute("aria-selected", on ? "true" : "false");
+        });
+      }
+    }
+  };
+
+  const _loadBrowserUrlPhone = loadBrowserUrl;
+  loadBrowserUrl = function(url, opts) {
+    const out = _loadBrowserUrlPhone(url, opts);
+    if (isPhone() && opts && opts.switchTab) setPhonePane("browser");
+    return out;
+  };
+
+  if (isPhone()) setPhonePane("chat");
 </script>
 </body>
 </html>
