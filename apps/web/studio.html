@@ -855,51 +855,85 @@
   .connect-toast.warn { border-color: rgba(255,59,48,.3); }
   .gemini-toast { display: none !important; }
   .ig-post {
-    margin: 10px 12px 4px;
+    margin: 10px 12px 8px;
     background: #fff;
     border: 1px solid var(--line);
-    border-radius: 14px;
+    border-radius: 16px;
     overflow: hidden;
     flex-shrink: 0;
+    box-shadow: 0 8px 24px rgba(0,0,0,.04);
   }
   .ig-post-head {
-    display: flex; align-items: center; gap: 8px;
-    padding: 10px 12px 8px;
-    font-size: 11px; font-weight: 650;
-    letter-spacing: .04em; text-transform: uppercase;
-    color: var(--dim);
+    display: flex; align-items: center; gap: 10px;
+    padding: 10px 12px;
   }
+  .ig-ava {
+    width: 28px; height: 28px; border-radius: 50%;
+    background: var(--lime);
+    display: grid; place-items: center;
+    font-size: 12px; font-weight: 700;
+    flex-shrink: 0;
+  }
+  .ig-handle { font-size: 13px; font-weight: 650; letter-spacing: -.01em; }
+  .ig-handle-sub { font-size: 11px; color: var(--dim); }
   .ig-frame {
     aspect-ratio: 1;
     background: #ecece8;
     overflow: hidden;
     display: grid; place-items: center;
+    cursor: pointer;
   }
   .ig-frame img { width: 100%; height: 100%; object-fit: cover; }
   .ig-frame .ph { font-size: 12px; color: var(--dim); }
+  .ig-headline {
+    padding: 10px 12px 0;
+    font-size: 14px; font-weight: 650;
+    letter-spacing: -.015em;
+    outline: none;
+    line-height: 1.3;
+  }
+  .ig-headline:empty:before,
+  .ig-caption:empty:before {
+    content: attr(data-placeholder);
+    color: var(--dim);
+    font-weight: 500;
+  }
   .ig-caption {
-    min-height: 64px;
-    padding: 10px 12px 12px;
+    min-height: 56px;
+    padding: 6px 12px 10px;
     font-size: 13px; line-height: 1.45;
     outline: none;
     white-space: pre-wrap;
   }
-  .ig-caption:empty:before {
-    content: attr(data-placeholder);
+  .photo-strip-label {
+    padding: 0 12px 6px;
+    font-size: 11px; font-weight: 650;
+    letter-spacing: .04em; text-transform: uppercase;
     color: var(--dim);
   }
   .photo-strip {
     display: flex; gap: 6px; overflow-x: auto;
-    padding: 0 12px 12px;
+    padding: 0 12px 10px;
   }
   .photo-strip button {
-    width: 52px; height: 52px; border-radius: 8px;
+    width: 56px; height: 56px; border-radius: 8px;
     overflow: hidden; flex-shrink: 0;
     border: 2px solid transparent;
     padding: 0; background: #eee;
   }
   .photo-strip button.active { border-color: var(--ink); }
   .photo-strip img { width: 100%; height: 100%; object-fit: cover; }
+  .ig-actions {
+    display: flex; gap: 8px;
+    padding: 0 12px 12px;
+  }
+  .ig-source {
+    padding: 0 12px 12px;
+    font-size: 11px;
+    color: var(--dim);
+    word-break: break-all;
+  }
+  .ig-source a { color: var(--ink); }
   .layer-clip-ph video { width: 100%; max-height: 160px; border-radius: 8px; background: #111; }
   .layer-clip-ph .clip-note { margin-top: 8px; font-size: 11px; color: var(--dim); }
   .layer-clip-ph .clip-actions { margin-top: 8px; display: flex; gap: 8px; justify-content: center; }
@@ -1309,7 +1343,7 @@
         </span>
         <span class="label">Still</span>
       </button>
-      <button type="button" class="tool-row t3" title="Captions" aria-label="Captions">
+      <button type="button" class="tool-row t3" title="Captions" aria-label="Captions" id="toolCaptions">
         <span class="tool-ico" aria-hidden="true">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M5 7h14M5 12h10M5 17h12"/></svg>
         </span>
@@ -1502,7 +1536,7 @@
         <span class="ico" aria-hidden="true">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4 6h16M4 12h12M4 18h8"/></svg>
         </span>
-        Structure
+        Post
       </button>
       <button type="button" class="rp-tab" role="tab" aria-selected="false" data-rp="browser" id="tabBrowser">
         <span class="ico" aria-hidden="true">
@@ -1511,7 +1545,7 @@
         Browser
       </button>
     </div>
-    <div class="rp-magic"><span class="dot" aria-hidden="true"></span> Magic Layer · keep structure, update layers</div>
+    <div class="rp-magic"><span class="dot" aria-hidden="true"></span> Magic Layer · edit the post</div>
     <div class="rp-style">
       <div class="style-row">
         <span class="style-label">Voice</span>
@@ -1530,8 +1564,8 @@
         <div class="empty-ico" aria-hidden="true">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M8 4h8a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z"/><path d="M12 10v4M10 12h4"/></svg>
         </div>
-        <h3>No pack yet</h3>
-        <p>Run a hunt or ask to fill the layers.</p>
+        <h3>No post yet</h3>
+        <p>Hunt a page, then Use on desk.</p>
       </div>
       <div class="truth-banner" id="truthBanner" style="display:none" role="status">
         <span class="tb-ico" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 3l8 4v5c0 5-3.5 8.5-8 10-4.5-1.5-8-5-8-10V7l8-4z"/><path d="M9 12l2 2 4-4"/></svg></span>
@@ -1539,13 +1573,26 @@
       </div>
       <div class="wedge-chip" id="wedgeChip">Pasted headline — no live source URL</div>
       <div class="ig-post" id="igPost" style="display:none">
-        <div class="ig-post-head">Instagram</div>
-        <div class="ig-frame" id="igFrame"><div class="ph">Still</div></div>
-        <div class="ig-caption" id="igCaptionEdit" contenteditable="true" data-placeholder="Caption"></div>
+        <div class="ig-post-head">
+          <div class="ig-ava" aria-hidden="true">C</div>
+          <div>
+            <div class="ig-handle">cutline</div>
+            <div class="ig-handle-sub">Instagram post</div>
+          </div>
+        </div>
+        <div class="ig-frame" id="igFrame" title="Click to cycle source photos"><div class="ph">Source photo</div></div>
+        <div class="photo-strip-label" id="photoStripLabel" hidden>From the page</div>
         <div class="photo-strip" id="photoStrip" hidden></div>
+        <div class="ig-headline" id="igHeadlineEdit" contenteditable="true" data-placeholder="Headline"></div>
+        <div class="ig-caption" id="igCaptionEdit" contenteditable="true" data-placeholder="Caption"></div>
+        <div class="ig-actions">
+          <button type="button" class="btn btn-ink btn-sm" id="igApproveBtn">Approve</button>
+          <button type="button" class="btn btn-lime btn-sm" id="igZipBtn">ZIP</button>
+        </div>
+        <div class="ig-source" id="igSourceLine"></div>
       </div>
       <div class="layer-tree" id="layerTree" style="display:none" aria-label="Story layers">
-        <div class="layer" data-id="still" id="layerStill">
+        <div class="layer" data-id="still" id="layerStill" hidden>
           <div class="layer-head">
             <span class="layer-kind">Still</span>
             <span class="layer-ban ai-still" id="layerStillBan" style="display:none">bannedForPrint · AI still · social only — story must stay URL-sourced</span>
@@ -1554,21 +1601,21 @@
           <div class="layer-thumb" id="layerStillThumb"><div class="ph">No still yet</div></div>
           <div class="layer-meta muted" id="layerStillMeta">—</div>
         </div>
-        <div class="layer" data-id="headline" id="layerHeadline">
+        <div class="layer" data-id="headline" id="layerHeadline" hidden>
           <div class="layer-head">
             <span class="layer-kind">Headline</span>
             <span class="layer-chip" data-chip>updated</span>
           </div>
           <div class="layer-text muted" id="layerHeadlineText">—</div>
         </div>
-        <div class="layer" data-id="ig" id="layerIg">
+        <div class="layer" data-id="ig" id="layerIg" hidden>
           <div class="layer-head">
             <span class="layer-kind">IG caption</span>
             <span class="layer-chip" data-chip>updated</span>
           </div>
           <div class="layer-text muted" id="layerIgText">—</div>
         </div>
-        <div class="layer" data-id="yt" id="layerYt">
+        <div class="layer" data-id="yt" id="layerYt" hidden>
           <div class="layer-head">
             <span class="layer-kind">YT title / description</span>
             <span class="layer-chip" data-chip>updated</span>
@@ -2050,8 +2097,8 @@
     paintBrowser(run);
     if (!run) return;
     const src = resolveSourceUrl(run);
-    const preferBrowser = (opts && opts.preferBrowser) || /^https?:\/\//i.test(src);
-    switchRightTab(preferBrowser ? "browser" : "structure");
+    if (opts && opts.preferBrowser) switchRightTab("browser");
+    else switchRightTab("structure");
   }
 
   function clearMagicLayers({ keepSkeleton = true } = {}) {
@@ -2073,6 +2120,28 @@
     if (el) { el.hidden = true; el.textContent = ""; el.className = "gemini-toast"; }
   }
 
+  function setPostPhoto(pic) {
+    if (!pic || !currentRun) return;
+    currentRun.photo = {
+      pathOrUrl: pic.url || pic.pathOrUrl,
+      credit: pic.credit || "Source",
+      md5: "og",
+      via: "article_og",
+      bannedForPrint: false,
+    };
+    currentRun.pack = currentRun.pack || { igCaption: "", ytTitle: "", ytDescription: "" };
+    currentRun.pack.stillUrl = currentRun.photo.pathOrUrl;
+    paintIgPost(currentRun);
+    renderStill(currentRun);
+    if (currentRun.id) {
+      fetch("/api/pack", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ runId: currentRun.id, stillUrl: currentRun.photo.pathOrUrl }),
+      }).catch(() => {});
+    }
+  }
+
   function paintIgPost(run) {
     const card = $("igPost");
     if (!card) return;
@@ -2083,40 +2152,54 @@
     if (frame) {
       frame.innerHTML = url
         ? `<img src="${escapeHtml(url)}" alt=""/>`
-        : `<div class="ph">Using source photo</div>`;
+        : `<div class="ph">Source photo</div>`;
+    }
+    const hl = $("igHeadlineEdit");
+    if (hl && document.activeElement !== hl) {
+      hl.textContent = run.rewrite?.headline || run.brief?.headline || "";
     }
     const cap = $("igCaptionEdit");
     if (cap && document.activeElement !== cap) {
       cap.textContent = run.pack?.igCaption || run.rewrite?.caption || run.rewrite?.body || "";
     }
+    const src = resolveSourceUrl(run);
+    const line = $("igSourceLine");
+    if (line) {
+      line.innerHTML = isLiveSourceUrl(src)
+        ? `<a href="${escapeHtml(src)}" target="_blank" rel="noopener noreferrer">${escapeHtml(src)}</a>`
+        : "";
+    }
     const strip = $("photoStrip");
+    const label = $("photoStripLabel");
     const photos = run.photos || [];
     if (strip) {
-      if (!photos.length) { strip.hidden = true; strip.innerHTML = ""; return; }
+      if (!photos.length) {
+        strip.hidden = true;
+        strip.innerHTML = "";
+        if (label) label.hidden = true;
+        const live = resolveSourceUrl(run);
+        if (isLiveSourceUrl(live) && !run._photosAsked) {
+          run._photosAsked = true;
+          fetch("/api/photos?url=" + encodeURIComponent(live))
+            .then((r) => r.json())
+            .then((data) => {
+              if (!data.photos || !data.photos.length) return;
+              run.photos = data.photos;
+              if (currentRun) currentRun.photos = data.photos;
+              if (!run.photo && data.photos[0]) setPostPhoto(data.photos[0]);
+              else paintIgPost(run);
+            })
+            .catch(() => {});
+        }
+        return;
+      }
       strip.hidden = false;
+      if (label) label.hidden = false;
       strip.innerHTML = photos.map((p, i) =>
         `<button type="button" data-photo="${i}" class="${p.url === url ? "active" : ""}"><img src="${escapeHtml(p.url)}" alt=""/></button>`
       ).join("");
       strip.querySelectorAll("button").forEach((btn) => {
-        btn.addEventListener("click", () => {
-          const pic = photos[Number(btn.dataset.photo)];
-          if (!pic || !currentRun) return;
-          currentRun.photo = {
-            pathOrUrl: pic.url,
-            credit: pic.credit || "Source",
-            md5: "og",
-            via: "article_og",
-            bannedForPrint: false,
-          };
-          if (currentRun.pack) currentRun.pack.stillUrl = pic.url;
-          paintIgPost(currentRun);
-          renderStill(currentRun);
-          fetch("/api/pack", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ runId: currentRun.id, stillUrl: pic.url }),
-          }).catch(() => {});
-        });
+        btn.addEventListener("click", () => setPostPhoto(photos[Number(btn.dataset.photo)]));
       });
     }
   }
@@ -2159,7 +2242,7 @@
     syncApproveBar(run);
     setSideRunReady();
     switchView("home");
-    fillMagicLayers(run, { flash: true, preferBrowser: isLiveSourceUrl(pendingSourceUrl) || isLiveSourceUrl(src) });
+    fillMagicLayers(run, { flash: true, preferBrowser: false });
   }
 
   async function doRun() {
@@ -2841,18 +2924,38 @@
     })
     .catch(() => {});
 
-  $("igCaptionEdit")?.addEventListener("blur", () => {
+  function savePostEdits() {
     if (!currentRun?.id) return;
-    const text = ($("igCaptionEdit").innerText || "").trim();
-    if (!text) return;
-    currentRun.pack = currentRun.pack || { igCaption: "", ytTitle: "", ytDescription: "" };
-    currentRun.pack.igCaption = text;
+    const caption = ($("igCaptionEdit")?.innerText || "").trim();
+    const headline = ($("igHeadlineEdit")?.innerText || "").trim();
+    if (caption) {
+      currentRun.pack = currentRun.pack || { igCaption: "", ytTitle: "", ytDescription: "" };
+      currentRun.pack.igCaption = caption;
+      if (currentRun.rewrite) currentRun.rewrite.caption = caption;
+    }
+    if (headline && currentRun.rewrite) currentRun.rewrite.headline = headline;
     fetch("/api/pack", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ runId: currentRun.id, igCaption: text }),
+      body: JSON.stringify({ runId: currentRun.id, igCaption: caption, headline }),
     }).catch(() => {});
     renderPack(currentRun);
+  }
+  $("igCaptionEdit")?.addEventListener("blur", savePostEdits);
+  $("igHeadlineEdit")?.addEventListener("blur", savePostEdits);
+  $("igApproveBtn")?.addEventListener("click", () => { savePostEdits(); doApprove(); });
+  $("igZipBtn")?.addEventListener("click", async () => {
+    savePostEdits();
+    if (currentRun && currentRun.status !== "approved") await doApprove();
+    if (typeof doShip === "function") doShip("zip");
+    else switchView("connect");
+  });
+  $("igFrame")?.addEventListener("click", () => {
+    const photos = currentRun?.photos || [];
+    if (!photos.length) return;
+    const cur = currentRun.photo?.pathOrUrl;
+    const idx = Math.max(0, photos.findIndex((p) => p.url === cur));
+    setPostPhoto(photos[(idx + 1) % photos.length]);
   });
 
   updateNeedLabel();
@@ -2900,9 +3003,18 @@
 
   $("toolStill")?.addEventListener("click", () => {
     switchView("home");
-    $("result").classList.add("show");
-    $("homeWrap").classList.add("has-run");
-    startStillFill();
+    switchRightTab("structure");
+    if (currentRun) paintIgPost(currentRun);
+    else {
+      $("result").classList.add("show");
+      $("homeWrap").classList.add("has-run");
+      startStillFill();
+    }
+  });
+  $("toolCaptions")?.addEventListener("click", () => {
+    switchView("home");
+    switchRightTab("structure");
+    $("igCaptionEdit")?.focus();
   });
 </script>
 </body>
