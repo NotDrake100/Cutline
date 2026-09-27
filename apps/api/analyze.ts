@@ -239,7 +239,6 @@ export async function analyzePostUrl(opts: {
 
   /* Relative fixture so the Post frame never depends on a public host or signed CDN. */
   const fixtureStill = fx.still;
-  const altStill = "/assets/demo/alt.svg";
   const upgraded = image ? upgradeSocialImage(image) : "";
   const cdnStill = /cdninstagram\.com|fbcdn\.net/i.test(upgraded || image || "");
   /* Instagram OG thumbs are often a dark crop or 403 in-panel. Fixture is the readable still. */
@@ -286,9 +285,7 @@ export async function analyzePostUrl(opts: {
     { url: still, credit: kind === "instagram" ? "Demo still" : outlet },
     { url: fixtureStill, credit: "Demo still" },
   ].filter((p, i, arr) => p.url && arr.findIndex((x) => x.url === p.url) === i);
-  if (kind === "instagram" && altStill !== still) {
-    photos.push({ url: altStill, credit: "Alt still" });
-  } else if (image && image !== still && !/cdninstagram\.com|fbcdn\.net/i.test(image)) {
+  if (image && image !== still && !/cdninstagram\.com|fbcdn\.net/i.test(image)) {
     photos.push({ url: image, credit: outlet });
   }
   const now = new Date().toISOString();

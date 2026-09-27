@@ -90,7 +90,7 @@ const MIME: Record<string, string> = {
   ".jpg": "image/jpeg",
   ".jpeg": "image/jpeg",
   ".webp": "image/webp",
-  ".svg": "image/svg+xml",
+  ".svg": "image/svg+xml; charset=utf-8",
   ".ico": "image/x-icon",
   ".woff2": "font/woff2",
   ".mp4": "video/mp4",

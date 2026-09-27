@@ -2682,7 +2682,8 @@
       const img = frame.querySelector("img");
       if (img) {
         img.addEventListener("error", () => {
-          const next = fallbacks.shift() || "/assets/demo/dcn-ig.svg";
+          const next = fallbacks.find((u) => u && u !== img.getAttribute("src") && !/alt\.svg/i.test(u)) || "/assets/demo/dcn-ig.svg";
+          if (img.getAttribute("src") === next) return;
           img.src = next;
           frame.style.backgroundImage = `url("${next}")`;
         });
