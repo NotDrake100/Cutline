@@ -869,7 +869,7 @@ async function handleApi(req: IncomingMessage, res: ServerResponse, url: URL) {
     }
     if (!body.runId) return json(res, 400, { error: "runId required" });
     const channel = (body.channel || "").trim().toLowerCase() as ShipChannel;
-    const allowed: ShipChannel[] = ["ig", "yt", "canva", "zip", "telegram", "x", "tiktok"];
+    const allowed: ShipChannel[] = ["ig", "yt", "canva", "zip", "telegram", "x", "tiktok", "gmail", "drive", "slack"];
     if (!allowed.includes(channel)) {
       return json(res, 400, { error: "channel required", allowed });
     }
@@ -928,6 +928,12 @@ async function handleApi(req: IncomingMessage, res: ServerResponse, url: URL) {
       gemini: geminiConfigured,
       oauth: {
         canva: missingEnv("canva").length === 0,
+        gmail: missingEnv("gmail").length === 0,
+        drive: missingEnv("drive").length === 0,
+        slack: missingEnv("slack").length === 0,
+        yt: missingEnv("yt").length === 0,
+        ig: missingEnv("ig").length === 0,
+        x: missingEnv("x").length === 0,
       },
     });
   }

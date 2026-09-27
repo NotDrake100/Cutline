@@ -1294,13 +1294,19 @@
   }
   .connect-run.warn { border-color: rgba(255,59,48,.25); }
   .plugin-grid {
-    display: flex;
-    flex-wrap: wrap;
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: 16px;
   }
+  @media (max-width: 1180px) {
+    .plugin-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  }
+  @media (max-width: 720px) {
+    .plugin-grid { grid-template-columns: 1fr; }
+  }
   .plugin-grid .plugin-card {
-    flex: 1 1 280px;
-    max-width: 440px;
+    max-width: none;
+    min-width: 0;
   }
   .plugin-card {
     background: var(--card);
@@ -1340,6 +1346,9 @@
   .plugin-mark.telegram { background: #229ED9; }
   .plugin-mark.x { background: #0A0A0A; }
   .plugin-mark.tiktok { background: #111111; }
+  .plugin-mark.gmail { background: #EA4335; }
+  .plugin-mark.drive { background: #4285F4; }
+  .plugin-mark.slack { background: #4A154B; }
   .plugin-mark.zip { background: #343434; color: #E1F435; }
   .plugin-meta { min-width: 0; flex: 1; }
   .plugin-name {
@@ -1352,6 +1361,7 @@
     background: var(--nav-active); color: var(--muted);
   }
   .plugin-badge.soon { background: rgba(255,59,48,.1); color: var(--red); }
+  .plugin-badge.need { background: rgba(10,10,10,.06); color: var(--muted); }
   .plugin-badge.local { background: rgba(34,197,94,.12); color: #15803d; }
   .plugin-desc {
     font-size: 12.5px; color: var(--muted); margin-top: 3px; line-height: 1.4;
@@ -2264,7 +2274,7 @@
       <div class="connect-wrap">
         <div class="kicker">Plugins</div>
         <h1>Connect</h1>
-        <p class="connect-sub">Connect Canva with a real OAuth account. Or save a ZIP.</p>
+        <p class="connect-sub">Newsroom plugins for the desk. Connected only after real OAuth — never faked. ZIP always works.</p>
 
         <div class="connect-run" id="connectRunBar">
           <span id="connectRunMsg">Connect an account anytime. Post still needs a story.</span>
@@ -4817,10 +4827,40 @@
     ig: { cls: "ig", svg: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="4" y="4" width="16" height="16" rx="4"/><circle cx="12" cy="12" r="3.5"/><circle cx="17" cy="7" r="1" fill="currentColor" stroke="none"/></svg>' },
     yt: { cls: "yt", svg: '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M22 12c0-2.2-.3-3.6-.7-4.4-.4-.8-1-1.4-1.8-1.7C18 5.4 12 5.4 12 5.4s-6 0-7.5.5c-.8.3-1.4.9-1.8 1.7C2.3 8.4 2 9.8 2 12s.3 3.6.7 4.4c.4.8 1 1.4 1.8 1.7 1.5.5 7.5.5 7.5.5s6 0 7.5-.5c.8-.3 1.4-.9 1.8-1.7.4-.8.7-2.2.7-4.4z"/><path d="M10 9.5v5l5-2.5-5-2.5z" fill="#fff"/></svg>' },
     canva: { cls: "canva", svg: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="8"/><path d="M8 13c1.5 2 6.5 2 8 0"/></svg>' },
+    gmail: { cls: "gmail", svg: '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M20 4H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2zm0 4-8 5L4 8V6l8 5 8-5v2z"/></svg>' },
+    drive: { cls: "drive", svg: '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12.01 2.5 7.5 10.5h9.02L12.01 2.5zM3.5 19.5h6.2l3.1-5.4H6.6L3.5 19.5zm17 0-3.1-5.4h-6.2l3.1 5.4h6.2z"/></svg>' },
+    slack: { cls: "slack", svg: '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M6 15a2 2 0 1 1-2-2h2v2zm1 0a2 2 0 1 1 4 0v5a2 2 0 1 1-4 0v-5zm2-8a2 2 0 1 1 2-2v2H9zm0 1a2 2 0 1 1 0 4H4a2 2 0 1 1 0-4h5zm8 2a2 2 0 1 1 2 2h-2v-2zm-1 0a2 2 0 1 1-4 0V5a2 2 0 1 1 4 0v5zm-2 8a2 2 0 1 1-2 2v-2h2zm0-1a2 2 0 1 1 0-4h5a2 2 0 1 1 0 4h-5z"/></svg>' },
     telegram: { cls: "telegram", svg: '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M20.5 4.5 3.8 10.8c-1.1.4-1.1 1.1-.2 1.4l4.3 1.3 1.6 5c.2.6.6.7 1.2.4l2.3-2.1 4.5 3.3c.8.4 1.4.2 1.6-.8L21.8 5.7c.3-1.1-.4-1.6-1.3-1.2z"/></svg>' },
     x: { cls: "x", svg: '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M17.5 3h3l-6.6 7.5L22 21h-5.7l-4.5-5.9L6.5 21H3.4l7-8L2 3h5.8l4 5.4L17.5 3z"/></svg>' },
     tiktok: { cls: "tiktok", svg: '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M16 3c.4 2.2 1.8 3.8 4 4.2v3c-1.5-.1-2.9-.6-4-1.4V15a6 6 0 1 1-6-6c.3 0 .7 0 1 .1v3.1a3 3 0 1 0 2 2.8V3h3z"/></svg>' },
     zip: { cls: "zip", svg: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M7 3h7l5 5v13a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1z"/><path d="M14 3v5h5M10 12h2M10 15h2M10 18h2"/></svg>' },
+  };
+
+  const PLUGIN_OPEN = {
+    canva: "https://www.canva.com/",
+    gmail: "https://mail.google.com/",
+    drive: "https://drive.google.com/",
+    slack: "https://app.slack.com/",
+    x: "https://x.com/",
+    yt: "https://studio.youtube.com/",
+    ig: "https://www.instagram.com/",
+    telegram: "https://telegram.org/",
+    tiktok: "https://www.tiktok.com/",
+  };
+
+  const PLUGIN_SHIP = new Set(["canva", "ig", "yt", "x", "telegram", "tiktok", "zip"]);
+
+  const PLUGIN_DESC = {
+    canva: "Open design in Canva",
+    gmail: "Newsroom inbox link",
+    drive: "Packs and still assets",
+    slack: "Desk channel alerts",
+    x: "Post + photo",
+    yt: "Title and thumbnail",
+    ig: "Photo + rewrite",
+    zip: "Save a local pack file",
+    telegram: "Channel post",
+    tiktok: "Photo post",
   };
 
   function canShip() {
@@ -4937,27 +4977,44 @@
     const grid = $("pluginGrid");
     if (!grid) return;
     const shipOk = canShip();
-    plugins = (plugins || []).filter((p) => p.id === "canva" || p.id === "zip");
+    plugins = plugins || [];
     grid.innerHTML = plugins.map((p, i) => {
       const mark = PLUGIN_MARKS[p.id] || PLUGIN_MARKS.zip;
       const num = String(i + 1).padStart(2, "0");
+      const openUrl = p.openUrl || PLUGIN_OPEN[p.id] || "";
       let badge = "";
       if (p.local) badge = '<span class="plugin-badge local">Ready</span>';
-      else if (p.connected) badge = `<span class="plugin-badge local">On${p.accountLabel ? " · " + escapeHtml(p.accountLabel) : ""}</span>`;
+      else if (p.connected) badge = `<span class="plugin-badge local">Connected${p.accountLabel ? " · " + escapeHtml(p.accountLabel) : ""}</span>`;
+      else if (!p.configured) badge = '<span class="plugin-badge soon">Needs connect</span>';
+      else badge = '<span class="plugin-badge need">Connect required</span>';
+
+      let desc = PLUGIN_DESC[p.id] || p.description || "";
+      if (!p.local && !p.connected && Array.isArray(p.missing) && p.missing.length) {
+        desc += " · Add " + p.missing.join(", ");
+      }
 
       let btn = "";
       if (p.local) {
         btn = `<button type="button" class="plugin-btn lime" data-ship="${p.id}" ${shipOk ? "" : "disabled"}>Download</button>`;
       } else if (p.connected) {
-        const shipBtn = shipOk
-          ? `<button type="button" class="plugin-btn" data-ship="${p.id}">Post</button>`
+        const openBtn = openUrl
+          ? `<button type="button" class="plugin-btn" data-open-url="${escapeHtml(openUrl)}">Open</button>`
           : "";
-        btn = `${shipBtn}<button type="button" class="plugin-btn ghost" data-disconnect="${p.id}">Disconnect</button>`;
-      } else if (p.id === "canva") {
-        const shipBtn = `<button type="button" class="plugin-btn" data-ship="canva">Open Canva</button>`;
-        btn = `${shipBtn}<button type="button" class="plugin-btn lime" data-connect="${p.id}">Connect Canva</button>`;
+        const shipBtn = (PLUGIN_SHIP.has(p.id) && shipOk && !p.openOnly)
+          ? `<button type="button" class="plugin-btn lime" data-ship="${p.id}">Post</button>`
+          : "";
+        btn = `${openBtn}${shipBtn}<button type="button" class="plugin-btn ghost" data-disconnect="${p.id}">Disconnect</button>`;
+      } else if (!p.configured) {
+        const openBtn = openUrl
+          ? `<button type="button" class="plugin-btn ghost" data-open-url="${escapeHtml(openUrl)}">Open</button>`
+          : "";
+        btn = `${openBtn}<button type="button" class="plugin-btn lime" data-connect="${p.id}">Configure</button>`;
       } else {
-        btn = `<button type="button" class="plugin-btn lime" data-connect="${p.id}">Connect</button>`;
+        const openBtn = openUrl
+          ? `<button type="button" class="plugin-btn ghost" data-open-url="${escapeHtml(openUrl)}">Open</button>`
+          : "";
+        const label = p.id === "canva" ? "Connect Canva" : "Connect";
+        btn = `${openBtn}<button type="button" class="plugin-btn lime" data-connect="${p.id}">${label}</button>`;
       }
 
       return `<article class="plugin-card ${p.primary ? "primary" : ""}" data-plugin="${p.id}">
@@ -4966,7 +5023,7 @@
           <div class="plugin-mark ${mark.cls}" aria-hidden="true">${mark.svg}</div>
           <div class="plugin-meta">
             <div class="plugin-name">${escapeHtml(p.name)} ${badge}</div>
-            <div class="plugin-desc">${escapeHtml(({ ig: "Photo + rewrite", yt: "Title and thumbnail", canva: "Open in Canva", telegram: "Channel post", x: "Post + photo", tiktok: "Photo post", zip: "Save a file" })[p.id] || p.description)}</div>
+            <div class="plugin-desc">${escapeHtml(desc)}</div>
           </div>
         </div>
         <div class="plugin-actions">${btn}</div>
@@ -4984,6 +5041,12 @@
     });
     grid.querySelectorAll("[data-disconnect]").forEach((btn) => {
       btn.addEventListener("click", () => doDisconnect(btn.dataset.disconnect));
+    });
+    grid.querySelectorAll("[data-open-url]").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        const url = btn.dataset.openUrl;
+        if (url) window.open(url, "_blank", "noopener,noreferrer");
+      });
     });
   }
 
@@ -5028,8 +5091,14 @@
       renderPluginCards(data.plugins || []);
     } catch (e) {
       const fallback = [
-        { id: "canva", name: "Canva", description: "Open in Canva", connected: false, configured: false, missing: ["CANVA_CLIENT_ID", "CANVA_CLIENT_SECRET"], primary: true, local: false },
-        { id: "zip", name: "Download ZIP", description: "Story file — always works", connected: true, configured: true, missing: [], primary: false, local: true },
+        { id: "canva", name: "Canva", description: "Open design in Canva", connected: false, configured: false, missing: ["CANVA_CLIENT_ID", "CANVA_CLIENT_SECRET"], primary: true, local: false, openUrl: "https://www.canva.com/" },
+        { id: "gmail", name: "Gmail", description: "Newsroom inbox link", connected: false, configured: false, missing: ["GOOGLE_CLIENT_ID", "GOOGLE_CLIENT_SECRET"], primary: true, local: false, openOnly: true, openUrl: "https://mail.google.com/" },
+        { id: "drive", name: "Google Drive", description: "Packs and still assets", connected: false, configured: false, missing: ["GOOGLE_CLIENT_ID", "GOOGLE_CLIENT_SECRET"], primary: true, local: false, openOnly: true, openUrl: "https://drive.google.com/" },
+        { id: "slack", name: "Slack", description: "Desk channel alerts", connected: false, configured: false, missing: ["SLACK_CLIENT_ID", "SLACK_CLIENT_SECRET"], primary: false, local: false, openOnly: true, openUrl: "https://app.slack.com/" },
+        { id: "x", name: "X / Twitter", description: "Post + photo", connected: false, configured: false, missing: ["X_CLIENT_ID", "X_CLIENT_SECRET"], primary: false, local: false, openUrl: "https://x.com/" },
+        { id: "yt", name: "YouTube", description: "Title and thumbnail", connected: false, configured: false, missing: ["YT_CLIENT_ID", "YT_CLIENT_SECRET"], primary: true, local: false, openUrl: "https://studio.youtube.com/" },
+        { id: "ig", name: "Instagram", description: "Photo + rewrite", connected: false, configured: false, missing: ["IG_APP_ID", "IG_APP_SECRET"], primary: true, local: false, openUrl: "https://www.instagram.com/" },
+        { id: "zip", name: "Download ZIP", description: "Save a local pack file", connected: true, configured: true, missing: [], primary: false, local: true },
       ];
       renderPluginCards(fallback);
       showConnectToast("<strong>Plugins API offline.</strong> Showing local catalog.", "warn");
