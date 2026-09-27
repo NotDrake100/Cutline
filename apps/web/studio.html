@@ -718,6 +718,17 @@
   }
   .paste-url .assign-chips { margin-top: 8px; }
   .paste-url-row { flex-wrap: wrap; }
+  @media (max-width: 860px) {
+    .paste-style-hint,
+    .assign-chips,
+    #styleUrlRow { display: none !important; }
+    .paste-url { margin-top: 10px; }
+    .paste-url-row input { flex: 1 1 100%; }
+    .paste-url-row .btn { flex: 1 1 auto; }
+    .ask-box { border-radius: 24px; padding: 12px 14px 10px; }
+    .ask-box textarea { min-height: 48px; font-size: 16px; }
+    .ask-suggest { margin: 0 0 8px; }
+  }
   .paste-style-hint {
     margin: 8px 0 0;
     font-size: 12px;
@@ -2369,6 +2380,10 @@
           <div class="ask-suggest-label">Projects</div>
           <!-- filled by paintProjectChips -->
         </div>
+        <div class="ask-suggest" id="askSuggest" aria-label="News suggestions">
+          <div class="ask-suggest-label">Try a story</div>
+          <!-- filled by paintNewsRecs: 1–3 rotating news-photo tips -->
+        </div>
         </div>
 
         <div class="home-dock" id="homeDock">
@@ -2377,10 +2392,6 @@
           <div class="ask-attach" id="askAttach">
             <span class="name" id="askAttachName"></span>
             <button type="button" class="x" id="askAttachClear" aria-label="Remove file">×</button>
-          </div>
-          <div class="ask-suggest" id="askSuggest" aria-label="News suggestions">
-            <div class="ask-suggest-label">Try a story</div>
-            <!-- filled by paintNewsRecs: 1–3 rotating news-photo tips -->
           </div>
           <div class="ask-actions">
             <div class="ask-plus-wrap">
