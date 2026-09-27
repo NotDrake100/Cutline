@@ -445,6 +445,33 @@
   }
   body.is-showcase .showcase-rail { display: block; }
   .showcase-rail strong { color: var(--muted); font-weight: 500; }
+  .gemini-badge {
+    display: inline-flex; align-items: center; gap: 7px;
+    margin: 0 auto 16px; padding: 5px 10px;
+    border: 1px solid var(--line); border-radius: 999px;
+    color: var(--muted); background: rgba(255,255,255,.45);
+    font-family: var(--mono); font-size: 10px; letter-spacing: .04em;
+  }
+  .gemini-badge strong { color: var(--ink); font-weight: 600; }
+  .gemini-badge .gemini-spark { color: #4285F4; font-size: 13px; line-height: 1; }
+  .demo-video-card {
+    display: none; width: 100%; margin-top: 20px; padding: 14px;
+    border: 1px solid var(--line); border-radius: 14px;
+    background: var(--card); text-align: left;
+  }
+  body.is-showcase .demo-video-card { display: block; }
+  .demo-video-head { display: flex; align-items: center; gap: 8px; margin-bottom: 5px; }
+  .demo-video-title { font-size: 13px; font-weight: 600; }
+  .demo-fixture-pill {
+    padding: 3px 7px; border-radius: 999px; background: var(--lime);
+    color: var(--lime-ink); font-family: var(--mono); font-size: 9px;
+    letter-spacing: .05em; text-transform: uppercase;
+  }
+  .demo-video-copy { margin: 0 0 12px; color: var(--muted); font-size: 11.5px; line-height: 1.45; }
+  .demo-video-controls { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+  .demo-video-status { color: var(--muted); font-family: var(--mono); font-size: 10px; }
+  .demo-video-player { display: block; width: 100%; margin-top: 12px; border-radius: 10px; background: #111; }
+  .demo-video-note { margin-top: 7px; color: var(--dim); font-family: var(--mono); font-size: 9px; letter-spacing: .03em; }
   .paste-url {
     width: 100%;
     margin: 14px 0 2px;
@@ -2242,6 +2269,9 @@
         <div class="kicker" id="homeKicker">Demo</div>
         <h1>What should we finish today?</h1>
         <p class="purpose-line" id="purposeLine">Cutline helps news desks finish sourced stories faster — fair use, you approve. Built to make the news industry better, not to steal work.</p>
+        <div class="gemini-badge" aria-label="Built with Gemini for the Gemini Online hackathon">
+          <span class="gemini-spark" aria-hidden="true">✦</span><strong>Built with Gemini</strong><span>Gemini Online hackathon</span>
+        </div>
         <div class="showcase-rail" id="showcaseRail">
           Paste a post URL or find news → Browser → edit → Approve. Public demo never calls Gemini.
         </div>
@@ -2275,6 +2305,19 @@
             <button type="button" class="btn btn-lime" id="runBtn">Run</button>
           </div>
         </div>
+
+        <section class="demo-video-card" id="demoVideoCard" aria-label="Demo video generation">
+          <div class="demo-video-head">
+            <span class="demo-video-title">Video demo</span><span class="demo-fixture-pill">Demo fixture</span>
+          </div>
+          <p class="demo-video-copy">Raw clip in → Mumbai / DCN before-after reel out. This public preview uses a packaged fixture, not live Gemini Video or Higgsfield.</p>
+          <div class="demo-video-controls">
+            <button type="button" class="btn btn-lime" id="demoVideoBtn">Generate demo cut</button>
+            <span class="demo-video-status" id="demoVideoStatus" aria-live="polite"></span>
+          </div>
+          <video class="demo-video-player" id="demoVideoPlayer" controls playsinline preload="metadata" hidden src="/assets/demo/dcn-mumbai-before-after-demo.mp4"></video>
+          <div class="demo-video-note">Fixture reel · Mumbai / DCN · before → after</div>
+        </section>
         <div class="gemini-toast" id="geminiToast" hidden></div>
         <div class="err" id="errBox"></div>
         <input type="file" id="clipFile" accept="video/mp4,video/webm,video/quicktime,video/x-m4v" hidden/>
@@ -2699,6 +2742,7 @@
 
   let pendingSourceUrl = null; // from Hunt "Use on desk"
   let pendingAskPhoto = null;
+  let pendingTipStill = null;
   let layerSnapshot = {}; // hash of last painted layer values for flash
   let selectedStyle = "tight_news";
   let selectedDesk = "pune";
@@ -4595,6 +4639,10 @@
       const data = await res.json().catch(() => ({}));
       if (data.run) {
         applyRun(data.run);
+        if (pendingTipStill && currentRun) {
+          setPostPhoto({ url: pendingTipStill, credit: "City desk fixture still" });
+          pendingTipStill = null;
+        }
       } else {
         setStatus("needs_input");
         $("frame").innerHTML = `<div class="ph">Using sourced photo</div>`;
@@ -4639,6 +4687,7 @@
     if ($("pastePostUrl")) $("pastePostUrl").value = "";
     pendingSourceUrl = null;
     pendingAskPhoto = null;
+    pendingTipStill = null;
     showAskAttach("");
     closeAskPlus();
     $("approveBar").style.display = "none";
@@ -4826,6 +4875,25 @@
 
   $("sugLibrary")?.addEventListener("click", () => switchView("library"));
 
+  function playDemoVideo() {
+    const btn = $("demoVideoBtn");
+    const status = $("demoVideoStatus");
+    const video = $("demoVideoPlayer");
+    if (!btn || !status || !video) return;
+    btn.disabled = true;
+    status.textContent = "Generating…";
+    video.hidden = true;
+    video.pause();
+    window.setTimeout(() => {
+      status.textContent = "Demo fixture ready";
+      video.hidden = false;
+      video.currentTime = 0;
+      video.play().catch(() => {});
+      btn.disabled = false;
+    }, 850);
+  }
+  $("demoVideoBtn")?.addEventListener("click", playDemoVideo);
+
   function closeAskPlus() {
     const menu = $("askPlusMenu");
     const plus = $("askPlus");
@@ -4857,6 +4925,11 @@
   });
   $("askAddVideo")?.addEventListener("click", () => {
     closeAskPlus();
+    if (demoForced) {
+      playDemoVideo();
+      $("demoVideoCard")?.scrollIntoView({ behavior: "smooth", block: "nearest" });
+      return;
+    }
     $("clipFile")?.click();
   });
   $("askAddPaste")?.addEventListener("click", () => {
@@ -5045,10 +5118,10 @@
     return [
       { desk: "pune", kicker: "Pune", title: "Overnight bus routes go to a vote in Pune.", url: origin + "/sample-pune.html" },
       { desk: "pune", kicker: "Pune", title: "Metro Phase 2 stations get weekend trial hours.", url: origin + "/sample-pune.html" },
-      { desk: "hyderabad", kicker: "Hyderabad", title: "HITEC City feeder buses add late trips.", url: origin + "/sample-hyderabad.html" },
-      { desk: "hyderabad", kicker: "Hyderabad", title: "Tank Bund stretch marked for Sunday cycle hours.", url: origin + "/sample-hyderabad.html" },
-      { desk: "mumbai", kicker: "Mumbai", title: "Harbour line holds a late-night clearance window.", url: origin + "/sample-mumbai.html" },
-      { desk: "mumbai", kicker: "Mumbai", title: "Marine Drive stretch marked for Sunday cycle hours.", url: origin + "/sample-mumbai.html" },
+      { desk: "hyderabad", kicker: "Hyderabad", title: "HITEC City feeder buses add late trips.", url: origin + "/sample-hyderabad.html", still: origin + "/assets/demo/hyderabad.jpg" },
+      { desk: "hyderabad", kicker: "Hyderabad", title: "Tank Bund stretch marked for Sunday cycle hours.", url: origin + "/sample-hyderabad.html", still: origin + "/assets/demo/hyderabad.jpg" },
+      { desk: "mumbai", kicker: "Mumbai", title: "Harbour line holds a late-night clearance window.", url: origin + "/sample-mumbai.html", still: origin + "/assets/demo/mumbai.jpg" },
+      { desk: "mumbai", kicker: "Mumbai", title: "Marine Drive stretch marked for Sunday cycle hours.", url: origin + "/sample-mumbai.html", still: origin + "/assets/demo/mumbai.jpg" },
       { desk: "bengaluru", kicker: "Bengaluru", title: "Whitefield feeder buses add a late last trip.", url: origin + "/sample-bengaluru.html" },
       { desk: "delhi", kicker: "Delhi", title: "Yellow Line weekend work shifts to early Monday.", url: origin + "/sample-delhi.html" },
     ];
@@ -5084,6 +5157,7 @@
     /* Hold the source for an explicit Run; selecting a tip never runs the desk. */
     if ($("pastePostUrl")) $("pastePostUrl").value = t.url;
     pendingSourceUrl = t.url;
+    pendingTipStill = t.still || null;
     setStyleUrl(t.url);
     /* Stay on Chat/home. Run is the only action that opens a result or fetches a still. */
     switchView("home");
