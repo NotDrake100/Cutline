@@ -107,9 +107,59 @@
     .shell, .shell.browser-focus, .shell.desk-collapsed, .shell.browser-focus.desk-collapsed {
       grid-template-columns: 1fr; grid-template-rows: auto 1fr auto;
     }
-    .sidebar { width: 100%; height: auto; border-right: none; border-bottom: 1px solid var(--line); }
-    .right-pane { width: 100%; max-height: 42vh; border-left: none; border-top: 1px solid var(--line); }
+    .sidebar {
+      width: 100%;
+      height: auto;
+      max-height: none;
+      border-right: none;
+      border-bottom: 1px solid var(--line);
+      padding: 10px 12px 8px;
+      overflow: hidden;
+    }
+    .sidebar .nav,
+    .sidebar .tools,
+    .sidebar .section-label,
+    .sidebar #recentList,
+    .sidebar .sidebar-spacer,
+    .sidebar .sidebar-foot { display: none; }
+    .sidebar #projectList {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 4px;
+    }
+    .sidebar #projectList .nav-item { padding: 6px 8px; font-size: 12.5px; }
+    .right-pane {
+      width: 100%;
+      max-height: 50vh;
+      min-height: 220px;
+      border-left: none;
+      border-top: 1px solid var(--line);
+    }
     .shell.desk-collapsed .sidebar { display: none; }
+    .ig-frame {
+      min-height: 0;
+      max-height: min(38vh, 320px);
+      height: auto !important;
+      flex: 0 0 auto !important;
+    }
+    .ig-frame.yt {
+      min-height: 0 !important;
+      max-height: min(22vh, 200px);
+    }
+    .ig-post { margin: 6px 8px 8px; }
+    .browser-stage { padding: 8px; align-items: stretch; }
+    .browser-preview,
+    .browser-preview[data-kind="youtube"],
+    .browser-preview[data-kind="page"] { max-width: none; }
+    .browser-poster { max-height: min(34vh, 260px); }
+    .browser-preview[data-kind="youtube"] .browser-poster { max-height: min(22vh, 180px); }
+    .browser-preview[data-kind="page"] .browser-frame-wrap {
+      min-height: 140px;
+      height: min(28vh, 200px);
+    }
+    .browser-hint { font-size: 11px; padding: 6px 10px; }
+    .home-wrap h1 { font-size: 26px; }
+    .purpose-line { display: none; }
   }
 
   /* ——— Sidebar ——— */
@@ -581,9 +631,45 @@
     text-overflow: ellipsis;
     max-width: 280px;
   }
-  @media (max-width: 720px) {
-    .ask-chip { border-radius: 14px; max-width: 100%; }
-    .ask-chip .t { white-space: normal; max-width: none; }
+  .ask-chip-ico {
+    display: none;
+    width: 28px; height: 28px;
+    border-radius: 8px;
+    background: var(--nav-active);
+    color: var(--ink);
+    place-items: center;
+    flex-shrink: 0;
+  }
+  .ask-chip-ico svg { width: 14px; height: 14px; }
+  @media (max-width: 860px) {
+    .ask-suggest {
+      flex-direction: column;
+      flex-wrap: nowrap;
+      gap: 2px;
+      padding: 0 0 8px;
+    }
+    .ask-suggest .ask-chip {
+      display: flex;
+      align-items: center;
+      width: 100%;
+      max-width: none;
+      border: none;
+      border-radius: 10px;
+      background: transparent;
+      padding: 8px 6px;
+      gap: 10px;
+    }
+    .ask-suggest .ask-chip:hover { background: var(--nav-hover); }
+    .ask-suggest .ask-chip-ico { display: grid; }
+    .ask-suggest .ask-chip .k { display: none; }
+    .ask-suggest .ask-chip .t {
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: none;
+      font-size: 14px;
+      color: var(--ink);
+    }
   }
 
   .project-home {
@@ -2605,6 +2691,9 @@
     if (!el.value.trim() || isToySampleUrl(el.value)) el.value = DCN_STYLE_URL;
     el.placeholder = DCN_STYLE_URL;
   }
+  function isNarrow() {
+    return window.matchMedia("(max-width: 860px)").matches;
+  }
   function projectNameKey(p) {
     return String(p?.name || "").trim().toLowerCase().replace(/\s+/g, " ");
   }
@@ -4152,7 +4241,7 @@
       frame.style.backgroundImage = "none";
       frame.classList.toggle("yt", !!isYt);
       frame.classList.toggle("x", !!isX);
-      if (isYt) {
+      if (isYt || isNarrow()) {
         frame.style.height = "";
         frame.style.minHeight = "";
         frame.style.flex = "";
@@ -4915,8 +5004,10 @@
     const ask = $("askSuggest");
     if (ask) {
       ask.hidden = tips.length === 0;
+      const tipIco = `<span class="ask-chip-ico" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M5 7h14M5 12h10M5 17h12"/></svg></span>`;
       ask.innerHTML = `<div class="ask-suggest-label">Try a story</div>` + tips.map((t, i) =>
         `<button type="button" class="ask-chip" data-ask-rec="${i}" title="${escapeHtml(t.title)}">
+          ${tipIco}
           <span class="k">${escapeHtml(t.kicker)}</span>
           <span class="t">${escapeHtml(t.title)}</span>
         </button>`
