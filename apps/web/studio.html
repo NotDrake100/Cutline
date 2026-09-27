@@ -442,50 +442,35 @@
     from { clip-path: inset(100% 0 0 0); filter: blur(10px); opacity: .55; }
     to { clip-path: inset(0 0 0 0); filter: blur(0); opacity: 1; }
   }
-  .style-row {
+  .rp-tools {
     display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    gap: 8px;
-    width: 100%;
-    margin: 14px 0 0;
-  }
-  .style-label {
-    font-size: 11.5px;
-    font-weight: 650;
-    color: var(--dim);
-    letter-spacing: .04em;
-    text-transform: uppercase;
-  }
-  .style-chips {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 6px;
-  }
-  .style-chip {
-    height: 30px;
-    padding: 0 11px;
-    border-radius: var(--radius-pill);
-    border: 1px solid var(--line);
-    background: var(--panel);
-    font-size: 12.5px;
-    font-weight: 550;
-    color: var(--muted);
-    transition: background .12s, border-color .12s, color .12s;
-  }
-  .style-chip:hover { color: var(--ink); background: var(--nav-hover); }
-  .style-chip.active {
-    background: var(--ink);
-    border-color: var(--ink);
-    color: #fff;
-  }
-  .rp-style {
-    padding: 0 14px 10px;
+    align-items: stretch;
+    gap: 4px;
+    padding: 0 10px 10px;
     border-bottom: 1px solid var(--line);
     flex-shrink: 0;
   }
-  .rp-style .style-row { margin: 0; }
-  .rp-style .style-chip { height: 28px; font-size: 12px; }
+  .rp-tool {
+    flex: 1;
+    min-width: 0;
+    display: inline-flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    padding: 8px 4px 7px;
+    border-radius: 10px;
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--muted);
+    transition: background .12s, color .12s;
+  }
+  .rp-tool:hover { background: var(--nav-hover); color: var(--ink); }
+  .rp-tool .ico {
+    width: 16px; height: 16px;
+    display: grid; place-items: center;
+  }
+  .rp-tool .ico svg { width: 16px; height: 16px; }
   .ban {
     margin-top: 10px;
     font-size: 11.5px; font-weight: 500;
@@ -855,12 +840,15 @@
   .connect-toast.warn { border-color: rgba(255,59,48,.3); }
   .gemini-toast { display: none !important; }
   .ig-post {
-    margin: 10px 12px 8px;
+    margin: 8px 10px 12px;
     background: #fff;
     border: 1px solid var(--line);
     border-radius: 16px;
     overflow: hidden;
-    flex-shrink: 0;
+    flex: 1 1 auto;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
     box-shadow: 0 8px 24px rgba(0,0,0,.04);
   }
   .ig-post-head {
@@ -882,6 +870,8 @@
     overflow: hidden;
     display: grid; place-items: center;
     cursor: pointer;
+    flex: 1 1 auto;
+    min-height: 240px;
   }
   .ig-frame img { width: 100%; height: 100%; object-fit: cover; }
   .ig-frame .ph { font-size: 12px; color: var(--dim); }
@@ -1383,15 +1373,6 @@
             <span class="ask-hint">Hunt a live page, then rewrite · you approve before ship</span>
             <button type="button" class="btn btn-lime" id="runBtn">Run</button>
           </div>
-          <div class="style-row" id="styleRow">
-            <span class="style-label">Voice</span>
-            <div class="style-chips" id="styleChips" role="group" aria-label="Writing style">
-              <button type="button" class="style-chip active" data-style="tight_news">Tight news</button>
-              <button type="button" class="style-chip" data-style="social_caption">Social caption</button>
-              <button type="button" class="style-chip" data-style="long_lede">Long lede</button>
-              <button type="button" class="style-chip" data-style="neutral_brief">Neutral brief</button>
-            </div>
-          </div>
         </div>
         <div class="gemini-toast" id="geminiToast" hidden></div>
         <div class="err" id="errBox"></div>
@@ -1550,18 +1531,32 @@
         Browser
       </button>
     </div>
-    <div class="rp-magic"><span class="dot" aria-hidden="true"></span> Magic Layer · edit the post</div>
-    <div class="rp-style">
-      <div class="style-row">
-        <span class="style-label">Voice</span>
-        <div class="style-chips" id="rpStyleChips" role="group" aria-label="Writing style">
-          <button type="button" class="style-chip active" data-style="tight_news">Tight news</button>
-          <button type="button" class="style-chip" data-style="social_caption">Social</button>
-          <button type="button" class="style-chip" data-style="long_lede">Long lede</button>
-          <button type="button" class="style-chip" data-style="neutral_brief">Neutral</button>
-        </div>
-        <button type="button" class="btn btn-ghost btn-sm" id="applyStyleBtn">Apply</button>
-      </div>
+    <div class="rp-magic"><span class="dot" aria-hidden="true"></span> Magic Layer</div>
+    <div class="rp-tools" role="toolbar" aria-label="Edit post">
+      <button type="button" class="rp-tool" id="toolEditText">
+        <span class="ico" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M5 7h14M5 12h10M5 17h8"/></svg>
+        </span>
+        Edit text
+      </button>
+      <button type="button" class="rp-tool" id="toolPhoto">
+        <span class="ico" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="9" cy="11" r="2"/><path d="m3 17 5-4 3 2 4-5 6 7"/></svg>
+        </span>
+        Photo
+      </button>
+      <button type="button" class="rp-tool" id="toolCanva">
+        <span class="ico" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="8"/><path d="M8 13c1.5 2 6.5 2 8 0"/></svg>
+        </span>
+        Canva
+      </button>
+      <button type="button" class="rp-tool" id="toolStyle">
+        <span class="ico" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4 7h10M18 7h2M4 17h2M10 17h10"/><circle cx="16" cy="7" r="2"/><circle cx="8" cy="17" r="2"/></svg>
+        </span>
+        Style
+      </button>
     </div>
 
     <div class="rp-body active" id="rpStructure" role="tabpanel">
@@ -1700,8 +1695,12 @@
     if (frame) frame.innerHTML = STILL_FILL_HTML;
     const thumb = $("layerStillThumb");
     if (thumb) thumb.innerHTML = STILL_FILL_HTML;
+    const ig = $("igFrame");
+    if (ig) ig.innerHTML = STILL_FILL_HTML;
     $("structureEmpty") && ($("structureEmpty").style.display = "none");
-    $("layerTree") && ($("layerTree").style.display = "flex");
+    $("layerTree") && ($("layerTree").style.display = "none");
+    $("igPost") && ($("igPost").style.display = "");
+    $("truthBanner") && ($("truthBanner").style.display = "none");
   }
 
   function stillRevealHtml(url) {
@@ -1710,20 +1709,6 @@
 
   function paintStyleChips(id) {
     selectedStyle = id || "tight_news";
-    document.querySelectorAll(".style-chip").forEach((btn) => {
-      btn.classList.toggle("active", btn.dataset.style === selectedStyle);
-    });
-  }
-
-  async function persistStyle(id) {
-    paintStyleChips(id);
-    try {
-      await fetch("/api/style", {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ styleId: selectedStyle }),
-      });
-    } catch (_) { /* keep local selection */ }
   }
 
   function looksLikeApiError(msg) {
@@ -1952,8 +1937,8 @@
       return;
     }
     empty.style.display = "none";
-    tree.style.display = "flex";
-    if (truthBan) truthBan.style.display = "flex";
+    tree.style.display = "none";
+    if (truthBan) truthBan.style.display = "none";
 
     const next = {};
 
@@ -2259,7 +2244,7 @@
     $("runMeta").textContent = (run.id || "") + (sourced ? "" : " · headline");
     const title = $("resultTitle");
     if (title) title.textContent = sourced ? "Desk run" : "Headline run";
-    if (run.styleId) paintStyleChips(run.styleId);
+    selectedStyle = "tight_news";
     renderLog(run.log);
     markRoster(run.log);
     renderStill(run);
@@ -2941,17 +2926,47 @@
     }
   });
 
-  document.querySelectorAll(".style-chip").forEach((btn) => {
-    btn.addEventListener("click", () => persistStyle(btn.dataset.style));
-  });
-  $("applyStyleBtn")?.addEventListener("click", applyVoice);
+  function focusPostTemplate() {
+    switchRightTab("structure");
+    if (currentRun) paintIgPost(currentRun);
+  }
 
-  fetch("/api/styles")
-    .then((r) => r.json())
-    .then((data) => {
-      if (data.selected) paintStyleChips(data.selected);
-    })
-    .catch(() => {});
+  $("toolEditText")?.addEventListener("click", () => {
+    focusPostTemplate();
+    const el = $("igHeadlineEdit");
+    if (el && $("igPost")?.style.display !== "none") el.focus();
+    else $("igCaptionEdit")?.focus();
+  });
+  $("toolPhoto")?.addEventListener("click", () => {
+    focusPostTemplate();
+    const photos = currentRun?.photos || [];
+    if (photos.length) {
+      const cur = currentRun.photo?.pathOrUrl;
+      const idx = Math.max(0, photos.findIndex((p) => p.url === cur));
+      setPostPhoto(photos[(idx + 1) % photos.length]);
+      const strip = $("photoStrip");
+      const label = $("photoStripLabel");
+      if (strip) strip.hidden = false;
+      if (label) label.hidden = false;
+    } else {
+      $("igFrame")?.focus();
+    }
+  });
+  $("toolCanva")?.addEventListener("click", () => {
+    if (currentRun?.id) {
+      savePostEdits();
+      if (typeof doShip === "function") doShip("canva");
+      else switchView("connect");
+    } else {
+      switchView("connect");
+    }
+  });
+  $("toolStyle")?.addEventListener("click", () => {
+    selectedStyle = "tight_news";
+    focusPostTemplate();
+    if (currentRun?.id) applyVoice();
+    else $("igHeadlineEdit")?.focus();
+  });
 
   function savePostEdits() {
     if (!currentRun?.id) return;
@@ -3025,8 +3040,10 @@
       $("resultTitle").textContent = "Desk run";
       $("runMeta").textContent = "still · generating";
       startStillFill();
-    } else if (preview === "styles") {
+    } else if (preview === "styles" || preview === "post") {
       switchView("home");
+      $("structureEmpty") && ($("structureEmpty").style.display = "none");
+      $("igPost") && ($("igPost").style.display = "");
     }
   })();
 
