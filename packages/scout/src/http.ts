@@ -261,6 +261,8 @@ export interface OgMeta {
 /** Prefer a larger social CDN still when the OG/oEmbed thumb is a tiny crop. */
 export function upgradeSocialImage(url: string): string {
   if (!url || !/^https?:\/\//i.test(url)) return url || "";
+  /* Instagram/Facebook CDN signs size into the URL — rewriting it 403s. */
+  if (/cdninstagram\.com|fbcdn\.net/i.test(url)) return url;
   let out = url;
   out = out.replace(/\/hqdefault\./i, "/maxresdefault.");
   out = out.replace(/\/sddefault\./i, "/maxresdefault.");
