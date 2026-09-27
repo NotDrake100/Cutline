@@ -340,15 +340,11 @@
   }
   .err.show { display: block; }
 
-  /* Run result panel (Home, after wedge) */
-  .result {
-    width: 100%;
-    margin-top: 28px;
-    display: none;
-    flex-direction: column;
-    gap: 14px;
+  /* Run result stays off Home — post lives in Magic Layer */
+  .result,
+  .result.show {
+    display: none !important;
   }
-  .result.show { display: flex; }
   .result-head {
     display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
   }
@@ -1383,12 +1379,11 @@
       <div class="home-wrap" id="homeWrap">
         <div class="kicker">Your AI desk</div>
         <h1>What should we finish today?</h1>
-        <p class="truth-micro"><strong>News only from real pages.</strong> Browser holds the source.</p>
 
         <div class="ask-box">
           <textarea id="headline" placeholder="Find a story or paste a headline…" rows="3"></textarea>
           <div class="ask-actions">
-            <span class="ask-hint">Find a page, rewrite, pick a photo, open Canva</span>
+            <span class="ask-hint">Find news, rewrite, pick a photo, open Canva</span>
             <button type="button" class="btn btn-lime" id="runBtn">Run</button>
           </div>
         </div>
@@ -1399,11 +1394,7 @@
         <div class="suggestions" id="suggestions">
           <button type="button" class="sug" id="sugHunt">
             <span class="plus">+</span>
-            Find news — only from a real page
-          </button>
-          <button type="button" class="sug" id="sugLibrary">
-            <span class="plus">+</span>
-            Open Library — images
+            Find news
           </button>
         </div>
 
@@ -1445,26 +1436,9 @@
       <div class="activity-wrap">
         <h1>Approvals</h1>
         <p class="activity-sub">Stories waiting to post.</p>
-        <p class="truth-micro" style="margin:-18px 0 22px"><strong>News only from real pages.</strong> Browser holds the source.</p>
 
-        <div class="need-label" id="needLabel">Nothing needs you right now</div>
+        <div class="need-label" id="needLabel">Nothing waiting to post</div>
         <div class="need-list" id="needList"></div>
-
-        <div class="changed">
-          <h3>What’s changed</h3>
-          <div class="changed-row">
-            <div class="metric">Explore</div>
-            <div class="note">Live pages only — Browser holds the source URL</div>
-          </div>
-          <div class="changed-row">
-            <div class="metric">Ask</div>
-            <div class="note">Find a page. Approve. Post.</div>
-          </div>
-          <div class="changed-row">
-            <div class="metric">Approve</div>
-            <div class="note">Post stays locked until you approve</div>
-          </div>
-        </div>
       </div>
     </section>
 
@@ -1508,8 +1482,8 @@
     <section class="view" id="viewConnect" aria-label="Plugins">
       <div class="connect-wrap">
         <div class="kicker">Plugins</div>
-        <h1>Plugins</h1>
-        <p class="connect-sub">Link Instagram, YouTube, Canva, Telegram, X, or TikTok. Post uses the linked account. Download ZIP stays local.</p>
+        <h1>Connect</h1>
+        <p class="connect-sub">One tap for Instagram, YouTube, or Canva. Then post.</p>
 
         <div class="connect-run" id="connectRunBar">
           <span id="connectRunMsg">Connect an account anytime. Post still needs a story.</span>
@@ -1575,12 +1549,6 @@
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="8"/><path d="M8 13c1.5 2 6.5 2 8 0"/></svg>
         </span>
         Canva
-      </button>
-      <button type="button" class="rp-tool" id="toolStyle">
-        <span class="ico" aria-hidden="true">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4 7h10M18 7h2M4 17h2M10 17h10"/><circle cx="16" cy="7" r="2"/><circle cx="8" cy="17" r="2"/></svg>
-        </span>
-        Style
       </button>
     </div>
 
@@ -1675,7 +1643,7 @@
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M3 12h18"/></svg>
         </div>
         <h3>No source yet</h3>
-        <p>Hunt a page. This pane holds the live URL.</p>
+        <p>Find a page. This pane holds the live URL.</p>
       </div>
       <div id="browserLive" style="display:none; flex:1; min-height:0; flex-direction:column;">
         <div class="browser-bar">
@@ -1845,7 +1813,7 @@
     if (run?.status === "approved") {
       bar.querySelector(".msg").innerHTML = "<strong>Approved.</strong> Ready to post — open <a href=\"javascript:void(0)\" id=\"gotoConnect\" style=\"text-decoration:underline\">Plugins</a>.";
     } else if (needs) {
-      bar.querySelector(".msg").innerHTML = "<strong>Needs your input.</strong> Review still + pack, then approve to unlock ship.";
+      bar.querySelector(".msg").innerHTML = "<strong>Needs your input.</strong> Edit text, pick a photo, then approve.";
     } else if (run) {
       bar.querySelector(".msg").innerHTML = "<strong>" + escapeHtml(run.status) + "</strong>";
     }
@@ -1859,9 +1827,9 @@
     if (run?.status === "needs_input") {
       const title = (run.rewrite?.headline || run.brief?.headline || $("headline").value || "Desk run").trim();
       const html = `
-        <div class="kind"><span class="chip">Live</span> Needs approve</div>
+        <div class="kind"><span class="chip">Live</span> Waiting to post</div>
         <h3>${escapeHtml(title)}</h3>
-        <p>Still + pack ready. Approve to unlock ship, or adjust the headline and re-run.</p>
+        <p>Rewrite + photo are ready. Approve, then connect.</p>
         <div class="need-actions">
           <button type="button" class="pill pill-approve" id="liveApproveBtn">Approve</button>
           <button type="button" class="pill pill-adjust" id="liveAdjustBtn">Adjust</button>
@@ -1894,7 +1862,7 @@
 
   function updateNeedLabel() {
     const n = $("needList").querySelectorAll(".need-card").length;
-    $("needLabel").textContent = n === 0 ? "Nothing needs you right now" : (n + " item" + (n === 1 ? "" : "s") + " need your input");
+    $("needLabel").textContent = n === 0 ? "Nothing waiting to post" : (n + " waiting to post");
     $("activityDot").style.display = n > 0 ? "" : "none";
   }
 
@@ -2274,8 +2242,6 @@
     markRoster(run.log);
     renderStill(run);
     renderPack(run);
-    $("result").classList.add("show");
-    $("homeWrap").classList.add("has-run");
     $("suggestions").style.display = "none";
     syncApproveBar(run);
     setSideRunReady();
@@ -2287,12 +2253,10 @@
     setErr("");
     const headline = $("headline").value.trim();
     const sourced = isLiveSourceUrl(pendingSourceUrl) || /^https?:\/\//i.test(headline);
-    if (!headline && !sourced) { setErr("Hunt a page or add a headline."); switchView("home"); return; }
+    if (!headline && !sourced) { setErr("Find a page or add a headline."); switchView("home"); return; }
     $("runBtn").disabled = true;
     $("sideRunBtn").disabled = true;
     setStatus("drafting");
-    $("result").classList.add("show");
-    $("homeWrap").classList.add("has-run");
     startStillFill();
     try {
       const sourceUrl = isLiveSourceUrl(pendingSourceUrl) ? pendingSourceUrl : (/^https?:\/\//i.test(headline) ? headline : "");
@@ -2553,7 +2517,7 @@
         const hit = lastHits[idx];
         if (!hit) return;
         if (!isLiveSourceUrl(hit.sourceUrl)) {
-          setHuntErr("This hit needs a live source URL.");
+          setHuntErr("This story needs a live source URL.");
           return;
         }
         $("headline").value = hit.title;
@@ -2570,12 +2534,12 @@
     setHuntErr("");
     const btn = $("huntBtn");
     btn.disabled = true;
-    $("huntMeta").textContent = "Hunting " + selectedDesk + "…";
+    $("huntMeta").textContent = "Finding " + selectedDesk + "…";
     $("huntMeta").classList.remove("warn");
     try {
       const res = await fetch("/api/hunt?desk=" + encodeURIComponent(selectedDesk));
       const data = await res.json();
-      if (!res.ok) throw new Error(data.error || "hunt failed");
+      if (!res.ok) throw new Error(data.error || "Find news failed");
       renderHits(data);
     } catch (e) {
       setHuntErr(e.message || String(e));
@@ -2860,7 +2824,7 @@
     const list = $("libList");
     if (!list) return;
     if (!entries || !entries.length) {
-      list.innerHTML = `<div class="hunt-empty">Library is empty. Finish a sourced run or add a clip.</div>`;
+      list.innerHTML = `<div class="hunt-empty">No images yet. Finish a story or add a photo.</div>`;
       return;
     }
     list.innerHTML = entries.map((entry) => {
@@ -3045,6 +3009,7 @@
     if (currentRun?.id) applyVoice();
     else $("igHeadlineEdit")?.focus();
   });
+
 
   function savePostEdits() {
     if (!currentRun?.id) return;
