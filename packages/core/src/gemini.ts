@@ -11,11 +11,11 @@ function apiKey(): string | undefined {
 }
 
 function textModel(): string {
-  return process.env[ENV.GEMINI_TEXT_MODEL]?.trim() || "gemini-2.0-flash";
+  return process.env[ENV.GEMINI_TEXT_MODEL]?.trim() || "gemini-2.5-flash";
 }
 
 function imageModel(): string {
-  return process.env[ENV.GEMINI_IMAGE_MODEL]?.trim() || "gemini-2.0-flash-preview-image-generation";
+  return process.env[ENV.GEMINI_IMAGE_MODEL]?.trim() || "gemini-2.5-flash-image";
 }
 
 export function requireGeminiKey(): string {

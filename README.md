@@ -8,8 +8,8 @@ Set these on the server (Cloud Run / Vercel). Never commit values.
 
 ```
 GEMINI_API_KEY=
-GEMINI_TEXT_MODEL=
-GEMINI_IMAGE_MODEL=
+GEMINI_TEXT_MODEL=gemini-2.5-flash
+GEMINI_IMAGE_MODEL=gemini-2.5-flash-image
 ```
 
 Optional: `PEXELS_API_KEY`, `CUTLINE_PUBLIC_URL`, and Connect app credentials in `.env.example`.
