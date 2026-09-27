@@ -75,7 +75,9 @@ function stripTags(html: string): string {
   const t = decodeHtml(html.replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim());
   const stop = t.search(/(?<=\w[.!?])\s+[A-Z“"]/);
   if (stop > 24 && stop < 140) return t.slice(0, stop);
-  return t.slice(0, 120);
+  const mash = t.search(/(?<=[a-z0-9])\s+(The|A|An|After|As)\s+[A-Za-z]/);
+  if (mash > 28 && mash < 140) return t.slice(0, mash);
+  return t.slice(0, 90);
 }
 
 /** Open a section page and collect article links. Skip on failure. */
