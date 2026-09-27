@@ -1438,8 +1438,8 @@
     display: block;
     width: 100%;
     aspect-ratio: 4 / 5;
-    min-height: 320px;
-    max-height: 460px;
+    min-height: 0;
+    max-height: none;
     flex: 0 0 auto;
     background: #0A0A0A;
     background-size: cover;
@@ -1448,6 +1448,7 @@
     overflow: hidden;
     cursor: pointer;
   }
+  .ig-frame[data-aspect="yt"] { aspect-ratio: 16 / 9; }
   .ig-frame > .ig-photo {
     position: absolute;
     inset: 0;
@@ -1655,6 +1656,21 @@
   }
   .rp-tab .ico { width: 14px; height: 14px; display: grid; place-items: center; }
   .rp-tab .ico svg { width: 14px; height: 14px; }
+  .rp-tab-copy { display: flex; flex-direction: column; align-items: flex-start; gap: 1px; min-width: 0; }
+  .rp-tab-url {
+    display: none;
+    font-size: 10px;
+    font-weight: 500;
+    font-family: var(--mono);
+    color: var(--dim);
+    max-width: 200px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    letter-spacing: 0;
+  }
+  .rp-tab-url.show { display: block; }
+  .shell.browser-focus .rp-tab-url { max-width: min(520px, 46vw); }
   .rp-magic {
     padding: 8px 14px 6px;
     font-size: 11px; font-weight: 550; color: var(--dim);
@@ -1787,13 +1803,28 @@
     display: flex; align-items: center; gap: 8px;
     padding: 10px 12px;
     border-bottom: 1px solid var(--line);
+    background: var(--panel);
     flex-shrink: 0;
   }
+  .browser-lock {
+    width: 28px; height: 28px;
+    border-radius: 8px;
+    background: var(--bg);
+    border: 1px solid var(--line);
+    display: grid; place-items: center;
+    color: var(--muted);
+    flex-shrink: 0;
+  }
+  .browser-lock svg { width: 13px; height: 13px; }
   .browser-url {
     flex: 1; min-width: 0;
-    font-size: 11.5px; font-family: var(--mono);
-    color: var(--muted);
+    font-size: 12px; font-family: var(--mono);
+    color: var(--ink);
     white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    background: var(--bg);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-pill);
+    padding: 7px 12px;
   }
   .browser-open {
     font-size: 11.5px; font-weight: 600;
@@ -1806,59 +1837,99 @@
   .browser-open:hover { background: var(--nav-hover); }
   .browser-hint {
     display: none;
-    padding: 8px 12px;
+    padding: 8px 14px 0;
     font-size: 12px;
     line-height: 1.4;
     color: var(--dim);
-    border-bottom: 1px solid var(--line);
     background: var(--bg);
     flex-shrink: 0;
   }
   .browser-hint.show { display: block; }
   .browser-hint strong { color: var(--ink); font-weight: 600; }
-  .browser-poster {
-    display: none;
-    flex: 0 0 320px;
-    height: 320px;
-    min-height: 320px;
-    background: #111;
+  .browser-stage {
+    flex: 1;
+    min-height: 0;
+    overflow: auto;
+    background: var(--bg);
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    padding: 20px 20px 36px;
+  }
+  #rpBrowser { background: var(--bg); }
+  .browser-preview {
+    width: min(480px, 100%);
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: 16px;
+    box-shadow: var(--shadow);
     overflow: hidden;
-    border-bottom: 1px solid var(--line);
+    flex: 0 0 auto;
   }
-  .browser-poster.show { display: block; }
-  .browser-poster img {
-    width: 100%;
-    height: 100%;
-    object-fit: contain;
-    object-position: center;
-    background: #111;
-    max-width: none;
+  .browser-preview[data-kind="youtube"],
+  .browser-preview[data-kind="page"] {
+    width: min(720px, 100%);
   }
+  .browser-poster { display: none; }
   .browser-frame-wrap {
-    flex: 1; min-height: 360px;
-    background: #111;
     position: relative;
+    width: 100%;
+    background: var(--panel);
+    min-height: 0;
   }
+  .browser-preview[data-kind="instagram"] .browser-frame-wrap,
+  .browser-preview[data-kind="x"] .browser-frame-wrap { aspect-ratio: 4 / 5; }
+  .browser-preview[data-kind="youtube"] .browser-frame-wrap { aspect-ratio: 16 / 9; }
+  .browser-preview[data-kind="page"] .browser-frame-wrap { min-height: 560px; }
   .browser-frame-wrap iframe {
+    position: absolute; inset: 0;
     width: 100%; height: 100%; border: none;
-    background: #fff;
-    min-height: 360px;
+    background: var(--panel);
+    min-height: 0;
+  }
+  .browser-preview[data-kind="page"] .browser-frame-wrap iframe { position: relative; min-height: 560px; }
+  .browser-fallback {
+    display: none;
+    flex-direction: column;
+    background: var(--panel);
+    color: var(--ink);
+  }
+  .browser-fallback.show { display: flex; }
+  .browser-fallback img {
+    width: 100%;
+    height: auto;
+    max-width: none;
+    object-fit: cover;
+    background: #0A0A0A;
+    display: block;
+  }
+  .browser-preview[data-kind="youtube"] .browser-fallback img { aspect-ratio: 16 / 9; object-fit: cover; }
+  .browser-fallback-body {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding: 14px 16px 16px;
+  }
+  .browser-fallback-url {
+    margin: 0;
+    font-size: 12px;
+    font-family: var(--mono);
+    color: var(--ink);
+    word-break: break-all;
+  }
+  .browser-fallback-note {
+    margin: 0;
+    font-size: 12.5px;
+    line-height: 1.4;
+    color: var(--muted);
+  }
+  .browser-fallback-body .browser-open {
+    align-self: flex-start;
+    background: var(--lime);
+    border-color: transparent;
   }
   .browser-blocked {
-    position: absolute; inset: 0;
-    display: flex; flex-direction: column;
-    align-items: center; justify-content: center;
-    gap: 10px;
-    padding: 24px;
-    text-align: center;
-    font-size: 13px; color: var(--muted);
-    background: var(--bg);
-  }
-  .browser-blocked a {
-    color: var(--ink); font-weight: 600;
-    padding: 8px 14px;
-    border-radius: var(--radius-pill);
-    background: var(--lime);
+    display: none;
   }
 
   /* ——— Truth lane · sourced proof ——— */
@@ -2344,7 +2415,10 @@
         <span class="ico" aria-hidden="true">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c2.5 2.8 2.5 15.2 0 18M12 3c-2.5 2.8-2.5 15.2 0 18"/></svg>
         </span>
-        Browser
+        <span class="rp-tab-copy">
+          Browser
+          <span class="rp-tab-url" id="tabBrowserUrl"></span>
+        </span>
       </button>
     </div>
     <div class="rp-magic"><span class="dot" aria-hidden="true"></span> Magic Layer</div>
@@ -2469,16 +2543,26 @@
       </div>
       <div id="browserLive" style="display:none; flex:1; min-height:0; flex-direction:column;">
         <div class="browser-bar">
+          <span class="browser-lock" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><rect x="6" y="11" width="12" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>
+          </span>
           <span class="browser-url" id="browserUrl">—</span>
           <a class="browser-open" id="browserOpen" href="#" target="_blank" rel="noopener noreferrer">Open</a>
         </div>
         <div class="browser-hint" id="browserHint"></div>
-        <div class="browser-poster" id="browserPoster"><img id="browserPosterImg" alt="Page still" width="1080" height="720"/></div>
-        <div class="browser-frame-wrap" id="browserFrameWrap">
-          <iframe id="browserFrame" sandbox="allow-scripts allow-same-origin allow-popups allow-forms allow-popups-to-escape-sandbox" allow="encrypted-media; clipboard-write; picture-in-picture; fullscreen" referrerpolicy="origin" title="Source preview"></iframe>
-          <div class="browser-blocked" id="browserBlocked" style="display:none">
-            <span id="browserBlockedNote">This site blocks in-panel preview.</span>
-            <a id="browserBlockedLink" href="#" target="_blank" rel="noopener noreferrer">Open the post</a>
+        <div class="browser-stage" id="browserStage">
+          <div class="browser-preview" id="browserPreview" data-kind="page">
+            <div class="browser-frame-wrap" id="browserFrameWrap">
+              <iframe id="browserFrame" sandbox="allow-scripts allow-same-origin allow-popups allow-forms allow-popups-to-escape-sandbox" allow="encrypted-media; clipboard-write; picture-in-picture; fullscreen" referrerpolicy="origin" title="Source preview"></iframe>
+            </div>
+            <div class="browser-fallback" id="browserBlocked">
+              <img id="browserPosterImg" alt="Post still"/>
+              <div class="browser-fallback-body">
+                <p class="browser-fallback-url" id="browserFallbackUrl"></p>
+                <p class="browser-fallback-note" id="browserBlockedNote">Live embed is blocked here. This is the cached post still.</p>
+                <a class="browser-open" id="browserBlockedLink" href="#" target="_blank" rel="noopener noreferrer">Open the post</a>
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -3718,19 +3802,36 @@
     return "";
   }
 
-  function socialHint(url, embed) {
+  function prettyBrowserUrl(url) {
+    try {
+      const u = new URL(url);
+      const host = u.hostname.replace(/^www\./, "");
+      const path = (u.pathname.replace(/\/$/, "") || "") + u.search;
+      return host + path;
+    } catch (_) {
+      return String(url || "");
+    }
+  }
+
+  function browserKind(url) {
+    const u = String(url || "");
+    if (/instagram\.com|instagr\.am|sample-dcn-ig/i.test(u)) return "instagram";
+    if (/(^|\.)x\.com|twitter\.com|sample-dcn-x/i.test(u)) return "x";
+    if (/youtube\.com|youtu\.be|sample-dcn-yt/i.test(u)) return "youtube";
+    return "page";
+  }
+
+  function socialHint(url, mode) {
     if (/instagram\.com|instagr\.am/i.test(url)) {
-      return embed
-        ? "<strong>Instagram embed</strong> in this panel. Open the original post if it stays blank."
-        : "<strong>Instagram blocks</strong> in-panel preview. Open the post to see it in full.";
+      return "<strong>Instagram</strong> · cached still in this frame. Open the live post if you need the page.";
     }
     if (/(^|\.)x\.com|twitter\.com/i.test(url)) {
-      return embed
-        ? "<strong>X embed</strong> in this panel. Open the original post if it stays blank."
-        : "<strong>X blocks</strong> in-panel preview. Open the post to see it in full.";
+      return mode === "embed"
+        ? "<strong>X embed</strong> in this frame. Open the post if it stays blank."
+        : "<strong>X</strong> · style page in this frame.";
     }
     if (/youtube\.com|youtu\.be/i.test(url)) {
-      return embed ? "<strong>YouTube</strong> embed in this panel." : "";
+      return mode === "embed" ? "<strong>YouTube</strong> embed in this frame." : "<strong>YouTube</strong> · style page in this frame.";
     }
     return "";
   }
@@ -3751,18 +3852,53 @@
     return "";
   }
 
-  function paintBrowserPoster(url) {
-    const box = $("browserPoster");
+  function setBrowserTabUrl(url) {
+    const tab = $("tabBrowserUrl");
+    if (!tab) return;
+    if (!isLiveSourceUrl(url)) {
+      tab.textContent = "";
+      tab.classList.remove("show");
+      return;
+    }
+    tab.textContent = prettyBrowserUrl(url);
+    tab.title = url;
+    tab.classList.add("show");
+  }
+
+  function showBrowserFallback(url, note) {
+    const fallback = $("browserBlocked");
+    const wrap = $("browserFrameWrap");
     const img = $("browserPosterImg");
     const src = posterForUrl(url);
-    if (!box || !img) return;
+    if (wrap) wrap.style.display = "none";
+    if (fallback) fallback.classList.add("show");
+    if (img) {
+      if (src) img.src = src;
+      else img.removeAttribute("src");
+      img.style.display = src ? "" : "none";
+    }
+    if ($("browserFallbackUrl")) $("browserFallbackUrl").textContent = prettyBrowserUrl(url);
+    if ($("browserBlockedNote")) {
+      $("browserBlockedNote").textContent = note || "Live embed is blocked here. This is the cached post still.";
+    }
+  }
+
+  function showBrowserFrame() {
+    const fallback = $("browserBlocked");
+    const wrap = $("browserFrameWrap");
+    if (wrap) wrap.style.display = "";
+    if (fallback) fallback.classList.remove("show");
+  }
+
+  function paintBrowserPoster(url) {
+    const img = $("browserPosterImg");
+    const src = posterForUrl(url);
+    if (!img) return;
     if (!src) {
-      box.classList.remove("show");
       img.removeAttribute("src");
       return;
     }
     img.src = src;
-    box.classList.add("show");
   }
 
   function loadBrowserUrl(url, { switchTab = true } = {}) {
@@ -3772,46 +3908,55 @@
     const live = $("browserLive");
     empty.style.display = "none";
     live.style.display = "flex";
-    $("browserUrl").textContent = url;
+    const pretty = prettyBrowserUrl(url);
+    $("browserUrl").textContent = pretty;
+    $("browserUrl").title = url;
     $("browserOpen").href = url;
     $("browserBlockedLink").href = url;
+    if ($("browserFallbackUrl")) $("browserFallbackUrl").textContent = pretty;
+    setBrowserTabUrl(url);
     paintBrowserPoster(url);
+    const kind = browserKind(url);
+    const preview = $("browserPreview");
+    if (preview) preview.dataset.kind = kind;
     const embed = socialEmbedUrl(url);
-    const frameUrl = embed || url;
+    /* Official IG embed is a black full-page widget — never full-bleed it. Honest card instead. */
+    const useEmbed = !!embed && kind !== "instagram";
+    const isLocalStyle = /sample-dcn-|sample-(pune|mumbai|delhi|bengaluru|hyderabad|source)\.html/i.test(url);
+    const mode = useEmbed ? "embed" : (kind === "instagram" || (!embed && !isLocalStyle && /instagram|x\.com|twitter|facebook|tiktok/i.test(url))) ? "card" : "page";
+    const frameUrl = useEmbed ? embed : url;
     const hint = $("browserHint");
-    const hintText = socialHint(url, embed);
+    const hintText = socialHint(url, mode === "embed" ? "embed" : "page");
     if (hint) {
       hint.innerHTML = hintText;
       hint.classList.toggle("show", !!hintText);
     }
     const frame = $("browserFrame");
-    const blocked = $("browserBlocked");
     const note = $("browserBlockedNote");
-    const noEmbedBlock = !embed && /instagram\.com|instagr\.am|x\.com|twitter\.com|facebook\.com|tiktok\.com/i.test(url);
-    if (note) {
-      note.textContent = noEmbedBlock
-        ? "This site blocks in-panel preview. Open the post to see it in full — caption is on Post."
-        : "Preview blocked. Open the post to see it in full.";
-    }
-    blocked.style.display = noEmbedBlock ? "flex" : "none";
-    if (frame.dataset.src !== frameUrl) {
-      frame.dataset.src = frameUrl;
-      frame.src = frameUrl;
-      clearTimeout(frame._bt);
-      if (embed) {
-        frame._bt = setTimeout(() => {
-          /* Embed often blanks (IG login wall). Keep cached still poster + clear note — never look broken. */
-          paintBrowserPoster(url);
-          const box = $("browserPoster");
-          if (box) box.classList.add("show");
-          if (hint) {
-            const stillHint = /instagram/i.test(url)
-              ? "<strong>Instagram embed</strong> may stay blank here. Cached still is on Post — open the original if you need the live page."
-              : hintText;
-            hint.innerHTML = stillHint || hintText;
-            hint.classList.add("show");
-          }
-        }, 1800);
+    clearTimeout(frame._bt);
+    if (mode === "card") {
+      if (note) {
+        note.textContent = kind === "instagram"
+          ? "Instagram blocks a live embed here. Cached still + URL — open the post for the live page."
+          : "This site blocks in-panel preview. Cached still + URL — open the post to see it in full.";
+      }
+      showBrowserFallback(url, note ? note.textContent : "");
+      frame.removeAttribute("src");
+      delete frame.dataset.src;
+    } else {
+      showBrowserFrame();
+      if (frame.dataset.src !== frameUrl) {
+        frame.dataset.src = frameUrl;
+        frame.src = frameUrl;
+        if (useEmbed && kind !== "youtube") {
+          frame._bt = setTimeout(() => {
+            showBrowserFallback(url, "Live embed stayed blank. Cached still + URL instead.");
+            if (hint) {
+              hint.innerHTML = "<strong>Embed unavailable</strong> · showing the cached post still.";
+              hint.classList.add("show");
+            }
+          }, 2200);
+        }
       }
     }
     if (switchTab) switchRightTab("browser");
@@ -3845,6 +3990,7 @@
       $("browserFrame").removeAttribute("src");
       delete $("browserFrame").dataset.src;
       paintBrowserPoster("");
+      setBrowserTabUrl("");
       return;
     }
     if (/^https?:\/\//i.test(src)) {
@@ -3855,6 +4001,7 @@
     $("browserFrame").removeAttribute("src");
     delete $("browserFrame").dataset.src;
     paintBrowserPoster("");
+    setBrowserTabUrl("");
   }
 
   function fillMagicLayers(run, opts) {
@@ -3950,6 +4097,27 @@
     return url.replace(/\/(pune|mumbai|delhi|bengaluru)-card\.jpg(\?.*)?$/i, "/$1.jpg$2");
   }
 
+  function postPlatform(run) {
+    const beat = (run?.beat || "").toLowerCase();
+    const src = resolveSourceUrl(run) || "";
+    if (beat === "youtube" || /youtube\.com|youtu\.be|sample-dcn-yt/i.test(src)) return "youtube";
+    if (beat === "x" || /(^|\.)x\.com|twitter\.com|sample-dcn-x/i.test(src)) return "x";
+    return "instagram";
+  }
+
+  function applyPostAspect(run) {
+    const frame = $("igFrame");
+    if (!frame) return;
+    const plat = postPlatform(run);
+    const yt = plat === "youtube";
+    frame.dataset.aspect = yt ? "yt" : (plat === "x" ? "x" : "ig");
+    frame.style.aspectRatio = yt ? "16 / 9" : "4 / 5";
+    frame.style.height = "";
+    frame.style.minHeight = "";
+    frame.style.maxHeight = "";
+    frame.style.flex = "0 0 auto";
+  }
+
   function paintIgPost(run) {
     const card = $("igPost");
     if (!card) return;
@@ -4007,9 +4175,7 @@
       if (fill) fill.hidden = true;
       const src = url || cachedIg;
       frame.style.backgroundImage = "none";
-      frame.style.height = "420px";
-      frame.style.minHeight = "420px";
-      frame.style.flex = "0 0 420px";
+      applyPostAspect(run);
       frame.classList.toggle("no-chrome", !chromeSrc);
       if (photo) {
         photo.hidden = false;
@@ -4477,7 +4643,7 @@
     }
   });
   document.querySelectorAll("#socialChips [data-social]").forEach((btn) => {
-    btn.addEventListener("click", () => {
+    btn.addEventListener("click", async () => {
       const kind = btn.dataset.social || "instagram";
       const url = btn.dataset.url
         || (kind === "x" ? location.origin + "/sample-dcn-x.html"
@@ -4485,7 +4651,13 @@
           : "https://www.instagram.com/p/DdwHjcpId9B/");
       document.querySelectorAll("#socialChips [data-social]").forEach((b) => b.classList.remove("active"));
       btn.classList.add("active");
-      doAnalyze(url);
+      const stayPost = $("tabStructure")?.classList.contains("active") && !!currentRun;
+      await doAnalyze(url);
+      if (currentRun) applyPostAspect(currentRun);
+      if (stayPost && currentRun) {
+        switchRightTab("structure");
+        paintIgPost(currentRun);
+      }
     });
   });
 
