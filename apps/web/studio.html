@@ -1668,7 +1668,7 @@
             <button type="button" class="btn btn-lime" id="analyzeBtn">Analyze</button>
           </div>
           <div class="assign-chips" id="socialChips">
-            <button type="button" class="assign-chip" data-social="instagram">DCN · Instagram</button>
+            <button type="button" class="assign-chip" data-social="instagram" data-url="https://www.instagram.com/p/DdwHjcpId9B/">DCN · Instagram</button>
             <button type="button" class="assign-chip" data-social="x">DCN · X</button>
             <button type="button" class="assign-chip" data-social="youtube">DCN · YouTube</button>
           </div>
@@ -2854,8 +2854,10 @@
   document.querySelectorAll("#socialChips [data-social]").forEach((btn) => {
     btn.addEventListener("click", () => {
       const kind = btn.dataset.social || "instagram";
-      const page = kind === "x" ? "/sample-dcn-x.html" : kind === "youtube" ? "/sample-dcn-yt.html" : "/sample-dcn-ig.html";
-      const url = location.origin + page;
+      const url = btn.dataset.url
+        || (kind === "x" ? location.origin + "/sample-dcn-x.html"
+          : kind === "youtube" ? location.origin + "/sample-dcn-yt.html"
+          : "https://www.instagram.com/p/DdwHjcpId9B/");
       document.querySelectorAll("#socialChips [data-social]").forEach((b) => b.classList.remove("active"));
       btn.classList.add("active");
       doAnalyze(url);
@@ -3706,11 +3708,8 @@
       switchRightTab(preview === "flow-browser" ? "browser" : "structure");
     } else if (preview === "social") {
       document.body.classList.add("is-showcase");
-      await doAnalyze(location.origin + "/sample-dcn-ig.html");
-      const hl = $("igHeadlineEdit");
-      if (hl) hl.innerText = "DCN: overnight buses go to a vote.";
-      const cap = $("igCaptionEdit");
-      if (cap) cap.innerText = "DCN · Instagram · overnight buses. Edited on the desk from the pasted post URL.";
+      const ig = document.querySelector("#socialChips [data-social=\"instagram\"]");
+      ig?.click();
       savePostEdits();
       switchRightTab("structure");
     }

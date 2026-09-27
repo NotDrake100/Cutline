@@ -9,7 +9,24 @@ import { getStyle } from "../../packages/core/src/styles";
 import { fetchOgMeta, fetchYoutubeOEmbed } from "../../packages/scout/src/http";
 import { parseGeminiJson } from "../../packages/core/src/gemini";
 
+/** Archit's showcase DCN Instagram post. Strip ?stkn= and other query junk. */
+export const DCN_INSTAGRAM_POST = "https://www.instagram.com/p/DdwHjcpId9B/";
+
 export type SocialKind = "instagram" | "x" | "youtube" | "tiktok" | "facebook" | "threads" | "web";
+
+export function cleanPostUrl(raw: string): string {
+  try {
+    const u = new URL(raw.trim());
+    u.search = "";
+    u.hash = "";
+    if (u.hostname.replace(/^www\./, "") === "instagram.com" && /\/p\/DdwHjcpId9B/i.test(u.pathname)) {
+      return DCN_INSTAGRAM_POST;
+    }
+    return u.toString();
+  } catch {
+    return raw.trim();
+  }
+}
 
 export function classifyPostUrl(raw: string): SocialKind | null {
   let host = "";
@@ -74,10 +91,10 @@ export interface SocialFixture {
 export const SOCIAL_FIXTURES: Record<"instagram" | "x" | "youtube", SocialFixture> = {
   instagram: {
     kind: "instagram",
-    title: "DCN: overnight buses go to a vote.",
-    body: "DCN posted the overnight bus vote on Instagram. Cached demo analysis — title, caption, and still from the pack, not Gemini.",
-    caption: "DCN · Instagram · overnight buses go to a vote. Sourced from the pasted post URL.",
-    page: "/sample-dcn-ig.html",
+    title: "DCN on Instagram",
+    body: "Sourced from the DCN Instagram post. Demo uses the live URL — OG when Instagram allows it, this pack when fetch is blocked. No Gemini.",
+    caption: "DCN · Instagram. Sourced from instagram.com/p/DdwHjcpId9B",
+    page: DCN_INSTAGRAM_POST,
     still: "/assets/demo/dcn-ig.svg",
     outlet: "DCN",
   },
@@ -123,7 +140,7 @@ export async function analyzePostUrl(opts: {
   owner: boolean;
   geminiText?: (prompt: string) => Promise<string>;
 }): Promise<StoryRun> {
-  const sourceUrl = opts.url.trim();
+  const sourceUrl = cleanPostUrl(opts.url);
   if (!/^https?:\/\//i.test(sourceUrl)) throw new Error("source_needed");
   const kind = classifyPostUrl(sourceUrl) || "web";
   const fx = fixtureFor(kind === "web" ? "instagram" : kind);
