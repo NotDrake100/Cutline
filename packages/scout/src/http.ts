@@ -258,6 +258,20 @@ export interface OgMeta {
   siteName: string;
 }
 
+/** Prefer a larger social CDN still when the OG/oEmbed thumb is a tiny crop. */
+export function upgradeSocialImage(url: string): string {
+  if (!url || !/^https?:\/\//i.test(url)) return url || "";
+  let out = url;
+  out = out.replace(/\/hqdefault\./i, "/maxresdefault.");
+  out = out.replace(/\/sddefault\./i, "/maxresdefault.");
+  out = out.replace(/\/mqdefault\./i, "/hqdefault.");
+  out = out.replace(/s150x150/gi, "s1080x1080");
+  out = out.replace(/s240x240/gi, "s1080x1080");
+  out = out.replace(/s320x320/gi, "s1080x1080");
+  out = out.replace(/s640x640/gi, "s1080x1080");
+  return out;
+}
+
 function metaProp(html: string, keys: string[]): string {
   for (const key of keys) {
     const a = html.match(
@@ -291,8 +305,8 @@ export async function fetchOgMeta(url: string): Promise<OgMeta | null> {
     const siteName = metaProp(html, ["og:site_name"]);
     if (!title && !description && !image) return null;
     return {
-      title: title.slice(0, 180),
-      description: description.slice(0, 400),
+      title: title.slice(0, 4000),
+      description: description.slice(0, 8000),
       image: image && /^https?:\/\//i.test(image) ? image.split("#")[0] : "",
       siteName: siteName.slice(0, 80),
     };
@@ -313,9 +327,9 @@ export async function fetchYoutubeOEmbed(
     const body = (await res.json()) as { title?: string; author_name?: string; thumbnail_url?: string };
     if (!body.title && !body.thumbnail_url) return null;
     return {
-      title: String(body.title || "").slice(0, 180),
+      title: String(body.title || "").slice(0, 400),
       author: String(body.author_name || "").slice(0, 80),
-      thumbnail: String(body.thumbnail_url || ""),
+      thumbnail: upgradeSocialImage(String(body.thumbnail_url || "")),
     };
   } catch {
     return null;

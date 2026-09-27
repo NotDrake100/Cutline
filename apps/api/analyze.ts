@@ -6,7 +6,7 @@
 import type { StoryRun } from "../../packages/core/src/types";
 import { sourcedBrief, sourcedPack, sourcedRewrite } from "../../packages/desk/src/sourced";
 import { getStyle } from "../../packages/core/src/styles";
-import { fetchOgMeta, fetchYoutubeOEmbed } from "../../packages/scout/src/http";
+import { fetchOgMeta, fetchYoutubeOEmbed, upgradeSocialImage } from "../../packages/scout/src/http";
 import { parseGeminiJson } from "../../packages/core/src/gemini";
 
 /** Archit's showcase DCN Instagram post. Strip ?stkn= and other query junk. */
@@ -88,15 +88,19 @@ export interface SocialFixture {
   outlet: string;
 }
 
+/** Cached OG caption for Archit's showcase DCN post — used only when live OG is blocked. */
+const DCN_IG_CAPTION =
+  "A heartbreaking incident unfolded on BT Kawade Road, Pune, on September 25 around 4 PM. A 20-year-old youth, Vignesh Santosh Pawar from Ramtekdi, lost his life after losing balance while attempting to board a moving tractor-trolley returning from Ganesh Visarjan near Kalubai Chowk. He fell and was fatally injured when the trolley's rear wheel ran over him. Doctors at Sassoon Hospital declared him dead on arrival, and the body was subsequently sent to Command Hospital for autopsy. Local police have registered the case and are conducting further investigation.\n\n#PuneAccident #GaneshVisarjan #BTKawadeRoad #PuneNews #TragicIncident\n\n(BT Kawade Road, Ganesh Visarjan accident, Ramtekdi youth, Vighnesh Santosh Pawar, Tractor trolley accident, Pune news)\n\nCopyright Disclaimer: This post includes copyrighted material used under Fair Dealing (Section 52, Copyright Act, 1957) for the purpose of news reporting, criticism, review and public awareness. All rights belong to the respective owners.";
+
 export const SOCIAL_FIXTURES: Record<"instagram" | "x" | "youtube", SocialFixture> = {
   instagram: {
     kind: "instagram",
-    title: "DCN on Instagram",
-    body: "Sourced from the DCN Instagram post. Demo uses the live URL — OG when Instagram allows it, this pack when fetch is blocked. No Gemini.",
-    caption: "DCN · Instagram. Sourced from instagram.com/p/DdwHjcpId9B",
+    title: "DCN Pune on Instagram",
+    body: DCN_IG_CAPTION,
+    caption: DCN_IG_CAPTION,
     page: DCN_INSTAGRAM_POST,
     still: "/assets/demo/dcn-ig.svg",
-    outlet: "DCN",
+    outlet: "DCN Pune",
   },
   x: {
     kind: "x",
@@ -132,6 +136,65 @@ function abs(base: string, path: string): string {
 function weakTitle(title: string): boolean {
   const t = title.trim().toLowerCase();
   return !t || t === "instagram" || t === "x" || t === "twitter" || t === "youtube" || t === "tiktok" || t === "facebook";
+}
+
+function looksTinyThumb(url: string): boolean {
+  return /s1\d{2}x1\d{2}|s2\d{2}x2\d{2}|_s\.(jpg|webp)|150x150|320x320|\/s150|\/s240|\/s320/i.test(url || "");
+}
+
+/** Quoted body after "Name on Instagram:" / oEmbed wrappers. Never invents. */
+export function captionFromSocialMeta(title: string, description: string): string {
+  const quoted = (s: string) => {
+    const m = String(s || "").match(/[“"]([\s\S]+)[”"]/);
+    return m?.[1]?.trim() || "";
+  };
+  const afterOn = (s: string) => {
+    const m = String(s || "").match(/on (?:Instagram|YouTube|X|Twitter):\s*[“"]?([\s\S]+?)[”"]?\s*$/i);
+    return (m?.[1] || "").replace(/^[“"]|[”"]$/g, "").trim();
+  };
+  const likesWrap = (s: string) => {
+    const m = String(s || "").match(/comments?\s+-\s+\S+\s+on\s+[^:]+:\s*[“"]([\s\S]+)[”"]/i);
+    return m?.[1]?.trim() || "";
+  };
+  const clean = (s: string) => s.replace(/\s+/g, " ").trim();
+  const extracted = [likesWrap(description), quoted(description), afterOn(title), quoted(title)]
+    .map(clean)
+    .filter((s) => s.length > 8 && !weakTitle(s) && !/^[^:]{0,40} on (?:Instagram|YouTube|X|Twitter):/i.test(s));
+  if (extracted.length) return extracted.sort((a, b) => b.length - a.length)[0] || "";
+  const fallbacks = [String(description || ""), afterOn(description), String(title || "")]
+    .map(clean)
+    .filter((s) => s.length > 8 && !weakTitle(s));
+  return fallbacks.sort((a, b) => b.length - a.length)[0] || "";
+}
+
+/** In-panel embed for IG / X / YouTube. Address bar still shows the live post URL. */
+export function socialEmbedUrl(raw: string): string {
+  try {
+    const u = new URL(raw);
+    const host = u.hostname.replace(/^www\./, "").toLowerCase();
+    const parts = u.pathname.split("/").filter(Boolean);
+    if (host === "instagram.com" || host === "instagr.am") {
+      const i = parts.findIndex((p) => ["p", "reel", "reels", "tv"].includes(p.toLowerCase()));
+      if (i >= 0 && parts[i + 1]) {
+        const kind = parts[i].toLowerCase() === "reels" ? "reel" : parts[i].toLowerCase();
+        return `https://www.instagram.com/${kind}/${parts[i + 1]}/embed/captioned/`;
+      }
+    }
+    if (host === "youtube.com" || host === "m.youtube.com") {
+      const id = u.searchParams.get("v") || (parts[0] === "embed" || parts[0] === "shorts" ? parts[1] : "");
+      if (id) return `https://www.youtube.com/embed/${id}`;
+    }
+    if (host === "youtu.be" && parts[0]) return `https://www.youtube.com/embed/${parts[0]}`;
+    if (host === "x.com" || host === "twitter.com" || host === "mobile.twitter.com") {
+      const si = parts.findIndex((p) => p === "status");
+      if (si >= 0 && parts[si + 1]) {
+        return `https://platform.twitter.com/embed/Tweet.html?id=${parts[si + 1]}`;
+      }
+    }
+  } catch {
+    /* keep empty */
+  }
+  return "";
 }
 
 export async function analyzePostUrl(opts: {
@@ -171,25 +234,36 @@ export async function analyzePostUrl(opts: {
   }
 
   /* Demo / blocked social: fixtures fill gaps. Pasted URL stays the source. */
+  const showcaseIg = /instagram\.com\/p\/DdwHjcpId9B/i.test(sourceUrl);
   if (weakTitle(title)) title = fx.title;
   if (!body) body = fx.body;
-  const still = image || abs(opts.base, fx.still);
-  const caption = weakTitle(title) ? fx.caption : `${outlet} · ${title}`.slice(0, 220);
-  if (handle && /dcn/i.test(handle)) outlet = "DCN";
+  const extracted = captionFromSocialMeta(title, body);
+  const caption = extracted || fx.caption || body || title;
+  if (handle && /dcn/i.test(handle)) outlet = showcaseIg ? "DCN Pune" : "DCN";
+
+  const fixtureStill = abs(opts.base, fx.still);
+  const upgraded = image ? upgradeSocialImage(image) : "";
+  const still = (upgraded && !looksTinyThumb(upgraded) ? upgraded : "") || upgraded || fixtureStill;
+  const headline =
+    kind === "instagram"
+      ? (/on Instagram/i.test(title.split(":")[0] || "") ? title.split(":")[0]!.trim() : `${outlet} on Instagram`)
+      : title || fx.title;
 
   const style = getStyle("tight_news");
-  const brief = sourcedBrief({ title, sourceUrl, pageText: body });
-  let rewrite = sourcedRewrite(brief, body, style.label);
+  const brief = sourcedBrief({ title: headline, sourceUrl, pageText: caption || body });
+  let rewrite = sourcedRewrite(brief, caption || body, style.label);
+  rewrite.headline = headline;
   rewrite.caption = caption;
+  rewrite.body = caption || body;
 
   if (opts.owner && opts.geminiText) {
     try {
       const raw = await opts.geminiText(
-        `Rewrite this sourced social post as tight news JSON {"headline","caption"}. Do not invent facts.\nURL: ${sourceUrl}\nTitle: ${title}\nText: ${body}`
+        `Rewrite this sourced social post as tight news JSON {"headline","caption"}. Do not invent facts. Keep the full caption — do not truncate.\nURL: ${sourceUrl}\nTitle: ${title}\nText: ${body}`
       );
       const parsed = parseGeminiJson<{ headline?: string; caption?: string }>(raw);
-      if (parsed.headline) rewrite.headline = parsed.headline.slice(0, 160);
-      if (parsed.caption) rewrite.caption = parsed.caption.slice(0, 400);
+      if (parsed.headline) rewrite.headline = parsed.headline.trim();
+      if (parsed.caption) rewrite.caption = parsed.caption.trim();
     } catch {
       /* keep OG / fixture pack */
     }
@@ -205,6 +279,11 @@ export async function analyzePostUrl(opts: {
   const pack = sourcedPack(rewrite, photo);
   pack.igCaption = rewrite.caption || pack.igCaption;
   pack.canvaNotes = `${PLATFORM_LABEL[kind]} post → Cutline pack.`;
+  const photos = [
+    { url: still, credit: outlet },
+    { url: fixtureStill, credit: "Demo still" },
+  ].filter((p, i, arr) => p.url && arr.findIndex((x) => x.url === p.url) === i);
+  if (image && image !== still) photos.splice(1, 0, { url: image, credit: outlet });
   const now = new Date().toISOString();
   return {
     id: `post_${Date.now().toString(36)}`,
@@ -214,16 +293,13 @@ export async function analyzePostUrl(opts: {
     brief,
     rewrite,
     photo,
-    photos: [
-      { url: still, credit: outlet },
-      { url: abs(opts.base, fx.still), credit: "Demo still" },
-    ],
+    photos,
     pack,
-    stillNote: image ? "Using post thumb" : "Using demo still",
+    stillNote: image ? "Using post still" : "Using demo still — open the post in Browser",
     styleId: style.id,
     log: [
       { agent: "wire", at: now, action: "analyze", ok: true, spendCents: 0, detail: kind },
-      { agent: "still", at: now, action: image ? "sourced" : "sourced", ok: true, spendCents: 0 },
+      { agent: "still", at: now, action: "sourced", ok: true, spendCents: 0 },
       { agent: "desk", at: now, action: "pack", ok: true, spendCents: 0 },
       { agent: "ship", at: now, action: "await_approve", ok: true, detail: "needs_input" },
     ],

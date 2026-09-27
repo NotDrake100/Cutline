@@ -2,8 +2,8 @@
   <rect width="1080" height="1080" fill="#EDE6D9"/>
   <rect x="64" y="64" width="952" height="952" rx="28" fill="#FFFEFB"/>
   <rect x="64" y="64" width="16" height="952" fill="#E1F435"/>
-  <text x="120" y="200" font-family="Georgia, serif" font-size="36" fill="#0A0A0A">DCN · Instagram</text>
-  <text x="120" y="300" font-family="Georgia, serif" font-size="64" fill="#0A0A0A">Overnight buses</text>
-  <text x="120" y="380" font-family="Georgia, serif" font-size="64" fill="#0A0A0A">go to a vote.</text>
-  <text x="120" y="980" font-family="ui-sans-serif, system-ui" font-size="28" fill="rgba(10,10,10,.45)">Analyzed post · Demo still</text>
+  <text x="120" y="220" font-family="Georgia, serif" font-size="36" fill="#0A0A0A">DCN Pune · Instagram</text>
+  <text x="120" y="340" font-family="Georgia, serif" font-size="56" fill="#0A0A0A">Sourced post</text>
+  <text x="120" y="420" font-family="ui-sans-serif, system-ui" font-size="28" fill="rgba(10,10,10,.55)">instagram.com/p/DdwHjcpId9B</text>
+  <text x="120" y="980" font-family="ui-sans-serif, system-ui" font-size="28" fill="rgba(10,10,10,.45)">Demo still · open in Browser</text>
 </svg>

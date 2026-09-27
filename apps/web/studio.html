@@ -1131,7 +1131,7 @@
     background: #fff;
     border: 1px solid var(--line);
     border-radius: 16px;
-    overflow: hidden;
+    overflow: auto;
     flex: 1 1 auto;
     min-height: 0;
     display: flex;
@@ -1157,11 +1157,13 @@
     overflow: hidden;
     display: grid; place-items: center;
     cursor: pointer;
-    flex: 1 1 auto;
-    min-height: 240px;
+    flex: 0 0 auto;
+    min-height: 180px;
+    max-height: 280px;
   }
   .ig-frame img { width: 100%; height: 100%; object-fit: cover; }
-  .ig-frame .ph { font-size: 12px; color: var(--dim); }
+  .ig-frame img.broken { display: none; }
+  .ig-frame .ph { font-size: 12px; color: var(--dim); padding: 16px; text-align: center; }
   .ig-headline {
     padding: 10px 12px 0;
     font-size: 14px; font-weight: 650;
@@ -1176,7 +1178,15 @@
     font-weight: 500;
   }
   .ig-caption {
-    display: none !important;
+    display: block;
+    padding: 8px 12px 10px;
+    font-size: 13.5px;
+    font-weight: 400;
+    line-height: 1.5;
+    white-space: pre-wrap;
+    word-break: break-word;
+    outline: none;
+    color: var(--ink);
   }
   .photo-strip-label {
     padding: 0 12px 6px;
@@ -1361,7 +1371,7 @@
   .layer-text {
     font-size: 12.5px; line-height: 1.45; color: var(--ink);
     white-space: pre-wrap; word-break: break-word;
-    max-height: 96px; overflow: auto;
+    max-height: 240px; overflow: auto;
   }
   .layer-text.muted, .layer-meta.muted { color: var(--dim); }
   .layer-link {
@@ -1399,6 +1409,18 @@
     flex-shrink: 0;
   }
   .browser-open:hover { background: var(--nav-hover); }
+  .browser-hint {
+    display: none;
+    padding: 8px 12px;
+    font-size: 12px;
+    line-height: 1.4;
+    color: var(--dim);
+    border-bottom: 1px solid var(--line);
+    background: var(--bg);
+    flex-shrink: 0;
+  }
+  .browser-hint.show { display: block; }
+  .browser-hint strong { color: var(--ink); font-weight: 600; }
   .browser-frame-wrap {
     flex: 1; min-height: 0;
     background: #FAFAF9;
@@ -1890,7 +1912,7 @@
         <div class="photo-strip-label" id="photoStripLabel" hidden>From the page</div>
         <div class="photo-strip" id="photoStrip" hidden></div>
         <div class="ig-headline" id="igHeadlineEdit" contenteditable="true" data-placeholder="Rewrite"></div>
-        <div class="ig-caption" id="igCaptionEdit" hidden data-placeholder=""></div>
+        <div class="ig-caption" id="igCaptionEdit" contenteditable="true" data-placeholder="Full caption"></div>
         <div class="ig-actions">
           <button type="button" class="btn btn-ink btn-sm" id="igApproveBtn">Approve</button>
           <button type="button" class="btn btn-lime btn-sm" id="igZipBtn">ZIP</button>
@@ -1962,11 +1984,12 @@
           <span class="browser-url" id="browserUrl">—</span>
           <a class="browser-open" id="browserOpen" href="#" target="_blank" rel="noopener noreferrer">Open</a>
         </div>
+        <div class="browser-hint" id="browserHint"></div>
         <div class="browser-frame-wrap" id="browserFrameWrap">
-          <iframe id="browserFrame" sandbox="allow-scripts allow-same-origin allow-popups allow-forms" title="Source preview"></iframe>
+          <iframe id="browserFrame" sandbox="allow-scripts allow-same-origin allow-popups allow-forms allow-popups-to-escape-sandbox" allow="encrypted-media; clipboard-write; picture-in-picture; fullscreen" referrerpolicy="origin" title="Source preview"></iframe>
           <div class="browser-blocked" id="browserBlocked" style="display:none">
-            <span>Preview blocked by site headers.</span>
-            <a id="browserBlockedLink" href="#" target="_blank" rel="noopener noreferrer">Open source</a>
+            <span id="browserBlockedNote">This site blocks in-panel preview.</span>
+            <a id="browserBlockedLink" href="#" target="_blank" rel="noopener noreferrer">Open the post</a>
           </div>
         </div>
       </div>
@@ -2402,6 +2425,48 @@
     return /^https?:\/\//i.test(u || "");
   }
 
+  function socialEmbedUrl(raw) {
+    try {
+      const u = new URL(raw);
+      const host = u.hostname.replace(/^www\./, "").toLowerCase();
+      const parts = u.pathname.split("/").filter(Boolean);
+      if (host === "instagram.com" || host === "instagr.am") {
+        const i = parts.findIndex((p) => ["p", "reel", "reels", "tv"].includes(p.toLowerCase()));
+        if (i >= 0 && parts[i + 1]) {
+          const kind = parts[i].toLowerCase() === "reels" ? "reel" : parts[i].toLowerCase();
+          return "https://www.instagram.com/" + kind + "/" + parts[i + 1] + "/embed/captioned/";
+        }
+      }
+      if (host === "youtube.com" || host === "m.youtube.com") {
+        const id = u.searchParams.get("v") || ((parts[0] === "embed" || parts[0] === "shorts") ? parts[1] : "");
+        if (id) return "https://www.youtube.com/embed/" + id;
+      }
+      if (host === "youtu.be" && parts[0]) return "https://www.youtube.com/embed/" + parts[0];
+      if (host === "x.com" || host === "twitter.com" || host === "mobile.twitter.com") {
+        const si = parts.findIndex((p) => p === "status");
+        if (si >= 0 && parts[si + 1]) return "https://platform.twitter.com/embed/Tweet.html?id=" + parts[si + 1];
+      }
+    } catch (_) { /* keep empty */ }
+    return "";
+  }
+
+  function socialHint(url, embed) {
+    if (/instagram\.com|instagr\.am/i.test(url)) {
+      return embed
+        ? "<strong>Instagram embed</strong> in this panel. Open the original post if it stays blank."
+        : "<strong>Instagram blocks</strong> in-panel preview. Open the post to see it in full.";
+    }
+    if (/(^|\.)x\.com|twitter\.com/i.test(url)) {
+      return embed
+        ? "<strong>X embed</strong> in this panel. Open the original post if it stays blank."
+        : "<strong>X blocks</strong> in-panel preview. Open the post to see it in full.";
+    }
+    if (/youtube\.com|youtu\.be/i.test(url)) {
+      return embed ? "<strong>YouTube</strong> embed in this panel." : "";
+    }
+    return "";
+  }
+
   function loadBrowserUrl(url, { switchTab = true } = {}) {
     if (!isLiveSourceUrl(url)) return false;
     pendingSourceUrl = url;
@@ -2412,12 +2477,33 @@
     $("browserUrl").textContent = url;
     $("browserOpen").href = url;
     $("browserBlockedLink").href = url;
+    const embed = socialEmbedUrl(url);
+    const frameUrl = embed || url;
+    const hint = $("browserHint");
+    const hintText = socialHint(url, embed);
+    if (hint) {
+      hint.innerHTML = hintText;
+      hint.classList.toggle("show", !!hintText);
+    }
     const frame = $("browserFrame");
     const blocked = $("browserBlocked");
-    blocked.style.display = "none";
-    if (frame.dataset.src !== url) {
-      frame.dataset.src = url;
-      frame.src = url;
+    const note = $("browserBlockedNote");
+    const noEmbedBlock = !embed && /instagram\.com|instagr\.am|x\.com|twitter\.com|facebook\.com|tiktok\.com/i.test(url);
+    if (note) {
+      note.textContent = noEmbedBlock
+        ? "This site blocks in-panel preview. Open the post to see it in full — caption is on Post."
+        : "Preview blocked. Open the post to see it in full.";
+    }
+    blocked.style.display = noEmbedBlock ? "flex" : "none";
+    if (frame.dataset.src !== frameUrl) {
+      frame.dataset.src = frameUrl;
+      frame.src = frameUrl;
+      clearTimeout(frame._bt);
+      if (embed) {
+        frame._bt = setTimeout(() => {
+          /* keep embed visible; chrome already has Open + note */
+        }, 1600);
+      }
     }
     if (switchTab) switchRightTab("browser");
     return true;
@@ -2433,29 +2519,11 @@
     if (!run) {
       empty.style.display = "";
       $("browserFrame").removeAttribute("src");
+      delete $("browserFrame").dataset.src;
       return;
     }
     if (/^https?:\/\//i.test(src)) {
-      live.style.display = "flex";
-      $("browserUrl").textContent = src;
-      $("browserOpen").href = src;
-      $("browserBlockedLink").href = src;
-      const frame = $("browserFrame");
-      const blocked = $("browserBlocked");
-      blocked.style.display = "none";
-      if (frame.dataset.src !== src) {
-        frame.dataset.src = src;
-        frame.src = src;
-        // Show fallback after a beat if iframe likely blocked (XFO / CSP)
-        clearTimeout(frame._bt);
-        frame._bt = setTimeout(() => {
-          try {
-            // cross-origin access throws — treat as ok (loaded enough)
-            void frame.contentWindow.location.href;
-          } catch (_) { /* expected for cross-origin */ }
-          // Always offer Open source; keep iframe visible. If blank after load, soft-hint.
-        }, 1200);
-      }
+      loadBrowserUrl(src, { switchTab: false });
       return;
     }
     empty.style.display = "";
@@ -2524,11 +2592,25 @@
       return;
     }
     const url = run.photo?.pathOrUrl || run.pack?.stillUrl || (photos[0] && photos[0].url) || "";
+    const fallbacks = photos.map((p) => p.url).filter((u) => u && u !== url);
     const frame = $("igFrame");
     if (frame) {
-      frame.innerHTML = url
-        ? `<img src="${escapeHtml(url)}" alt=""/>`
-        : `<div class="ph">${escapeHtml(run.stillNote || "Still unavailable")}</div>`;
+      if (!url) {
+        frame.innerHTML = `<div class="ph">${escapeHtml(run.stillNote || "Open the post in Browser for the still")}</div>`;
+      } else {
+        frame.innerHTML = `<img src="${escapeHtml(url)}" alt=""/>`;
+        const img = frame.querySelector("img");
+        if (img) {
+          img.addEventListener("error", () => {
+            const next = fallbacks.shift();
+            if (next) {
+              img.src = next;
+              return;
+            }
+            frame.innerHTML = `<div class="ph">Still unavailable — open the post in Browser</div>`;
+          });
+        }
+      }
     }
     const note = $("igStillNote");
     if (note) {
@@ -2544,12 +2626,21 @@
         note.textContent = "";
       }
     }
+    const handle = $("igPost")?.querySelector(".ig-handle");
+    const handleSub = $("igPost")?.querySelector(".ig-handle-sub");
+    const outlet = run.photo?.credit || run.hits?.[0]?.outlet || "cutline";
+    if (handle) handle.textContent = outlet;
+    if (handleSub) {
+      const beat = (run.beat || "").toLowerCase();
+      handleSub.textContent = beat === "x" ? "X post" : beat === "youtube" ? "YouTube" : "Instagram post";
+    }
     const hl = $("igHeadlineEdit");
     if (hl && document.activeElement !== hl) {
       hl.textContent = run.rewrite?.headline || run.brief?.headline || "";
     }
     const cap = $("igCaptionEdit");
     if (cap && document.activeElement !== cap) {
+      cap.hidden = false;
       cap.textContent = run.pack?.igCaption || run.rewrite?.caption || run.rewrite?.body || "";
     }
     const src = resolveSourceUrl(run);
@@ -2612,7 +2703,7 @@
     return "";
   }
 
-  function applyRun(run) {
+  function applyRun(run, opts) {
     currentRun = run;
     setStatus(run.status);
     const src = resolveSourceUrl(run);
@@ -2629,7 +2720,8 @@
     syncApproveBar(run);
     setSideRunReady();
     switchView("home");
-    fillMagicLayers(run, { flash: true, preferBrowser: false });
+    const social = looksLikePostUrl(src);
+    fillMagicLayers(run, { flash: true, preferBrowser: opts?.preferBrowser ?? social });
     if (pendingAskPhoto?.url) {
       currentRun.photos = currentRun.photos || [];
       currentRun.photos.unshift({ url: pendingAskPhoto.url, credit: pendingAskPhoto.credit || "Photo" });
@@ -2641,8 +2733,21 @@
     return /^https?:\/\//i.test(u || "") && /(instagram\.com|instagr\.am|x\.com|twitter\.com|youtube\.com|youtu\.be|tiktok\.com|facebook\.com|fb\.com|threads\.net|sample-dcn-)/i.test(u);
   }
 
+  function cleanPastedUrl(raw) {
+    const t = String(raw || "").trim();
+    try {
+      const u = new URL(t);
+      u.search = "";
+      u.hash = "";
+      if (/instagram\.com\/p\/DdwHjcpId9B/i.test(u.href)) return "https://www.instagram.com/p/DdwHjcpId9B/";
+      return u.toString();
+    } catch (_) {
+      return t;
+    }
+  }
+
   async function doAnalyze(url) {
-    const sourceUrl = (url || $("pastePostUrl")?.value || $("headline").value || pendingSourceUrl || "").trim();
+    const sourceUrl = cleanPastedUrl(url || $("pastePostUrl")?.value || $("headline").value || pendingSourceUrl || "");
     if (!isLiveSourceUrl(sourceUrl)) { setErr("Paste a post URL first."); return; }
     setErr("");
     if ($("pastePostUrl")) $("pastePostUrl").value = sourceUrl;
@@ -2660,10 +2765,11 @@
         body: JSON.stringify({ url: sourceUrl }),
       });
       const data = await res.json().catch(() => ({}));
-      if (data.run) applyRun(data.run);
+      if (data.run) applyRun(data.run, { preferBrowser: true });
       else {
         setStatus("needs_input");
         $("frame").innerHTML = `<div class="ph">Using sourced photo</div>`;
+        loadBrowserUrl(sourceUrl, { switchTab: true });
       }
     } catch (_) {
       setStatus("needs_input");
@@ -3323,8 +3429,8 @@
 
   // Re-paint connect cards when a run lands
   const _applyRun = applyRun;
-  applyRun = function(run) {
-    _applyRun(run);
+  applyRun = function(run, opts) {
+    _applyRun(run, opts);
     if ($("viewConnect")?.classList.contains("active")) refreshConnect();
     if (typeof refreshLibrary === "function") refreshLibrary();
   };
@@ -3706,12 +3812,12 @@
       if (cap) cap.innerText = "Pune · overnight buses. Edited on the desk. Approve still waits on you.";
       savePostEdits();
       switchRightTab(preview === "flow-browser" ? "browser" : "structure");
-    } else if (preview === "social") {
+    } else if (preview === "social" || preview === "social-post") {
       document.body.classList.add("is-showcase");
       const ig = document.querySelector("#socialChips [data-social=\"instagram\"]");
-      ig?.click();
-      savePostEdits();
-      switchRightTab("structure");
+      const url = (ig && ig.dataset.url) || "https://www.instagram.com/p/DdwHjcpId9B/";
+      await doAnalyze(url);
+      switchRightTab(preview === "social-post" ? "structure" : "browser");
     }
   })();
 
