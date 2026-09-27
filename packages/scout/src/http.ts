@@ -72,7 +72,10 @@ function looksLikeArticle(link: string, sectionUrl: string): boolean {
 }
 
 function stripTags(html: string): string {
-  return decodeHtml(html.replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim());
+  const t = decodeHtml(html.replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim());
+  const stop = t.search(/(?<=\w[.!?])\s+[A-Z“"]/);
+  if (stop > 24 && stop < 140) return t.slice(0, stop);
+  return t.slice(0, 120);
 }
 
 /** Open a section page and collect article links. Skip on failure. */
