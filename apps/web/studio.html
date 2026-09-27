@@ -2649,14 +2649,10 @@
       setPostPhoto(photos[0]);
       return;
     }
-    const preferReadable = (photos.find((p) => /\.svg(\?|$)/i.test(p.url || "")) || {}).url
-      || photos.find((p) => !/cdninstagram\.com|fbcdn\.net/i.test(p.url || ""))?.url
-      || run.photo?.pathOrUrl
-      || run.pack?.stillUrl
-      || (photos[0] && photos[0].url)
-      || "";
-    const url = preferReadable;
-    const fallbacks = photos.map((p) => p.url).filter((u) => u && u !== url);
+    const svgStill = (photos.find((p) => /\.svg(\?|$)/i.test(p.url || "")) || {}).url || "";
+    const safeStill = photos.find((p) => p.url && !/cdninstagram\.com|fbcdn\.net/i.test(p.url))?.url || "";
+    const url = svgStill || safeStill || run.photo?.pathOrUrl || run.pack?.stillUrl || (photos[0] && photos[0].url) || "";
+    const fallbacks = photos.map((p) => p.url).filter((u) => u && u !== url && !/cdninstagram\.com|fbcdn\.net/i.test(u));
     if (url && run.photo && run.photo.pathOrUrl !== url) {
       run.photo.pathOrUrl = url;
       if (run.pack) run.pack.stillUrl = url;
@@ -3691,12 +3687,16 @@
         sourceUrl: resolveSourceUrl(currentRun),
       });
     }
-    (entries || []).forEach((entry) => {
-      const item = entry.item || {};
-      if (!item.runId && !item.sourceUrl) return;
-      push({ runId: item.runId || "", title: item.title, sourceUrl: item.sourceUrl || "" });
-    });
-    const shown = (rows.length ? rows : seedRecents()).slice(0, 6);
+    if (deskMode !== "demo") {
+      (entries || []).forEach((entry) => {
+        const item = entry.item || {};
+        if (!item.runId && !item.sourceUrl) return;
+        if (/on Instagram:|heartbreaking|desk edit/i.test(item.title || "")) return;
+        push({ runId: item.runId || "", title: item.title, sourceUrl: item.sourceUrl || "" });
+      });
+    }
+    seedRecents().forEach(push);
+    const shown = rows.slice(0, 6);
     root.innerHTML = shown.map((r) =>
       `<button type="button" class="nav-item" data-recent-run="${escapeHtml(r.runId)}" data-recent-title="${escapeHtml(r.title)}" data-recent-src="${escapeHtml(r.sourceUrl)}">
         <span class="label">${escapeHtml(r.title.length > 48 ? r.title.slice(0, 46) + "…" : r.title)}</span>
