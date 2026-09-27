@@ -7,31 +7,38 @@
 <link rel="icon" href="assets/favicon-32.png"/>
 <link rel="preconnect" href="https://fonts.googleapis.com"/>
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
-<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet"/>
 <style>
   :root {
-    --bg: #F8F8F7;
-    --sidebar: #F4F4F2;
-    --panel: #FFFFFF;
+    --bg: #F6F1E8;
+    --sidebar: #EDE6D9;
+    --panel: #FFFEFB;
+    --card: #FFFEFB;
+    --cream-dark: #EDE6D9;
     --ink: #0A0A0A;
-    --muted: #6B6B6B;
-    --dim: #9A9A9A;
-    --line: rgba(0,0,0,.08);
-    --line-strong: rgba(0,0,0,.12);
-    --nav-hover: rgba(0,0,0,.04);
-    --nav-active: rgba(0,0,0,.07);
+    --muted: rgba(10,10,10,0.55);
+    --dim: rgba(10,10,10,0.38);
+    --line: rgba(10,10,10,0.08);
+    --line-strong: rgba(10,10,10,0.12);
+    --nav-hover: rgba(10,10,10,0.05);
+    --nav-active: rgba(10,10,10,0.08);
     --lime: #E1F435;
     --lime-ink: #0A0A0A;
     --red: #FF3B30;
     --ok: #22C55E;
-    --radius: 14px;
-    --radius-sm: 10px;
+    --radius: 20px;
+    --radius-sm: 12px;
+    --radius-brand: 7px;
     --radius-pill: 999px;
     --font: "Geist", Inter, ui-sans-serif, system-ui, sans-serif;
+    --display: "Anton", Impact, sans-serif;
     --mono: "Geist Mono", ui-monospace, monospace;
-    --sidebar-w: 236px;
-    --right-w: 340px;
+    --sidebar-w: 248px;
+    --right-w: 360px;
+    --shadow: 0 12px 40px rgba(10,10,10,0.06);
   }
+  html[data-theme="paper"] { --bg: #FFFEFB; --sidebar: #F6F1E8; }
+  html[data-density="compact"] { --sidebar-w: 228px; }
   * { box-sizing: border-box; }
   html, body { margin: 0; height: 100%; background: var(--bg); color: var(--ink); font-family: var(--font); -webkit-font-smoothing: antialiased; }
   a { color: inherit; text-decoration: none; }
@@ -45,31 +52,75 @@
     grid-template-columns: var(--sidebar-w) 1fr var(--right-w);
     height: 100vh;
     min-height: 0;
+    transition: grid-template-columns .2s ease;
   }
+  .shell.browser-focus {
+    grid-template-columns: var(--sidebar-w) 0 minmax(0, 1fr);
+  }
+  .shell.browser-focus .main {
+    visibility: hidden;
+    min-width: 0;
+    overflow: hidden;
+    pointer-events: none;
+  }
+  .shell.desk-collapsed {
+    grid-template-columns: 0 1fr var(--right-w);
+  }
+  .shell.desk-collapsed .sidebar { display: none; }
+  .shell.browser-focus.desk-collapsed {
+    grid-template-columns: 0 0 1fr;
+  }
+  .panel-toggle {
+    width: 34px; height: 34px;
+    border-radius: 10px;
+    border: 1px solid var(--line);
+    background: var(--card);
+    display: grid; place-items: center;
+    color: var(--ink);
+    flex-shrink: 0;
+    margin-right: 6px;
+  }
+  .panel-toggle:hover { background: var(--nav-hover); }
+  .panel-toggle svg { width: 16px; height: 16px; }
+  .panel-restore {
+    display: none;
+    position: fixed; left: 14px; top: 14px; z-index: 30;
+    width: 40px; height: 40px;
+    border-radius: 12px;
+    background: var(--lime);
+    box-shadow: var(--shadow);
+    place-items: center;
+  }
+  .shell.desk-collapsed .panel-restore { display: grid; }
   @media (max-width: 1100px) {
     .shell { grid-template-columns: var(--sidebar-w) 1fr minmax(280px, 320px); }
+    .shell.browser-focus { grid-template-columns: var(--sidebar-w) 0 1fr; }
   }
   @media (max-width: 860px) {
-    .shell { grid-template-columns: 1fr; grid-template-rows: auto 1fr auto; }
+    .shell, .shell.browser-focus, .shell.desk-collapsed, .shell.browser-focus.desk-collapsed {
+      grid-template-columns: 1fr; grid-template-rows: auto 1fr auto;
+    }
     .sidebar { width: 100%; height: auto; border-right: none; border-bottom: 1px solid var(--line); }
     .right-pane { width: 100%; max-height: 42vh; border-left: none; border-top: 1px solid var(--line); }
+    .shell.desk-collapsed .sidebar { display: none; }
   }
 
   /* ——— Sidebar ——— */
   .sidebar {
     background: var(--sidebar);
     display: flex; flex-direction: column;
-    padding: 14px 12px 16px;
+    padding: 18px 14px 14px;
     min-height: 0;
     overflow: auto;
+    border-right: 1px solid var(--line);
   }
   .workspace {
-    display: flex; align-items: center; gap: 10px;
-    padding: 8px 8px 14px;
+    display: flex; align-items: center; gap: 12px;
+    padding: 4px 6px 16px;
   }
   .mark {
-    width: 28px; height: 28px;
-    border-radius: 7px;
+    width: 36px; height: 36px;
+    border-radius: var(--radius-brand);
     background: var(--lime);
     display: grid; place-items: center;
     flex-shrink: 0;
@@ -77,32 +128,34 @@
   }
   .mark img { width: 100%; height: 100%; object-fit: cover; }
   .mark .fallback {
-    font-weight: 700; font-size: 15px; color: var(--lime-ink); line-height: 1;
+    font-family: var(--display);
+    font-size: 22px; color: var(--lime-ink); line-height: 1;
   }
   .workspace-meta { min-width: 0; }
   .workspace-name {
-    font-size: 13.5px; font-weight: 600; letter-spacing: -.01em;
+    font-size: 15px; font-weight: 650; letter-spacing: -.02em;
     white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
   }
   .workspace-sub {
-    font-size: 11px; color: var(--dim); margin-top: 1px;
+    font-size: 11px; color: var(--muted); margin-top: 2px;
+    letter-spacing: .04em; text-transform: uppercase;
   }
 
   .nav {
-    display: flex; flex-direction: column; gap: 2px;
-    margin-bottom: 18px;
+    display: flex; flex-direction: column; gap: 4px;
+    margin-bottom: 8px;
   }
   .nav-item {
     display: flex; align-items: center; gap: 10px;
-    padding: 8px 10px;
-    border-radius: 10px;
-    font-size: 13.5px; font-weight: 500;
+    padding: 9px 12px;
+    border-radius: 12px;
+    font-size: 14px; font-weight: 550;
     color: var(--ink);
     transition: background .12s ease;
     position: relative;
   }
   .nav-item:hover { background: var(--nav-hover); }
-  .nav-item.active { background: var(--nav-active); }
+  .nav-item.active { background: var(--card); box-shadow: 0 1px 0 var(--line); }
   .nav-item .ico {
     width: 18px; height: 18px; display: grid; place-items: center;
     color: var(--muted); flex-shrink: 0;
@@ -123,19 +176,19 @@
   .nav-agent.active-agent { background: var(--nav-active); }
 
   .section-label {
-    font-size: 11px; font-weight: 550; color: var(--dim);
-    letter-spacing: .02em;
-    padding: 12px 10px 6px;
+    font-size: 11px; font-weight: 650; color: var(--muted);
+    letter-spacing: .08em; text-transform: uppercase;
+    padding: 16px 8px 8px;
   }
   .nav-new {
     background: var(--lime); color: var(--lime-ink);
-    font-weight: 600; margin-bottom: 6px;
+    font-weight: 700; margin-bottom: 8px;
   }
   .nav-new .ico { color: var(--lime-ink); }
   .nav-new:hover { background: var(--lime); filter: brightness(1.03); }
-  .nav-new.active { background: var(--lime); }
+  .nav-new.active { background: var(--lime); box-shadow: none; }
   .side-empty {
-    padding: 6px 10px 10px;
+    padding: 4px 8px 8px;
     font-size: 12.5px; color: var(--dim);
   }
   .nav-item .kbd {
@@ -143,67 +196,148 @@
     margin-left: auto;
   }
 
+  .project-chips {
+    display: flex; flex-wrap: wrap; gap: 6px;
+    padding: 0 4px 4px;
+  }
+  .project-chips button {
+    height: 30px; padding: 0 11px;
+    border-radius: var(--radius-pill);
+    border: 1px solid var(--line);
+    background: var(--card);
+    font-size: 12.5px; font-weight: 550;
+  }
+  .project-chips button:hover { border-color: var(--line-strong); }
+  .project-chips button.active {
+    background: var(--ink); color: #fff; border-color: var(--ink);
+  }
+
   .tools {
-    display: flex; flex-direction: column; gap: 2px;
-    padding: 0 0 16px;
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 8px;
+    padding: 0 4px 8px;
   }
   .tool-row {
-    display: flex; align-items: center; gap: 10px;
+    display: flex; flex-direction: column; align-items: center; gap: 6px;
     width: 100%;
-    padding: 8px 10px;
-    border-radius: 10px;
-    font-size: 13.5px; font-weight: 500;
+    padding: 10px 4px 9px;
+    border-radius: 14px;
+    border: 1px solid var(--line);
+    background: var(--card);
+    font-size: 11.5px; font-weight: 600;
     color: var(--ink);
-    text-align: left;
-    transition: background .12s ease;
+    text-align: center;
+    transition: border-color .12s ease, box-shadow .12s ease;
   }
-  .tool-row:hover { background: var(--nav-hover); }
+  .tool-row:hover { border-color: var(--line-strong); box-shadow: var(--shadow); }
   .tool-row:focus-visible { outline: 2px solid var(--ink); outline-offset: -2px; }
   .tool-ico {
-    width: 22px; height: 22px;
-    border-radius: 7px;
+    width: 28px; height: 28px;
+    border-radius: var(--radius-brand);
     display: grid; place-items: center;
     flex-shrink: 0;
-    color: #343434;
+    color: var(--ink);
   }
-  .tool-ico svg { width: 13px; height: 13px; }
-  .tool-row .label { flex: 1; }
+  .tool-ico svg { width: 14px; height: 14px; }
+  .tool-row .label { flex: none; }
   .tool-row.t1 .tool-ico { background: #F2D8C5; }
   .tool-row.t2 .tool-ico { background: #CFE3D7; }
-  .tool-row.t3 .tool-ico { background: #DDD4EC; }
   .tool-row.t4 .tool-ico { background: #D1DEEA; }
+  .tool-row.active-tool { border-color: var(--ink); }
 
-  .sidebar-spacer { flex: 1; min-height: 12px; }
+  .sidebar-spacer { flex: 1; min-height: 16px; }
 
   .sidebar-foot {
-    display: flex; flex-direction: column; gap: 10px;
-    padding: 8px 6px 0;
+    display: flex; align-items: center;
+    padding: 12px 4px 2px;
     border-top: 1px solid var(--line);
-    padding-top: 14px;
+    position: relative;
   }
-  .status-row {
-    display: flex; align-items: center; gap: 8px;
-    font-size: 12px; color: var(--muted); padding: 0 4px;
+  .profile-btn {
+    width: 44px; height: 44px;
+    border-radius: 50%;
+    padding: 0;
+    overflow: hidden;
+    border: 2px solid var(--card);
+    box-shadow: 0 0 0 1px var(--line);
+    background: var(--lime);
   }
-  .status-row .pulse {
-    width: 7px; height: 7px; border-radius: 50%;
-    background: var(--ok);
-    box-shadow: 0 0 0 3px rgba(34,197,94,.18);
+  .profile-btn:hover { filter: brightness(1.03); }
+  .profile-pic, .profile-pic svg, .profile-pic img {
+    width: 100%; height: 100%; display: block; object-fit: cover;
   }
-  .btn-run-side {
-    display: flex; align-items: center; justify-content: center;
-    width: 100%; height: 40px;
-    border-radius: 11px;
-    background: var(--ink); color: #fff;
-    font-weight: 600; font-size: 13.5px;
-    transition: background .12s ease, color .12s ease, transform .12s ease;
+  .profile-pic .ini {
+    width: 100%; height: 100%;
+    display: grid; place-items: center;
+    font-family: var(--display); font-size: 20px;
   }
-  .btn-run-side:hover { background: #1a1a1a; }
-  .btn-run-side.ready {
-    background: var(--lime); color: var(--lime-ink);
+  .profile-menu {
+    position: absolute;
+    left: 4px; bottom: 58px;
+    min-width: 188px;
+    padding: 6px;
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 16px;
+    box-shadow: var(--shadow);
+    z-index: 8;
   }
-  .btn-run-side.ready:hover { filter: brightness(1.03); }
-  .btn-run-side:disabled { opacity: .4; cursor: not-allowed; transform: none; }
+  .profile-menu[hidden] { display: none; }
+  .profile-menu button {
+    display: block; width: 100%;
+    text-align: left;
+    padding: 10px 12px;
+    border-radius: 10px;
+    font-size: 14px; font-weight: 550;
+  }
+  .profile-menu button:hover { background: var(--nav-hover); }
+
+  .gate {
+    display: none;
+    position: fixed; inset: 0; z-index: 40;
+    background: var(--bg);
+    align-items: center; justify-content: center;
+    padding: 32px;
+  }
+  .gate.show { display: flex; }
+  .gate-card {
+    width: min(440px, 100%);
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 20px;
+    padding: 36px 32px;
+    box-shadow: var(--shadow);
+    text-align: center;
+  }
+  .gate-card .mark { margin: 0 auto 16px; }
+  .gate-card h1 {
+    font-family: var(--display);
+    font-size: 42px; line-height: .95; letter-spacing: -.02em;
+    margin: 0 0 10px;
+  }
+  .gate-card p { margin: 0 0 22px; color: var(--muted); font-size: 15px; }
+  .gate-card input {
+    width: 100%; height: 44px; padding: 0 14px;
+    border: 1px solid var(--line); border-radius: 12px;
+    background: var(--bg); margin-bottom: 12px;
+  }
+  .settings-form {
+    display: flex; flex-direction: column; gap: 14px;
+    max-width: 420px;
+  }
+  .settings-form label {
+    display: flex; flex-direction: column; gap: 6px;
+    font-size: 12.5px; font-weight: 650; color: var(--muted);
+    letter-spacing: .04em; text-transform: uppercase;
+  }
+  .settings-form input, .settings-form select {
+    height: 44px; padding: 0 14px;
+    border: 1px solid var(--line); border-radius: 12px;
+    background: var(--card); font-size: 15px; font-weight: 500;
+    text-transform: none; letter-spacing: 0;
+    color: var(--ink);
+  }
 
   /* ——— Main ——— */
   .main {
@@ -242,10 +376,11 @@
   }
   .home-wrap h1 {
     margin: 0 0 28px;
-    font-size: clamp(26px, 3.6vw, 34px);
-    font-weight: 600;
-    letter-spacing: -.03em;
-    line-height: 1.15;
+    font-family: var(--display);
+    font-size: clamp(36px, 5vw, 52px);
+    font-weight: 400;
+    letter-spacing: -.02em;
+    line-height: .95;
     text-align: center;
   }
   .ask-box {
@@ -326,13 +461,7 @@
     font-size: 13.5px; font-weight: 500;
   }
   .ask-plus-menu button:hover { background: var(--nav-hover); }
-  .ask-safety {
-    width: 100%;
-    margin: 12px 4px 0;
-    font-size: 12.5px;
-    color: var(--dim);
-    letter-spacing: -.01em;
-  }
+  .ask-safety { display: none !important; }
   .btn {
     display: inline-flex; align-items: center; justify-content: center; gap: 6px;
     height: 36px; padding: 0 16px;
@@ -779,17 +908,19 @@
 
   /* ——— Connect / Plugins ——— */
   .connect-wrap {
-    max-width: 820px;
+    max-width: 1080px;
     margin: 0 auto;
-    padding: 36px 28px 64px;
+    padding: 40px 36px 64px;
+    width: 100%;
   }
   .connect-wrap .kicker {
-    font-size: 11px; font-weight: 600; color: var(--dim);
-    letter-spacing: .04em; text-transform: uppercase; margin-bottom: 8px;
+    font-size: 12px; font-weight: 650; color: var(--muted);
+    letter-spacing: .08em; text-transform: uppercase; margin-bottom: 10px;
   }
-  .connect-wrap h1 {
-    font-size: 28px; font-weight: 650; letter-spacing: -.03em;
-    margin: 0 0 8px; line-height: 1.15;
+  .connect-wrap h1, .activity-wrap h1, .hunt-wrap h1 {
+    font-family: var(--display);
+    font-size: 44px; font-weight: 400; letter-spacing: -.02em;
+    margin: 0 0 10px; line-height: .95;
   }
   .connect-sub {
     font-size: 14px; color: var(--muted); margin: 0 0 22px; line-height: 1.45;
@@ -812,23 +943,35 @@
   .connect-run.warn { border-color: rgba(255,59,48,.25); }
   .plugin-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-    gap: 12px;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+  }
+  @media (max-width: 1100px) {
+    .plugin-grid { grid-template-columns: repeat(2, 1fr); }
+  }
+  @media (max-width: 720px) {
+    .plugin-grid { grid-template-columns: 1fr; }
   }
   .plugin-card {
-    background: var(--panel);
+    background: var(--card);
     border: 1px solid var(--line);
-    border-radius: var(--radius);
-    padding: 16px 16px 14px;
-    display: flex; flex-direction: column; gap: 10px;
-    min-height: 168px;
-    transition: border-color .12s ease, box-shadow .12s ease;
+    border-radius: 20px;
+    padding: 24px;
+    display: flex; flex-direction: column; gap: 12px;
+    min-height: 220px;
+    box-shadow: var(--shadow);
+    transition: border-color .12s ease, transform .12s ease;
   }
   .plugin-card:hover {
     border-color: var(--line-strong);
-    box-shadow: 0 1px 0 rgba(0,0,0,.03);
+    transform: translateY(-1px);
   }
-  .plugin-card.primary { border-color: rgba(0,0,0,.1); }
+  .plugin-card.primary { border-color: var(--line); }
+  .plugin-card .chip {
+    display: inline-block; align-self: flex-start;
+    background: var(--lime); color: var(--ink);
+    font-size: 11px; font-weight: 700; padding: 4px 8px; border-radius: 6px;
+  }
   .plugin-top {
     display: flex; align-items: flex-start; gap: 12px;
   }
@@ -885,9 +1028,7 @@
     border: 1px solid var(--line-strong);
   }
   .plugin-btn.ghost:hover:not(:disabled) { background: var(--nav-hover); }
-  .plugin-hint {
-    font-size: 11px; color: var(--dim); line-height: 1.35;
-  }
+  .plugin-hint { display: none; }
   .connect-toast {
     display: none;
     margin-top: 18px;
@@ -995,6 +1136,10 @@
   .layer-clip-ph .clip-actions { margin-top: 8px; display: flex; gap: 8px; justify-content: center; }
 
   /* ——— Right pane · Magic Layer / Browser ——— */
+  .right-pane.browser-on .rp-tools,
+  .right-pane.browser-on .rp-magic { display: none; }
+  .right-pane.browser-on .rp-tools,
+  .right-pane.browser-on .rp-magic { display: none; }
   .right-pane {
     background: var(--panel);
     border-left: 1px solid var(--line);
@@ -1254,18 +1399,9 @@
     display: grid; place-items: center;
   }
   .truth-banner .tb-ico svg { width: 14px; height: 14px; }
-  .wedge-chip {
-    display: none;
-    margin: 0 12px 8px;
-    padding: 8px 12px;
-    border-radius: 10px;
-    background: rgba(251,191,36,.18);
-    border: 1px solid rgba(251,191,36,.4);
-    font-size: 11.5px; font-weight: 600;
-    color: #b45309;
-    flex-shrink: 0;
+  .wedge-chip, .wedge-chip.show, .truth-banner, .truth-micro, .hunt-truth, .source-tag, .ig-source {
+    display: none !important;
   }
-  .wedge-chip.show { display: block; }
   .layer-ban.ai-still {
     background: rgba(251,191,36,.18);
     color: #b45309;
@@ -1317,7 +1453,7 @@
     <div class="workspace">
       <div class="mark" aria-hidden="true">
         <img src="assets/cutline-mark.png" alt="" onerror="this.style.display='none';this.nextElementSibling.style.display='grid'"/>
-        <span class="fallback" style="display:none">C</span>
+        <span class="fallback">C</span>
       </div>
       <div class="workspace-meta">
         <div class="workspace-name">Cutline Desk</div>
@@ -1366,31 +1502,13 @@
     </nav>
 
     <div class="section-label">Projects</div>
-    <nav class="nav" aria-label="Projects" id="projectNav">
-      <button type="button" class="nav-item" data-desk="breaking">
-        <span class="ico" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M4 8h16v11H4z"/><path d="M8 8V6h8v2"/></svg></span>
-        <span class="label">Breaking</span>
-      </button>
-      <button type="button" class="nav-item" data-desk="business">
-        <span class="ico" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M4 8h16v11H4z"/><path d="M8 8V6h8v2"/></svg></span>
-        <span class="label">Business</span>
-      </button>
-      <button type="button" class="nav-item" data-desk="culture">
-        <span class="ico" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M4 8h16v11H4z"/><path d="M8 8V6h8v2"/></svg></span>
-        <span class="label">Culture</span>
-      </button>
-      <button type="button" class="nav-item" data-desk="sports">
-        <span class="ico" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M4 8h16v11H4z"/><path d="M8 8V6h8v2"/></svg></span>
-        <span class="label">Sports</span>
-      </button>
-      <button type="button" class="nav-item" data-desk="tech">
-        <span class="ico" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M4 8h16v11H4z"/><path d="M8 8V6h8v2"/></svg></span>
-        <span class="label">Tech</span>
-      </button>
-      <button type="button" class="nav-item" data-desk="world">
-        <span class="ico" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M4 8h16v11H4z"/><path d="M8 8V6h8v2"/></svg></span>
-        <span class="label">World</span>
-      </button>
+    <nav class="project-chips" aria-label="Projects" id="projectNav">
+      <button type="button" data-desk="breaking">Breaking</button>
+      <button type="button" data-desk="business">Business</button>
+      <button type="button" data-desk="culture">Culture</button>
+      <button type="button" data-desk="sports">Sports</button>
+      <button type="button" data-desk="tech">Tech</button>
+      <button type="button" data-desk="world">World</button>
     </nav>
 
     <div class="section-label">Recents</div>
@@ -1423,7 +1541,19 @@
     <div class="sidebar-spacer"></div>
 
     <div class="sidebar-foot">
-      <button type="button" class="btn-run-side" id="sideRunBtn">Run</button>
+      <button type="button" class="profile-btn" id="profileBtn" aria-label="Account" aria-haspopup="menu" aria-expanded="false">
+        <span class="profile-pic" id="profilePic" aria-hidden="true">
+          <svg viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg">
+            <rect width="40" height="40" fill="#E1F435"/>
+            <circle cx="20" cy="16" r="7" fill="#0A0A0A"/>
+            <path d="M8 36c1.5-8 7-12 12-12s10.5 4 12 12" fill="#0A0A0A"/>
+          </svg>
+        </span>
+      </button>
+      <div class="profile-menu" id="profileMenu" hidden role="menu">
+        <button type="button" id="profileSettings" role="menuitem">Settings</button>
+        <button type="button" id="profileLogout" role="menuitem">Log out</button>
+      </div>
     </div>
   </aside>
 
@@ -1453,7 +1583,6 @@
             <button type="button" class="btn btn-lime" id="runBtn">Run</button>
           </div>
         </div>
-        <p class="ask-safety">Live source URL · you approve before ship</p>
         <div class="gemini-toast" id="geminiToast" hidden></div>
         <div class="err" id="errBox"></div>
         <input type="file" id="clipFile" accept="video/mp4,video/webm,video/quicktime,video/x-m4v" hidden/>
@@ -1523,8 +1652,7 @@
       <div class="hunt-wrap">
         <div class="kicker">Explore</div>
         <h1>Find news</h1>
-        <p class="hunt-sub">Pick a project. Cutline opens live pages and keeps only real source URLs.</p>
-        <div class="hunt-truth"><strong>Browser holds the source.</strong> Every hit needs a live URL. No invented news.</div>
+        <p class="hunt-sub">Pick a project, then find news.</p>
 
         <div class="beat-chips" id="beatChips" role="group" aria-label="Desks">
           <button type="button" class="beat-chip active" data-desk="breaking">Breaking</button>
@@ -1581,10 +1709,43 @@
         </div>
       </div>
     </section>
+
+    <section class="view" id="viewSettings" aria-label="Settings">
+      <div class="connect-wrap">
+        <div class="kicker">Account</div>
+        <h1>Settings</h1>
+        <p class="connect-sub">Your desk. Name, project, cream theme.</p>
+        <form class="settings-form" id="settingsForm">
+          <label>Name
+            <input type="text" id="settingsName" maxlength="40" autocomplete="name"/>
+          </label>
+          <label>Default project
+            <select id="settingsDesk">
+              <option value="breaking">Breaking</option>
+              <option value="business">Business</option>
+              <option value="culture">Culture</option>
+              <option value="sports">Sports</option>
+              <option value="tech">Tech</option>
+              <option value="world">World</option>
+            </select>
+          </label>
+          <label>Theme
+            <select id="settingsTheme">
+              <option value="cream">Ace cream</option>
+              <option value="paper">Paper cream</option>
+            </select>
+          </label>
+          <button type="submit" class="btn btn-lime">Save</button>
+        </form>
+      </div>
+    </section>
   </main>
 
   <aside class="right-pane" id="rightPane" aria-label="Magic Layer">
     <div class="rp-tabs" role="tablist">
+      <button type="button" class="panel-toggle" id="panelToggle" title="Hide desk" aria-label="Hide desk panel">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4 6h16M4 12h10M4 18h16"/><path d="M15 9l-3 3 3 3"/></svg>
+      </button>
       <button type="button" class="rp-tab active" role="tab" aria-selected="true" data-rp="structure" id="tabStructure">
         <span class="ico" aria-hidden="true">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4 6h16M4 12h12M4 18h8"/></svg>
@@ -1628,11 +1789,6 @@
         <h3>No post yet</h3>
         <p>Find a page, then use it here.</p>
       </div>
-      <div class="truth-banner" id="truthBanner" style="display:none" role="status">
-        <span class="tb-ico" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 3l8 4v5c0 5-3.5 8.5-8 10-4.5-1.5-8-5-8-10V7l8-4z"/><path d="M9 12l2 2 4-4"/></svg></span>
-        Browser holds the source
-      </div>
-      <div class="wedge-chip" id="wedgeChip">Pasted headline — no live source URL</div>
       <div class="ig-post" id="igPost" style="display:none">
         <div class="ig-post-head">
           <div class="ig-ava" aria-hidden="true">C</div>
@@ -1710,13 +1866,13 @@
         <div class="empty-ico" aria-hidden="true">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M3 12h18"/></svg>
         </div>
-        <h3>No source yet</h3>
-        <p>Find a page. This pane holds the live URL.</p>
+        <h3>No page yet</h3>
+        <p>Find news, then the site opens here.</p>
       </div>
       <div id="browserLive" style="display:none; flex:1; min-height:0; flex-direction:column;">
         <div class="browser-bar">
           <span class="browser-url" id="browserUrl">—</span>
-          <a class="browser-open" id="browserOpen" href="#" target="_blank" rel="noopener noreferrer">Open source</a>
+          <a class="browser-open" id="browserOpen" href="#" target="_blank" rel="noopener noreferrer">Open</a>
         </div>
         <div class="browser-frame-wrap" id="browserFrameWrap">
           <iframe id="browserFrame" sandbox="allow-scripts allow-same-origin allow-popups allow-forms" title="Source preview"></iframe>
@@ -1726,15 +1882,20 @@
           </div>
         </div>
       </div>
-      <div class="rp-empty" id="browserWedge" style="display:none">
-        <div class="empty-ico" aria-hidden="true">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M4 7h16M4 12h10M4 17h14"/></svg>
-        </div>
-        <h3>No live URL</h3>
-        <p>Pasted headline. Open a sourced page to put the URL here.</p>
-      </div>
     </div>
   </aside>
+</div>
+<button type="button" class="panel-restore" id="panelRestore" title="Show desk" aria-label="Show desk panel">
+  <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4 6h16M4 12h16M4 18h16"/></svg>
+</button>
+<div class="gate" id="signedOutGate" aria-label="Signed out">
+  <div class="gate-card">
+    <div class="mark" aria-hidden="true"><span class="fallback">C</span></div>
+    <h1>Your AI desk.</h1>
+    <p>Signed out. Open the desk to finish a post.</p>
+    <input type="text" id="gateName" placeholder="Your name" maxlength="40"/>
+    <button type="button" class="btn btn-lime" id="gateOpen">Open desk</button>
+  </div>
 </div>
 
 <script>
@@ -1743,6 +1904,7 @@
   let pendingAskPhoto = null;
   let layerSnapshot = {}; // hash of last painted layer values for flash
   let selectedStyle = "tight_news";
+  let selectedDesk = "breaking";
 
   const $ = (id) => document.getElementById(id);
   const agents = ["wire", "still", "desk", "ship"];
@@ -1795,10 +1957,56 @@
     el.className = "status-pill" + (s ? " " + s : "");
   }
 
-  function setSideRunReady() {
-    const btn = $("sideRunBtn");
-    const hasText = ($("headline").value || "").trim().length > 0;
-    btn.classList.toggle("ready", hasText && !btn.disabled);
+  function setSideRunReady() { /* Run lives on the ask box only */ }
+
+  const SESSION_KEY = "cutline.session";
+  function readSession() {
+    try { return JSON.parse(localStorage.getItem(SESSION_KEY) || "null"); } catch (_) { return null; }
+  }
+  function writeSession(next) {
+    localStorage.setItem(SESSION_KEY, JSON.stringify(next));
+    applySession(next);
+  }
+  function applySession(session) {
+    const s = session || { name: "You", desk: "breaking", theme: "cream" };
+    document.documentElement.dataset.theme = s.theme === "paper" ? "paper" : "cream";
+    if (s.desk) selectedDesk = s.desk;
+    const ini = (s.name || "You").trim().slice(0, 1).toUpperCase() || "Y";
+    const pic = $("profilePic");
+    if (pic) {
+      pic.innerHTML = `<span class="ini">${ini}</span>`;
+    }
+    if ($("settingsName")) $("settingsName").value = s.name || "You";
+    if ($("settingsDesk")) $("settingsDesk").value = s.desk || "breaking";
+    if ($("settingsTheme")) $("settingsTheme").value = s.theme || "cream";
+    document.querySelectorAll("#projectNav [data-desk]").forEach((b) => b.classList.toggle("active", b.dataset.desk === (s.desk || "breaking")));
+  }
+  function ensureSession() {
+    if (localStorage.getItem("cutline.signedOut") === "1") {
+      applySession({ name: "You", desk: "breaking", theme: "cream" });
+      showSignedOut(true);
+      return null;
+    }
+    let s = readSession();
+    if (!s) {
+      s = { name: "You", desk: "breaking", theme: "cream" };
+      localStorage.setItem(SESSION_KEY, JSON.stringify(s));
+    }
+    applySession(s);
+    showSignedOut(false);
+    return s;
+  }
+  function showSignedOut(on) {
+    $("signedOutGate")?.classList.toggle("show", !!on);
+  }
+  function setDeskCollapsed(on) {
+    document.querySelector(".shell")?.classList.toggle("desk-collapsed", !!on);
+    $("panelToggle")?.setAttribute("aria-label", on ? "Show desk panel" : "Hide desk panel");
+    $("panelToggle")?.setAttribute("title", on ? "Show desk" : "Hide desk");
+  }
+  function toggleDeskPanel() {
+    const shell = document.querySelector(".shell");
+    setDeskCollapsed(!shell?.classList.contains("desk-collapsed"));
   }
 
   function markRoster(log) {
@@ -1944,6 +2152,8 @@
     });
     $("rpStructure").classList.toggle("active", name === "structure");
     $("rpBrowser").classList.toggle("active", name === "browser");
+    document.querySelector(".shell")?.classList.toggle("browser-focus", name === "browser");
+    $("rightPane")?.classList.toggle("browser-on", name === "browser");
   }
 
   function resolveSourceUrl(run) {
@@ -1987,20 +2197,15 @@
   function paintStructure(run, { flash = true } = {}) {
     const empty = $("structureEmpty");
     const tree = $("layerTree");
-    const truthBan = $("truthBanner");
-    const wedgeChip = $("wedgeChip");
     if (!run) {
       empty.style.display = "";
       tree.style.display = "none";
-      if (truthBan) truthBan.style.display = "none";
-      if (wedgeChip) wedgeChip.classList.remove("show");
       paintIgPost(null);
       layerSnapshot = {};
       return;
     }
     empty.style.display = "none";
     tree.style.display = "none";
-    if (truthBan) truthBan.style.display = "none";
 
     const next = {};
 
@@ -2037,22 +2242,9 @@
     const src = resolveSourceUrl(run);
     next.source = src;
     const srcMeta = $("layerSourceMeta");
-    const isLive = /^https?:\/\//i.test(src);
-    const isWedge = !!(src && src.startsWith("manual://"));
-    if (wedgeChip) wedgeChip.classList.toggle("show", isWedge || (!isLive && !!run));
-    if (isLive) {
-      srcMeta.classList.remove("muted");
-      srcMeta.innerHTML = `<a class="layer-link" href="${escapeHtml(src)}" target="_blank" rel="noopener noreferrer">${escapeHtml(src)}</a>`;
-    } else if (isWedge) {
+    if (srcMeta) {
       srcMeta.classList.add("muted");
-      srcMeta.innerHTML = `Pasted headline · not sourced<span class="source-tag">headline</span>`;
-    } else if (src) {
-      srcMeta.classList.remove("muted");
-      srcMeta.textContent = src;
-    } else {
-      srcMeta.classList.add("muted");
-      srcMeta.textContent = "No source URL";
-      if (wedgeChip) wedgeChip.classList.add("show");
+      srcMeta.textContent = "";
     }
 
     // Clip — raw upload only; never invent a cut
@@ -2088,9 +2280,7 @@
     pendingSourceUrl = url;
     const empty = $("browserEmpty");
     const live = $("browserLive");
-    const wedge = $("browserWedge");
     empty.style.display = "none";
-    wedge.style.display = "none";
     live.style.display = "flex";
     $("browserUrl").textContent = url;
     $("browserOpen").href = url;
@@ -2109,11 +2299,9 @@
   function paintBrowser(run) {
     const empty = $("browserEmpty");
     const live = $("browserLive");
-    const wedge = $("browserWedge");
     const src = resolveSourceUrl(run);
     empty.style.display = "none";
     live.style.display = "none";
-    wedge.style.display = "none";
 
     if (!run) {
       empty.style.display = "";
@@ -2143,8 +2331,7 @@
       }
       return;
     }
-    // manual:// or missing
-    wedge.style.display = "";
+    empty.style.display = "";
     $("browserFrame").removeAttribute("src");
     delete $("browserFrame").dataset.src;
   }
@@ -2329,7 +2516,6 @@
     const sourced = isLiveSourceUrl(pendingSourceUrl) || /^https?:\/\//i.test(headline);
     if (!headline && !sourced) { setErr("Find a page or add a headline."); switchView("home"); return; }
     $("runBtn").disabled = true;
-    $("sideRunBtn").disabled = true;
     setStatus("drafting");
     startStillFill();
     try {
@@ -2354,8 +2540,6 @@
       syncApproveBar(currentRun);
     } finally {
       $("runBtn").disabled = false;
-      $("sideRunBtn").disabled = false;
-      setSideRunReady();
     }
   }
 
@@ -2414,7 +2598,7 @@
   function switchView(name) {
     document.querySelectorAll(".view").forEach((v) => v.classList.remove("active"));
     document.querySelectorAll(".nav-item[data-view]").forEach((n) => n.classList.remove("active"));
-    document.querySelectorAll(".nav-item[data-desk]").forEach((n) => n.classList.remove("active"));
+    document.querySelectorAll("#projectNav [data-desk]").forEach((n) => n.classList.remove("active"));
     document.querySelectorAll(".tool-row").forEach((n) => n.classList.remove("active-tool"));
     if (name === "activity" || name === "approvals") {
       $("viewActivity").classList.add("active");
@@ -2436,6 +2620,9 @@
       $("navPlugins")?.classList.add("active");
       $("toolShip")?.classList.add("active-tool");
       if (typeof refreshConnect === "function") refreshConnect();
+    } else if (name === "settings") {
+      $("viewSettings")?.classList.add("active");
+      applySession(readSession() || ensureSession());
     } else {
       $("viewHome").classList.add("active");
       $("navNew")?.classList.add("active");
@@ -2443,7 +2630,6 @@
   }
 
   $("runBtn").addEventListener("click", doRun);
-  $("sideRunBtn").addEventListener("click", () => { switchView("home"); doRun(); });
   $("approveBtn").addEventListener("click", doApprove);
   async function applyVoice() {
     if (!currentRun?.id) return;
@@ -2561,7 +2747,6 @@
   $("toolNews")?.addEventListener("click", () => switchView("hunt"));
   $("toolShip")?.addEventListener("click", () => switchView("connect"));
 
-  let selectedDesk = "breaking";
   let lastHits = [];
 
   function setHuntErr(msg) {
@@ -2812,44 +2997,35 @@
     const grid = $("pluginGrid");
     if (!grid) return;
     const shipOk = canShip();
-    grid.innerHTML = plugins.map((p) => {
+    grid.innerHTML = plugins.map((p, i) => {
       const mark = PLUGIN_MARKS[p.id] || PLUGIN_MARKS.zip;
+      const num = String(i + 1).padStart(2, "0");
       let badge = "";
-      if (p.local) badge = '<span class="plugin-badge local">Always on</span>';
-      else if (p.connected) badge = `<span class="plugin-badge local">Connected${p.accountLabel ? " · " + escapeHtml(p.accountLabel) : ""}</span>`;
-      else badge = '<span class="plugin-badge">Not connected</span>';
+      if (p.local) badge = '<span class="plugin-badge local">Ready</span>';
+      else if (p.connected) badge = `<span class="plugin-badge local">On${p.accountLabel ? " · " + escapeHtml(p.accountLabel) : ""}</span>`;
 
       let btn = "";
-      let hint = "";
       if (p.local) {
-        btn = `<button type="button" class="plugin-btn lime" data-ship="${p.id}" ${shipOk ? "" : "disabled"}>Download pack</button>`;
-        hint = shipOk
-          ? `<div class="plugin-hint">Saves this story as a file</div>`
-          : `<div class="plugin-hint">Run a story first</div>`;
+        btn = `<button type="button" class="plugin-btn lime" data-ship="${p.id}" ${shipOk ? "" : "disabled"}>Download</button>`;
       } else if (p.connected) {
         const shipBtn = shipOk
-          ? `<button type="button" class="plugin-btn" data-ship="${p.id}">Post to ${escapeHtml(p.name)}</button>`
+          ? `<button type="button" class="plugin-btn" data-ship="${p.id}">Post</button>`
           : "";
         btn = `${shipBtn}<button type="button" class="plugin-btn ghost" data-disconnect="${p.id}">Disconnect</button>`;
-        hint = shipOk
-          ? `<div class="plugin-hint">Linked${p.accountLabel ? " as " + escapeHtml(p.accountLabel) : ""}. Post this story.</div>`
-          : `<div class="plugin-hint">Linked${p.accountLabel ? " as " + escapeHtml(p.accountLabel) : ""}. Run a story when you want to post.</div>`;
       } else {
         btn = `<button type="button" class="plugin-btn lime" data-connect="${p.id}">Connect</button>`;
-        hint = p.configured
-          ? `<div class="plugin-hint">OAuth — no story required</div>`
-          : `<div class="plugin-hint">Needs ${(p.missing || []).map(escapeHtml).join(", ") || "app credentials"} in .env</div>`;
       }
 
       return `<article class="plugin-card ${p.primary ? "primary" : ""}" data-plugin="${p.id}">
+        <span class="chip">${num}</span>
         <div class="plugin-top">
           <div class="plugin-mark ${mark.cls}" aria-hidden="true">${mark.svg}</div>
           <div class="plugin-meta">
             <div class="plugin-name">${escapeHtml(p.name)} ${badge}</div>
-            <div class="plugin-desc">${escapeHtml(p.description)}</div>
+            <div class="plugin-desc">${escapeHtml(({ ig: "Photo + rewrite", yt: "Title and thumbnail", canva: "Open in Canva", telegram: "Channel post", x: "Post + photo", tiktok: "Photo post", zip: "Save a file" })[p.id] || p.description)}</div>
           </div>
         </div>
-        <div class="plugin-actions">${btn}${hint}</div>
+        <div class="plugin-actions">${btn}</div>
       </article>`;
     }).join("");
 
@@ -3179,6 +3355,51 @@
     setPostPhoto(photos[(idx + 1) % photos.length]);
   });
 
+  $("panelToggle")?.addEventListener("click", toggleDeskPanel);
+  $("panelRestore")?.addEventListener("click", () => setDeskCollapsed(false));
+  $("profileBtn")?.addEventListener("click", (e) => {
+    e.stopPropagation();
+    const menu = $("profileMenu");
+    if (!menu) return;
+    const open = menu.hidden;
+    menu.hidden = !open;
+    $("profileBtn").setAttribute("aria-expanded", open ? "true" : "false");
+  });
+  document.addEventListener("click", (e) => {
+    if (!e.target.closest?.(".sidebar-foot")) {
+      if ($("profileMenu")) $("profileMenu").hidden = true;
+      $("profileBtn")?.setAttribute("aria-expanded", "false");
+    }
+  });
+  $("profileSettings")?.addEventListener("click", () => {
+    if ($("profileMenu")) $("profileMenu").hidden = true;
+    switchView("settings");
+  });
+  $("profileLogout")?.addEventListener("click", () => {
+    if ($("profileMenu")) $("profileMenu").hidden = true;
+    localStorage.removeItem(SESSION_KEY);
+    localStorage.setItem("cutline.signedOut", "1");
+    newDesk();
+    showSignedOut(true);
+  });
+  $("gateOpen")?.addEventListener("click", () => {
+    const name = ($("gateName")?.value || "You").trim() || "You";
+    localStorage.removeItem("cutline.signedOut");
+    writeSession({ name, desk: "breaking", theme: "cream" });
+    showSignedOut(false);
+    switchView("home");
+  });
+  $("settingsForm")?.addEventListener("submit", (e) => {
+    e.preventDefault();
+    writeSession({
+      name: ($("settingsName")?.value || "You").trim() || "You",
+      desk: $("settingsDesk")?.value || "breaking",
+      theme: $("settingsTheme")?.value || "cream",
+    });
+    switchView("home");
+  });
+  ensureSession();
+
   updateNeedLabel();
   setSideRunReady();
 
@@ -3204,10 +3425,22 @@
       } else {
         showConnectToast("<strong>Connect failed.</strong> " + escapeHtml(q.get("reason") || "error") + (channel ? " · " + escapeHtml(channel) : ""), "warn");
       }
-    } else if (view === "connect" || view === "activity" || view === "hunt" || view === "library" || view === "scheduled") {
+    } else if (view === "connect" || view === "activity" || view === "hunt" || view === "library" || view === "scheduled" || view === "settings") {
       switchView(view);
     }
     const preview = (q.get("preview") || "").toLowerCase();
+    if (preview === "browser" || preview === "browser-closed") {
+      loadBrowserUrl(location.origin + "/sample-source.html", { switchTab: true });
+      if (preview === "browser-closed") setDeskCollapsed(true);
+    } else if (preview === "profile") {
+      switchView("home");
+      if ($("profileMenu")) $("profileMenu").hidden = false;
+      $("profileBtn")?.setAttribute("aria-expanded", "true");
+    } else if (preview === "settings") {
+      switchView("settings");
+    } else if (preview === "out") {
+      showSignedOut(true);
+    }
     if (preview === "still-fill") {
       switchView("home");
       $("result").classList.add("show");
