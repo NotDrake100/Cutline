@@ -29,7 +29,7 @@
     --radius-pill: 999px;
     --font: "Geist", Inter, ui-sans-serif, system-ui, sans-serif;
     --mono: "Geist Mono", ui-monospace, monospace;
-    --sidebar-w: 220px;
+    --sidebar-w: 236px;
     --right-w: 340px;
   }
   * { box-sizing: border-box; }
@@ -125,7 +125,22 @@
   .section-label {
     font-size: 11px; font-weight: 550; color: var(--dim);
     letter-spacing: .02em;
-    padding: 4px 10px 8px;
+    padding: 12px 10px 6px;
+  }
+  .nav-new {
+    background: var(--lime); color: var(--lime-ink);
+    font-weight: 600; margin-bottom: 6px;
+  }
+  .nav-new .ico { color: var(--lime-ink); }
+  .nav-new:hover { background: var(--lime); filter: brightness(1.03); }
+  .nav-new.active { background: var(--lime); }
+  .side-empty {
+    padding: 6px 10px 10px;
+    font-size: 12.5px; color: var(--dim);
+  }
+  .nav-item .kbd {
+    font-size: 11px; color: var(--dim); font-family: var(--mono);
+    margin-left: auto;
   }
 
   .tools {
@@ -617,7 +632,7 @@
   .changed-row .note .up { color: #15803d; font-weight: 550; }
   .changed-row .note .down { color: var(--red); font-weight: 550; }
 
-  /* ——— Wire / Hunt panel ——— */
+  /* ——— Explore / Find news ——— */
   .hunt-wrap {
     max-width: 720px;
     margin: 0 auto;
@@ -889,11 +904,7 @@
     font-weight: 500;
   }
   .ig-caption {
-    min-height: 56px;
-    padding: 6px 12px 10px;
-    font-size: 13px; line-height: 1.45;
-    outline: none;
-    white-space: pre-wrap;
+    display: none !important;
   }
   .photo-strip-label {
     padding: 0 12px 6px;
@@ -1265,90 +1276,97 @@
     </div>
 
     <nav class="nav" aria-label="Primary">
-      <button type="button" class="nav-item active" data-view="home" id="navHome">
+      <button type="button" class="nav-item nav-new active" data-view="home" id="navNew">
         <span class="ico" aria-hidden="true">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 10.5 12 4l8 6.5V20a1 1 0 0 1-1 1h-5v-6H10v6H5a1 1 0 0 1-1-1v-9.5z"/></svg>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
         </span>
-        <span class="label">Home</span>
+        <span class="label">New desk</span>
       </button>
-      <button type="button" class="nav-item" data-view="activity" id="navActivity">
+      <button type="button" class="nav-item" data-view="activity" id="navApprovals">
         <span class="ico" aria-hidden="true">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h3l2-7 4 14 2-7h3"/></svg>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6h10v14H7a2 2 0 0 1-2-2V6h4z"/><path d="M9 6V4h4v2"/><path d="m9 13 2 2 4-4"/></svg>
         </span>
-        <span class="label">Activity</span>
-        <span class="nav-dot" id="activityDot" title="Needs input"></span>
+        <span class="label">Approvals</span>
+        <span class="nav-dot" id="activityDot" title="Needs approve"></span>
       </button>
-      <button type="button" class="nav-item" data-view="library" id="navLibrary">
+      <button type="button" class="nav-item" data-view="scheduled" id="navScheduled">
         <span class="ico" aria-hidden="true">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="4" width="7" height="7" rx="1.5"/><rect x="13" y="4" width="7" height="7" rx="1.5"/><rect x="4" y="13" width="7" height="7" rx="1.5"/><rect x="13" y="13" width="7" height="7" rx="1.5"/></svg>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><circle cx="12" cy="12" r="8"/><path d="M12 8v5l3 2"/></svg>
         </span>
-        <span class="label">Library</span>
+        <span class="label">Scheduled</span>
       </button>
-      <button type="button" class="nav-item" data-view="connect" id="navConnect">
+      <button type="button" class="nav-item" data-view="connect" id="navPlugins">
         <span class="ico" aria-hidden="true">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M8 12h8"/><path d="M10 8H7a3 3 0 0 0 0 8h3"/><path d="M14 8h3a3 3 0 0 1 0 8h-3"/></svg>
         </span>
-        <span class="label">Connect</span>
+        <span class="label">Plugins</span>
+      </button>
+      <button type="button" class="nav-item" data-view="hunt" id="navExplore">
+        <span class="ico" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><circle cx="11" cy="11" r="6"/><path d="m20 20-4.2-4.2"/></svg>
+        </span>
+        <span class="label">Explore</span>
+      </button>
+      <button type="button" class="nav-item" data-view="library" id="navLibrary">
+        <span class="ico" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="9" cy="11" r="2"/><path d="m3 17 5-4 3 2 4-5 6 7"/></svg>
+        </span>
+        <span class="label">Library</span>
       </button>
     </nav>
 
-    <div class="section-label">Agents</div>
-    <nav class="nav" aria-label="Agents" style="margin-bottom:8px">
-      <button type="button" class="nav-item nav-agent" data-agent="wire" id="agentWire" data-open-hunt="1">
-        <span class="ico" aria-hidden="true">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M4 7h16M4 12h10M4 17h14"/></svg>
-        </span>
-        <span class="label">Wire</span>
-        <span class="dot"></span>
+    <div class="section-label">Projects</div>
+    <nav class="nav" aria-label="Projects" id="projectNav">
+      <button type="button" class="nav-item" data-desk="breaking">
+        <span class="ico" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M4 8h16v11H4z"/><path d="M8 8V6h8v2"/></svg></span>
+        <span class="label">Breaking</span>
       </button>
-      <div class="nav-item nav-agent" data-agent="still">
-        <span class="ico" aria-hidden="true">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="5" width="16" height="14" rx="2"/><circle cx="9" cy="10" r="1.5"/><path d="m4 16 4-3 3 2 4-4 5 5"/></svg>
-        </span>
-        <span class="label">Still</span>
-        <span class="dot"></span>
-      </div>
-      <div class="nav-item nav-agent" data-agent="desk">
-        <span class="ico" aria-hidden="true">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><rect x="4" y="4" width="16" height="16" rx="2"/><path d="M8 9h8M8 13h5"/></svg>
-        </span>
-        <span class="label">Clip</span>
-        <span class="dot"></span>
-      </div>
-      <button type="button" class="nav-item nav-agent" data-agent="ship" id="agentShip" data-open-connect="1">
-        <span class="ico" aria-hidden="true">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h11"/><path d="m12 7 5 5-5 5"/></svg>
-        </span>
-        <span class="label">Ship</span>
-        <span class="dot"></span>
+      <button type="button" class="nav-item" data-desk="business">
+        <span class="ico" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M4 8h16v11H4z"/><path d="M8 8V6h8v2"/></svg></span>
+        <span class="label">Business</span>
       </button>
+      <button type="button" class="nav-item" data-desk="culture">
+        <span class="ico" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M4 8h16v11H4z"/><path d="M8 8V6h8v2"/></svg></span>
+        <span class="label">Culture</span>
+      </button>
+      <button type="button" class="nav-item" data-desk="sports">
+        <span class="ico" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M4 8h16v11H4z"/><path d="M8 8V6h8v2"/></svg></span>
+        <span class="label">Sports</span>
+      </button>
+      <button type="button" class="nav-item" data-desk="tech">
+        <span class="ico" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M4 8h16v11H4z"/><path d="M8 8V6h8v2"/></svg></span>
+        <span class="label">Tech</span>
+      </button>
+      <button type="button" class="nav-item" data-desk="world">
+        <span class="ico" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M4 8h16v11H4z"/><path d="M8 8V6h8v2"/></svg></span>
+        <span class="label">World</span>
+      </button>
+    </nav>
+
+    <div class="section-label">Recents</div>
+    <nav class="nav" aria-label="Recents" id="recentList">
+      <div class="side-empty">No recent stories</div>
     </nav>
 
     <div class="section-label">Tools</div>
     <div class="tools" aria-label="Tools">
-      <button type="button" class="tool-row t1" title="News" aria-label="News" id="toolNews" data-open-hunt="1">
+      <button type="button" class="tool-row t1" title="News" aria-label="News" id="toolNews">
         <span class="tool-ico" aria-hidden="true">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4 6h12v14H6a2 2 0 0 1-2-2V6z"/><path d="M16 8h4v10a2 2 0 0 1-2 2h-2"/><path d="M7 10h6M7 14h4"/></svg>
         </span>
         <span class="label">News</span>
       </button>
-      <button type="button" class="tool-row t2" title="Still" aria-label="Still" id="toolStill">
+      <button type="button" class="tool-row t2" title="Photo" aria-label="Photo" id="toolStill">
         <span class="tool-ico" aria-hidden="true">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="9" cy="11" r="2"/><path d="m3 17 5-4 3 2 4-5 6 7"/></svg>
         </span>
-        <span class="label">Still</span>
+        <span class="label">Photo</span>
       </button>
-      <button type="button" class="tool-row t3" title="Captions" aria-label="Captions" id="toolCaptions">
-        <span class="tool-ico" aria-hidden="true">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M5 7h14M5 12h10M5 17h12"/></svg>
-        </span>
-        <span class="label">Captions</span>
-      </button>
-      <button type="button" class="tool-row t4" title="Ship / Connect" aria-label="Ship" id="toolShip" data-open-connect="1">
+      <button type="button" class="tool-row t4" title="Post" aria-label="Post" id="toolShip">
         <span class="tool-ico" aria-hidden="true">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v12"/><path d="m7 11 5 5 5-5"/><path d="M5 20h14"/></svg>
         </span>
-        <span class="label">Ship</span>
+        <span class="label">Post</span>
       </button>
     </div>
 
@@ -1368,9 +1386,9 @@
         <p class="truth-micro"><strong>News only from real pages.</strong> Browser holds the source.</p>
 
         <div class="ask-box">
-          <textarea id="headline" placeholder="Hunt a story or paste a headline…" rows="3"></textarea>
+          <textarea id="headline" placeholder="Find a story or paste a headline…" rows="3"></textarea>
           <div class="ask-actions">
-            <span class="ask-hint">Hunt a live page, then rewrite · you approve before ship</span>
+            <span class="ask-hint">Find a page, rewrite, pick a photo, open Canva</span>
             <button type="button" class="btn btn-lime" id="runBtn">Run</button>
           </div>
         </div>
@@ -1381,11 +1399,11 @@
         <div class="suggestions" id="suggestions">
           <button type="button" class="sug" id="sugHunt">
             <span class="plus">+</span>
-            Hunt a live page — rewrite only after a real source URL
+            Find news — only from a real page
           </button>
           <button type="button" class="sug" id="sugLibrary">
             <span class="plus">+</span>
-            Open the media library — clips, stills, captions
+            Open Library — images
           </button>
         </div>
 
@@ -1397,7 +1415,7 @@
           </div>
 
           <div class="approve-bar" id="approveBar" style="display:none">
-            <div class="msg"><strong>Needs your input.</strong> Review still + pack, then approve to unlock ship.</div>
+            <div class="msg"><strong>Needs your input.</strong> Edit text, pick a photo, then approve.</div>
             <button type="button" class="pill pill-approve" id="approveBtn" disabled>Approve</button>
             <button type="button" class="pill pill-adjust" id="adjustBtn">Adjust</button>
             <button type="button" class="pill pill-dismiss" id="dismissBtn">Dismiss</button>
@@ -1410,12 +1428,12 @@
               <div class="ban" id="ban">bannedForPrint · AI still · social only — story must stay URL-sourced</div>
             </div>
             <div class="card">
-              <h3>Pack preview</h3>
+              <h3>Preview</h3>
               <pre class="pack-pre" id="pack">—</pre>
             </div>
             <div class="card log-card">
               <h3>Tool log</h3>
-              <div id="log" class="empty-log">Hunt a live URL or paste a headline. Gemini writes the pack. Approve unlocks ship.</div>
+              <div id="log" class="empty-log">Find a live URL or paste a headline. Approve unlocks post.</div>
             </div>
           </div>
         </div>
@@ -1423,10 +1441,10 @@
     </section>
 
     <!-- ACTIVITY -->
-    <section class="view" id="viewActivity" aria-label="Activity">
+    <section class="view" id="viewActivity" aria-label="Approvals">
       <div class="activity-wrap">
-        <h1>Activity</h1>
-        <p class="activity-sub">What needs you, and what moved.</p>
+        <h1>Approvals</h1>
+        <p class="activity-sub">Stories waiting to post.</p>
         <p class="truth-micro" style="margin:-18px 0 22px"><strong>News only from real pages.</strong> Browser holds the source.</p>
 
         <div class="need-label" id="needLabel">Nothing needs you right now</div>
@@ -1435,27 +1453,35 @@
         <div class="changed">
           <h3>What’s changed</h3>
           <div class="changed-row">
-            <div class="metric">Hunt</div>
+            <div class="metric">Explore</div>
             <div class="note">Live pages only — Browser holds the source URL</div>
           </div>
           <div class="changed-row">
-            <div class="metric">Gemini</div>
-            <div class="note">Hunt a page. Approve. Ship.</div>
+            <div class="metric">Ask</div>
+            <div class="note">Find a page. Approve. Post.</div>
           </div>
           <div class="changed-row">
             <div class="metric">Approve</div>
-            <div class="note">Ship blocked until you approve</div>
+            <div class="note">Post stays locked until you approve</div>
           </div>
         </div>
       </div>
     </section>
 
-    <!-- WIRE / HUNT -->
-    <section class="view" id="viewHunt" aria-label="Wire Hunt">
+    <section class="view" id="viewScheduled" aria-label="Scheduled">
+      <div class="activity-wrap">
+        <h1>Scheduled</h1>
+        <p class="activity-sub">Stories you set to post later.</p>
+        <div class="hunt-empty">Nothing scheduled yet.</div>
+      </div>
+    </section>
+
+    <!-- EXPLORE / FIND NEWS -->
+    <section class="view" id="viewHunt" aria-label="Explore">
       <div class="hunt-wrap">
-        <div class="kicker">Wire</div>
-        <h1>Hunt latest</h1>
-        <p class="hunt-sub">Open a desk. Cutline fetches live pages and keeps only real source URLs.</p>
+        <div class="kicker">Explore</div>
+        <h1>Find news</h1>
+        <p class="hunt-sub">Pick a project. Cutline opens live pages and keeps only real source URLs.</p>
         <div class="hunt-truth"><strong>Browser holds the source.</strong> Every hit needs a live URL. No invented news.</div>
 
         <div class="beat-chips" id="beatChips" role="group" aria-label="Desks">
@@ -1468,25 +1494,25 @@
         </div>
 
         <div class="hunt-bar">
-          <button type="button" class="btn-lime" id="huntBtn">Hunt latest</button>
-          <span class="hunt-meta" id="huntMeta">Pick a desk, then hunt.</span>
+          <button type="button" class="btn-lime" id="huntBtn">Find news</button>
+          <span class="hunt-meta" id="huntMeta">Pick a project, then find news.</span>
         </div>
         <div class="err" id="huntErr"></div>
         <div id="hitList" class="hit-list">
-          <div class="hunt-empty" id="huntEmpty">No hunt yet. Choose a desk and hit Hunt latest.</div>
+          <div class="hunt-empty" id="huntEmpty">No news yet. Choose a project and find news.</div>
         </div>
       </div>
     </section>
 
     <!-- CONNECT / PLUGINS -->
-    <section class="view" id="viewConnect" aria-label="Connect">
+    <section class="view" id="viewConnect" aria-label="Plugins">
       <div class="connect-wrap">
-        <div class="kicker">Ship · Plugins</div>
-        <h1>Connect</h1>
-        <p class="connect-sub">Link Instagram, YouTube, Canva, Telegram, X, or TikTok before you run a story. Ship uses the linked account. Download ZIP stays local.</p>
+        <div class="kicker">Plugins</div>
+        <h1>Plugins</h1>
+        <p class="connect-sub">Link Instagram, YouTube, Canva, Telegram, X, or TikTok. Post uses the linked account. Download ZIP stays local.</p>
 
         <div class="connect-run" id="connectRunBar">
-          <span id="connectRunMsg">Connect an account anytime. Ship still needs a story.</span>
+          <span id="connectRunMsg">Connect an account anytime. Post still needs a story.</span>
         </div>
 
         <div class="plugin-grid" id="pluginGrid" aria-label="Plugins">
@@ -1500,17 +1526,16 @@
     <!-- LIBRARY -->
     <section class="view" id="viewLibrary" aria-label="Library">
       <div class="connect-wrap">
-        <div class="kicker">Media</div>
+        <div class="kicker">Images</div>
         <h1>Library</h1>
-        <p class="connect-sub">Clips, stills, videos, and captions stored on the desk. Linked to the story they came from.</p>
+        <p class="connect-sub">Images and videos from your stories.</p>
         <div class="lib-actions">
-          <button type="button" class="btn-lime" id="libAddCaption">Add caption</button>
-          <button type="button" class="plugin-btn" id="libAddClip">Add clip URL</button>
-          <button type="button" class="plugin-btn lime" id="libUploadClip">Upload clip</button>
+          <button type="button" class="plugin-btn" id="libAddClip">Add video URL</button>
+          <button type="button" class="plugin-btn lime" id="libUploadClip">Upload video</button>
         </div>
         <div class="err" id="libErr"></div>
         <div id="libList" class="lib-list">
-          <div class="hunt-empty">Library is empty. Finish a sourced run or add a clip.</div>
+          <div class="hunt-empty">No images yet. Finish a story or add a photo.</div>
         </div>
       </div>
     </section>
@@ -1565,7 +1590,7 @@
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M8 4h8a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z"/><path d="M12 10v4M10 12h4"/></svg>
         </div>
         <h3>No post yet</h3>
-        <p>Hunt a page, then Use on desk.</p>
+        <p>Find a page, then use it here.</p>
       </div>
       <div class="truth-banner" id="truthBanner" style="display:none" role="status">
         <span class="tb-ico" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 3l8 4v5c0 5-3.5 8.5-8 10-4.5-1.5-8-5-8-10V7l8-4z"/><path d="M9 12l2 2 4-4"/></svg></span>
@@ -1584,8 +1609,8 @@
         <div class="ig-still-note" id="igStillNote" hidden></div>
         <div class="photo-strip-label" id="photoStripLabel" hidden>From the page</div>
         <div class="photo-strip" id="photoStrip" hidden></div>
-        <div class="ig-headline" id="igHeadlineEdit" contenteditable="true" data-placeholder="Headline"></div>
-        <div class="ig-caption" id="igCaptionEdit" contenteditable="true" data-placeholder="Caption"></div>
+        <div class="ig-headline" id="igHeadlineEdit" contenteditable="true" data-placeholder="Rewrite"></div>
+        <div class="ig-caption" id="igCaptionEdit" hidden data-placeholder=""></div>
         <div class="ig-actions">
           <button type="button" class="btn btn-ink btn-sm" id="igApproveBtn">Approve</button>
           <button type="button" class="btn btn-lime btn-sm" id="igZipBtn">ZIP</button>
@@ -1611,7 +1636,7 @@
         </div>
         <div class="layer" data-id="ig" id="layerIg" hidden>
           <div class="layer-head">
-            <span class="layer-kind">IG caption</span>
+            <span class="layer-kind">Rewrite</span>
             <span class="layer-chip" data-chip>updated</span>
           </div>
           <div class="layer-text muted" id="layerIgText">—</div>
@@ -1632,13 +1657,13 @@
         </div>
         <div class="layer" data-id="clip" id="layerClip">
           <div class="layer-head">
-            <span class="layer-kind">Clip</span>
+            <span class="layer-kind">Video</span>
             <span class="layer-chip" data-chip>updated</span>
           </div>
           <div class="layer-clip-ph" id="layerClipPh">
-            <div>No clip yet</div>
-            <div class="clip-actions"><button type="button" class="plugin-btn lime" id="clipUploadBtn">Upload clip</button></div>
-            <div class="clip-note">Raw file stored on the desk. Cut is not generated.</div>
+            <div>No video yet</div>
+            <div class="clip-actions"><button type="button" class="plugin-btn lime" id="clipUploadBtn">Upload video</button></div>
+            <div class="clip-note">Raw file stored here. A cut is not made.</div>
           </div>
         </div>
       </div>
@@ -1818,7 +1843,7 @@
     bar.style.display = needs || run?.status === "approved" ? "flex" : (run ? "flex" : "none");
     $("approveBtn").disabled = !needs;
     if (run?.status === "approved") {
-      bar.querySelector(".msg").innerHTML = "<strong>Approved.</strong> Ship unlocked — open <a href=\"javascript:void(0)\" id=\"gotoConnect\" style=\"text-decoration:underline\">Connect</a>.";
+      bar.querySelector(".msg").innerHTML = "<strong>Approved.</strong> Ready to post — open <a href=\"javascript:void(0)\" id=\"gotoConnect\" style=\"text-decoration:underline\">Plugins</a>.";
     } else if (needs) {
       bar.querySelector(".msg").innerHTML = "<strong>Needs your input.</strong> Review still + pack, then approve to unlock ship.";
     } else if (run) {
@@ -1834,7 +1859,7 @@
     if (run?.status === "needs_input") {
       const title = (run.rewrite?.headline || run.brief?.headline || $("headline").value || "Desk run").trim();
       const html = `
-        <div class="kind"><span class="chip">Live</span> Wire · Still · Desk</div>
+        <div class="kind"><span class="chip">Live</span> Needs approve</div>
         <h3>${escapeHtml(title)}</h3>
         <p>Still + pack ready. Approve to unlock ship, or adjust the headline and re-run.</p>
         <div class="need-actions">
@@ -2322,18 +2347,57 @@
     }
   }
 
+  function newDesk() {
+    $("headline").value = "";
+    pendingSourceUrl = null;
+    $("approveBar").style.display = "none";
+    $("result").classList.remove("show");
+    $("homeWrap").classList.remove("has-run");
+    $("suggestions").style.display = "";
+    setStatus("idle");
+    $("runMeta").textContent = "";
+    if ($("frame")) $("frame").innerHTML = '<div class="ph">Photo waits for a run</div>';
+    $("ban")?.classList.remove("show");
+    if ($("pack")) $("pack").textContent = "—";
+    if ($("log")) {
+      $("log").className = "empty-log";
+      $("log").textContent = "Find a live URL or paste a headline. Approve unlocks post.";
+    }
+    markRoster([]);
+    clearMagicLayers({ keepSkeleton: true });
+    setSideRunReady();
+    switchView("home");
+    $("headline").focus();
+  }
+
   function switchView(name) {
     document.querySelectorAll(".view").forEach((v) => v.classList.remove("active"));
     document.querySelectorAll(".nav-item[data-view]").forEach((n) => n.classList.remove("active"));
-    if (name === "activity") {
+    document.querySelectorAll(".nav-item[data-desk]").forEach((n) => n.classList.remove("active"));
+    document.querySelectorAll(".tool-row").forEach((n) => n.classList.remove("active-tool"));
+    if (name === "activity" || name === "approvals") {
       $("viewActivity").classList.add("active");
-      $("navActivity").classList.add("active");
-    } else if (name === "connect") {
+      $("navApprovals")?.classList.add("active");
+    } else if (name === "scheduled") {
+      $("viewScheduled")?.classList.add("active");
+      $("navScheduled")?.classList.add("active");
+    } else if (name === "hunt" || name === "explore") {
+      $("viewHunt").classList.add("active");
+      $("navExplore")?.classList.add("active");
+      $("toolNews")?.classList.add("active-tool");
+      document.querySelector(`#projectNav [data-desk="${selectedDesk}"]`)?.classList.add("active");
+    } else if (name === "library") {
+      $("viewLibrary").classList.add("active");
+      $("navLibrary")?.classList.add("active");
+      if (typeof refreshLibrary === "function") refreshLibrary();
+    } else if (name === "connect" || name === "plugins") {
       $("viewConnect").classList.add("active");
-      $("navConnect").classList.add("active");
+      $("navPlugins")?.classList.add("active");
+      $("toolShip")?.classList.add("active-tool");
+      if (typeof refreshConnect === "function") refreshConnect();
     } else {
       $("viewHome").classList.add("active");
-      $("navHome").classList.add("active");
+      $("navNew")?.classList.add("active");
     }
   }
 
@@ -2375,7 +2439,7 @@
     $("ban").classList.remove("show");
     $("pack").textContent = "—";
     $("log").className = "empty-log";
-    $("log").textContent = "Hunt a live URL or paste a headline. Gemini writes the pack. Approve unlocks ship.";
+    $("log").textContent = "Find a live URL or paste a headline. Approve unlocks post.";
     markRoster([]);
     clearMagicLayers({ keepSkeleton: true });
   });
@@ -2391,9 +2455,14 @@
   $("sugHunt")?.addEventListener("click", () => switchView("hunt"));
   $("sugLibrary")?.addEventListener("click", () => switchView("library"));
 
-  $("navHome").addEventListener("click", () => switchView("home"));
-  $("navActivity").addEventListener("click", () => switchView("activity"));
+  $("navNew")?.addEventListener("click", () => newDesk());
+  $("navApprovals")?.addEventListener("click", () => switchView("activity"));
+  $("navScheduled")?.addEventListener("click", () => switchView("scheduled"));
+  $("navPlugins")?.addEventListener("click", () => switchView("connect"));
+  $("navExplore")?.addEventListener("click", () => switchView("hunt"));
   $("navLibrary")?.addEventListener("click", () => switchView("library"));
+  $("toolNews")?.addEventListener("click", () => switchView("hunt"));
+  $("toolShip")?.addEventListener("click", () => switchView("connect"));
 
   let selectedDesk = "breaking";
   let lastHits = [];
@@ -2409,34 +2478,14 @@
     switchView("hunt");
   }
 
-  const _switchView = switchView;
-  switchView = function(name) {
-    document.querySelectorAll(".view").forEach((v) => v.classList.remove("active"));
-    document.querySelectorAll(".nav-item[data-view]").forEach((n) => n.classList.remove("active"));
-    document.querySelectorAll(".tool-row").forEach((n) => n.classList.remove("active-tool"));
-    if (name === "activity") {
-      $("viewActivity").classList.add("active");
-      $("navActivity").classList.add("active");
-    } else if (name === "hunt") {
-      $("viewHunt").classList.add("active");
-      $("toolNews")?.classList.add("active-tool");
-    } else if (name === "library") {
-      $("viewLibrary").classList.add("active");
-      $("navLibrary")?.classList.add("active");
-      refreshLibrary();
-    } else if (name === "connect") {
-      $("viewConnect").classList.add("active");
-      $("navConnect").classList.add("active");
-      $("toolShip")?.classList.add("active-tool");
-      refreshConnect();
-    } else {
-      $("viewHome").classList.add("active");
-      $("navHome").classList.add("active");
-    }
-  };
-
-  document.querySelectorAll("[data-open-hunt]").forEach((el) => {
-    el.addEventListener("click", openHunt);
+  document.querySelectorAll("#projectNav [data-desk]").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      selectedDesk = btn.dataset.desk || "breaking";
+      document.querySelectorAll(".beat-chip").forEach((b) => b.classList.toggle("active", b.dataset.desk === selectedDesk));
+      $("huntMeta").textContent = "Find news · " + selectedDesk;
+      $("huntMeta").classList.remove("warn");
+      switchView("hunt");
+    });
   });
 
   document.querySelectorAll(".beat-chip").forEach((btn) => {
@@ -2444,7 +2493,7 @@
       document.querySelectorAll(".beat-chip").forEach((b) => b.classList.remove("active"));
       btn.classList.add("active");
       selectedDesk = btn.dataset.desk || "breaking";
-      $("huntMeta").textContent = "Desk · " + selectedDesk;
+      $("huntMeta").textContent = "Find news · " + selectedDesk;
       $("huntMeta").classList.remove("warn");
     });
   });
@@ -2457,7 +2506,7 @@
     $("huntMeta").classList.remove("warn");
 
     if (!lastHits.length) {
-      list.innerHTML = `<div class="hunt-empty" id="huntEmpty">No sourced hits for this desk (every card needs a live URL).</div>`;
+      list.innerHTML = `<div class="hunt-empty" id="huntEmpty">No live pages for this project. Every card needs a real URL.</div>`;
       return;
     }
     list.innerHTML = lastHits.map((h, i) => `
@@ -2474,7 +2523,7 @@
         <div class="hit-actions">
           <button type="button" class="open-browser" data-idx="${i}">Open in Browser</button>
           <a href="${escapeHtml(h.sourceUrl)}" target="_blank" rel="noopener noreferrer">Open tab</a>
-          <button type="button" class="use-desk" data-idx="${i}">Use on desk</button>
+          <button type="button" class="use-desk" data-idx="${i}">Use here</button>
         </div>
       </article>
     `).join("");
@@ -2488,9 +2537,9 @@
         const srcMeta = $("layerSourceMeta");
         if (srcMeta) {
           $("structureEmpty").style.display = "none";
-          $("layerTree").style.display = "flex";
+          $("layerTree").style.display = "none";
           const tb = $("truthBanner");
-          if (tb) tb.style.display = "flex";
+          if (tb) tb.style.display = "none";
           const wc = $("wedgeChip");
           if (wc) wc.classList.remove("show");
           srcMeta.classList.remove("muted");
@@ -2530,7 +2579,7 @@
       renderHits(data);
     } catch (e) {
       setHuntErr(e.message || String(e));
-      $("huntMeta").textContent = "Hunt failed";
+      $("huntMeta").textContent = "Find news failed";
     } finally {
       btn.disabled = false;
     }
@@ -2539,8 +2588,6 @@
   $("huntBtn").addEventListener("click", doHunt);
 
 
-
-  $("navConnect").addEventListener("click", () => switchView("connect"));
 
   document.querySelectorAll("[data-open-connect]").forEach((el) => {
     el.addEventListener("click", () => switchView("connect"));
@@ -2566,13 +2613,13 @@
     if (canShip()) {
       bar.classList.toggle("warn", currentRun.status === "needs_input");
       const hl = (currentRun.rewrite?.headline || currentRun.brief?.headline || "").slice(0, 60);
-      bar.innerHTML = `<strong>Ready to ship</strong> <span class="run-id">${escapeHtml(currentRun.id)}</span> <span>${escapeHtml(currentRun.status)}${hl ? " · " + escapeHtml(hl) : ""}</span>`;
+      bar.innerHTML = `<strong>Ready to post</strong> <span class="run-id">${escapeHtml(currentRun.id)}</span> <span>${escapeHtml(currentRun.status)}${hl ? " · " + escapeHtml(hl) : ""}</span>`;
     } else if (currentRun?.id) {
       bar.classList.add("warn");
-      bar.innerHTML = `<strong>Run ${escapeHtml(currentRun.id)}</strong> — status ${escapeHtml(currentRun.status)}. Approve or wait for pack before ship.`;
+      bar.innerHTML = `<strong>Story ${escapeHtml(currentRun.id)}</strong> — ${escapeHtml(currentRun.status)}. Approve first, then post.`;
     } else {
       bar.classList.remove("warn");
-      bar.innerHTML = `<span id="connectRunMsg">Connect an account anytime. Ship still needs a story.</span>`;
+      bar.innerHTML = `<span id="connectRunMsg">Connect an account anytime. Post still needs a story.</span>`;
     }
   }
 
@@ -2601,7 +2648,7 @@
       showConnectToast("<strong>No run.</strong> Run a story on Home first.", "warn");
       return;
     }
-    showConnectToast("Shipping to " + escapeHtml(channel) + "…");
+    showConnectToast("Posting to " + escapeHtml(channel) + "…");
     try {
       const res = await fetch("/api/ship", {
         method: "POST",
@@ -2625,7 +2672,7 @@
             data.pack.ytDescription || "",
           ].join("\n"), "text/plain");
         }
-        showConnectToast("<strong>ZIP pack downloaded.</strong> JSON + caption saved locally. No OAuth needed.", "ok");
+        showConnectToast("<strong>ZIP downloaded.</strong> Story file saved locally. No login needed.", "ok");
         return;
       }
 
@@ -2641,7 +2688,7 @@
       }
 
       if (data.status === "failed") {
-        showConnectToast("<strong>Ship failed.</strong> " + escapeHtml(data.nextStep || data.error || "The channel rejected the post."), "warn");
+        showConnectToast("<strong>Post failed.</strong> " + escapeHtml(data.nextStep || data.error || "The channel rejected the post."), "warn");
         return;
       }
 
@@ -2658,9 +2705,9 @@
         return;
       }
 
-      showConnectToast("<strong>Ship:</strong> " + escapeHtml(data.status || "ok"), "ok");
+      showConnectToast("<strong>Post:</strong> " + escapeHtml(data.status || "ok"), "ok");
     } catch (e) {
-      showConnectToast("<strong>Ship failed.</strong> " + escapeHtml(e.message || String(e)), "warn");
+      showConnectToast("<strong>Post failed.</strong> " + escapeHtml(e.message || String(e)), "warn");
     }
   }
 
@@ -2680,16 +2727,16 @@
       if (p.local) {
         btn = `<button type="button" class="plugin-btn lime" data-ship="${p.id}" ${shipOk ? "" : "disabled"}>Download pack</button>`;
         hint = shipOk
-          ? `<div class="plugin-hint">Exports JSON + caption for this run</div>`
+          ? `<div class="plugin-hint">Saves this story as a file</div>`
           : `<div class="plugin-hint">Run a story first</div>`;
       } else if (p.connected) {
         const shipBtn = shipOk
-          ? `<button type="button" class="plugin-btn" data-ship="${p.id}">Ship to ${escapeHtml(p.name)}</button>`
+          ? `<button type="button" class="plugin-btn" data-ship="${p.id}">Post to ${escapeHtml(p.name)}</button>`
           : "";
         btn = `${shipBtn}<button type="button" class="plugin-btn ghost" data-disconnect="${p.id}">Disconnect</button>`;
         hint = shipOk
-          ? `<div class="plugin-hint">Linked${p.accountLabel ? " as " + escapeHtml(p.accountLabel) : ""}. Ship this run.</div>`
-          : `<div class="plugin-hint">Linked${p.accountLabel ? " as " + escapeHtml(p.accountLabel) : ""}. Run a story when you want to ship.</div>`;
+          ? `<div class="plugin-hint">Linked${p.accountLabel ? " as " + escapeHtml(p.accountLabel) : ""}. Post this story.</div>`
+          : `<div class="plugin-hint">Linked${p.accountLabel ? " as " + escapeHtml(p.accountLabel) : ""}. Run a story when you want to post.</div>`;
       } else {
         btn = `<button type="button" class="plugin-btn lime" data-connect="${p.id}">Connect</button>`;
         hint = p.configured
@@ -2764,13 +2811,13 @@
       renderPluginCards(data.plugins || []);
     } catch (e) {
       const fallback = [
-        { id: "ig", name: "Instagram", description: "Still + IG caption pack", connected: false, configured: false, missing: ["IG_APP_ID", "IG_APP_SECRET"], primary: true, local: false },
+        { id: "ig", name: "Instagram", description: "Photo + rewrite pack", connected: false, configured: false, missing: ["IG_APP_ID", "IG_APP_SECRET"], primary: true, local: false },
         { id: "yt", name: "YouTube", description: "Title, description + thumbnail", connected: false, configured: false, missing: ["YT_CLIENT_ID", "YT_CLIENT_SECRET"], primary: true, local: false },
         { id: "canva", name: "Canva", description: "Open design handoff", connected: false, configured: false, missing: ["CANVA_CLIENT_ID", "CANVA_CLIENT_SECRET"], primary: true, local: false },
         { id: "telegram", name: "Telegram", description: "Channel message", connected: false, configured: false, missing: ["TELEGRAM_BOT_TOKEN"], primary: false, local: false },
         { id: "x", name: "X / Twitter", description: "Post + media", connected: false, configured: false, missing: ["X_CLIENT_ID", "X_CLIENT_SECRET"], primary: false, local: false },
         { id: "tiktok", name: "TikTok", description: "Photo publish via TikTok Login", connected: false, configured: false, missing: ["TIKTOK_CLIENT_KEY", "TIKTOK_CLIENT_SECRET"], primary: false, local: false },
-        { id: "zip", name: "Download ZIP", description: "JSON + caption bundle — always works", connected: true, configured: true, missing: [], primary: false, local: true },
+        { id: "zip", name: "Download ZIP", description: "Story file — always works", connected: true, configured: true, missing: [], primary: false, local: true },
       ];
       renderPluginCards(fallback);
       showConnectToast("<strong>Plugins API offline.</strong> Showing local catalog.", "warn");
@@ -2782,6 +2829,7 @@
   applyRun = function(run) {
     _applyRun(run);
     if ($("viewConnect")?.classList.contains("active")) refreshConnect();
+    if (typeof refreshLibrary === "function") refreshLibrary();
   };
 
 
@@ -2844,28 +2892,59 @@
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "library failed");
       renderLibrary(data.entries || []);
+      renderRecents(data.entries || []);
     } catch (e) {
       setLibErr(e.message || String(e));
+      renderRecents([]);
     }
   }
 
-  $("libAddCaption")?.addEventListener("click", async () => {
-    const body = window.prompt("Caption text");
-    if (!body || !body.trim()) return;
-    const title = window.prompt("Title (optional)") || "Caption";
-    try {
-      const res = await fetch("/api/library", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ kind: "caption", title, body: body.trim() }),
-      });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || "save failed");
-      refreshLibrary();
-    } catch (e) {
-      setLibErr(e.message || String(e));
+  function renderRecents(entries) {
+    const root = $("recentList");
+    if (!root) return;
+    const rows = [];
+    if (currentRun?.id) {
+      const title = (currentRun.rewrite?.headline || currentRun.brief?.headline || $("headline")?.value || currentRun.id).trim();
+      rows.push({ runId: currentRun.id, title, sourceUrl: resolveSourceUrl(currentRun) });
     }
-  });
+    (entries || []).forEach((entry) => {
+      const item = entry.item || {};
+      if (!item.title) return;
+      if (item.runId && rows.some((r) => r.runId === item.runId)) return;
+      rows.push({ runId: item.runId || "", title: item.title, sourceUrl: item.sourceUrl || "" });
+    });
+    const shown = rows.slice(0, 6);
+    if (!shown.length) {
+      root.innerHTML = `<div class="side-empty">No recent stories</div>`;
+      return;
+    }
+    root.innerHTML = shown.map((r) =>
+      `<button type="button" class="nav-item" data-recent-run="${escapeHtml(r.runId)}" data-recent-title="${escapeHtml(r.title)}" data-recent-src="${escapeHtml(r.sourceUrl)}">
+        <span class="label">${escapeHtml(r.title.slice(0, 42))}</span>
+      </button>`
+    ).join("");
+    root.querySelectorAll("[data-recent-run]").forEach((btn) => {
+      btn.addEventListener("click", async () => {
+        const runId = btn.dataset.recentRun;
+        const title = btn.dataset.recentTitle || "";
+        const src = btn.dataset.recentSrc || "";
+        if (runId) {
+          try {
+            const res = await fetch("/api/runs/" + encodeURIComponent(runId));
+            const data = await res.json();
+            if (res.ok && data.run) {
+              applyRun(data.run);
+              return;
+            }
+          } catch (_) { /* open as ask */ }
+        }
+        if (title) $("headline").value = title;
+        if (isLiveSourceUrl(src)) pendingSourceUrl = src;
+        setSideRunReady();
+        switchView("home");
+      });
+    });
+  }
 
   async function uploadClipFile(file) {
     if (!file) return;
@@ -2934,8 +3013,7 @@
   $("toolEditText")?.addEventListener("click", () => {
     focusPostTemplate();
     const el = $("igHeadlineEdit");
-    if (el && $("igPost")?.style.display !== "none") el.focus();
-    else $("igCaptionEdit")?.focus();
+    if (el) el.focus();
   });
   $("toolPhoto")?.addEventListener("click", () => {
     focusPostTemplate();
@@ -3027,7 +3105,7 @@
       } else {
         showConnectToast("<strong>Connect failed.</strong> " + escapeHtml(q.get("reason") || "error") + (channel ? " · " + escapeHtml(channel) : ""), "warn");
       }
-    } else if (view === "connect" || view === "activity" || view === "hunt" || view === "library") {
+    } else if (view === "connect" || view === "activity" || view === "hunt" || view === "library" || view === "scheduled") {
       switchView(view);
     }
     const preview = (q.get("preview") || "").toLowerCase();
@@ -3051,17 +3129,10 @@
     switchView("home");
     switchRightTab("structure");
     if (currentRun) paintIgPost(currentRun);
-    else {
-      $("result").classList.add("show");
-      $("homeWrap").classList.add("has-run");
-      startStillFill();
-    }
+    $("toolPhoto")?.click();
   });
-  $("toolCaptions")?.addEventListener("click", () => {
-    switchView("home");
-    switchRightTab("structure");
-    $("igCaptionEdit")?.focus();
-  });
+
+  refreshLibrary();
 </script>
 </body>
 </html>
