@@ -1,12 +1,11 @@
 #!/usr/bin/env python3
 """Bake DCN X (4:5) and YouTube (16:9) stills with the real DCN logo.
 
-Replaces the lime placeholder badges on dcn-x.jpg / dcn-yt.jpg.
+Headlines stay fully inside a safe inset (no left/right clipping).
 Instagram still (dcn-ig.jpg) is left untouched.
 """
 from __future__ import annotations
 
-import shutil
 from pathlib import Path
 
 from PIL import Image, ImageDraw, ImageFont
@@ -17,6 +16,9 @@ CHROME_MUMBAI = OUT / "templates" / "template_post_chrome_mumbai.png"
 CHROME_BLR = OUT / "templates" / "template_post_chrome_bengaluru.png"
 BOLD = "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf"
 REG = "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf"
+
+# Safe horizontal inset from each edge (px). Keeps glyphs off the crop edge.
+SAFE_X = 110
 
 
 def font(path: str, size: int) -> ImageFont.FreeTypeFont:
@@ -104,33 +106,70 @@ def wrap_lines(draw: ImageDraw.ImageDraw, text: str, fnt, max_w: int) -> list[st
     return lines
 
 
-def draw_copy(canvas: Image.Image, headline: str, deck: str, h_size: int, d_size: int) -> None:
+def fit_headline(draw: ImageDraw.ImageDraw, headline: str, max_w: int, start: int, floor: int) -> tuple[ImageFont.FreeTypeFont, list[str], int]:
+    """Shrink font until every wrapped line fits inside max_w."""
+    size = start
+    while size >= floor:
+        f_h = font(BOLD, size)
+        lines = wrap_lines(draw, headline, f_h, max_w)
+        widest = max((draw.textbbox((0, 0), ln, font=f_h)[2] for ln in lines), default=0)
+        if widest <= max_w and len(lines) <= 3:
+            return f_h, lines, size
+        size -= 2
+    f_h = font(BOLD, floor)
+    return f_h, wrap_lines(draw, headline, f_h, max_w), floor
+
+
+def draw_centered_lines(draw: ImageDraw.ImageDraw, lines: list[str], fnt, y: int, line_h: int, fill=(255, 255, 255, 255)) -> int:
+    w = draw.im.size[0] if hasattr(draw, "im") else None
+    # ImageDraw has .im on some versions; fall back via textbbox centering with canvas width passed in
+    return y  # placeholder — use draw_copy below
+
+
+def draw_copy(canvas: Image.Image, headline: str, deck: str, h_start: int, d_size: int, y_frac: float = 0.62) -> None:
     draw = ImageDraw.Draw(canvas)
-    f_h = font(BOLD, h_size)
+    max_w = canvas.size[0] - (SAFE_X * 2)
+    f_h, lines, h_size = fit_headline(draw, headline, max_w, h_start, 28)
     f_d = font(REG, d_size)
-    max_w = canvas.size[0] - 160
-    lines = wrap_lines(draw, headline, f_h, max_w)
     line_h = int(h_size * 1.2)
-    total = len(lines) * line_h + (int(d_size * 1.6) if deck else 0)
-    y = int(canvas.size[1] * 0.62)
+    y = int(canvas.size[1] * y_frac)
     for line in lines:
         bb = draw.textbbox((0, 0), line, font=f_h)
-        x = (canvas.size[0] - (bb[2] - bb[0])) // 2
+        tw = bb[2] - bb[0]
+        x = max(SAFE_X, (canvas.size[0] - tw) // 2)
+        # Guard: never let glyph start left of SAFE_X
+        if x < SAFE_X:
+            x = SAFE_X
         draw.text((x + 2, y + 2), line, font=f_h, fill=(0, 0, 0, 160))
         draw.text((x, y), line, font=f_h, fill=(255, 255, 255, 255))
         y += line_h
     if deck:
-        y += 6
+        y += 8
         bb = draw.textbbox((0, 0), deck, font=f_d)
-        x = (canvas.size[0] - (bb[2] - bb[0])) // 2
+        tw = bb[2] - bb[0]
+        x = max(SAFE_X, (canvas.size[0] - tw) // 2)
         draw.text((x, y), deck, font=f_d, fill=(255, 255, 255, 220))
 
 
 def bake_x() -> None:
-    src = OUT / "mumbai-card.jpg"
+    photo = Image.open(OUT / "mumbai.jpg").convert("RGB")
+    chrome = Image.open(CHROME_MUMBAI).convert("RGBA")
+    w, h = 1080, 1350
+    fitted = cover_crop(photo, w, h)
+    canvas = dark_plate(fitted, top_frac=0.52)
+    paste_logo(canvas, chrome, scale=0.95)
+    draw_copy(
+        canvas,
+        "Harbour line late-night clearance window",
+        "A late-night clearance window is posted for the Harbour line.",
+        h_start=46,
+        d_size=22,
+        y_frac=0.60,
+    )
+    draw_footer(canvas)
     dest = OUT / "dcn-x.jpg"
-    shutil.copyfile(src, dest)
-    print(f"dcn-x.jpg ← {src.name} ({Image.open(dest).size})")
+    canvas.convert("RGB").save(dest, quality=92, optimize=True)
+    print(f"dcn-x.jpg 4:5 {canvas.size} safe_x={SAFE_X}")
 
 
 def bake_yt() -> None:
@@ -140,22 +179,18 @@ def bake_yt() -> None:
     fitted = cover_crop(photo, w, h)
     canvas = dark_plate(fitted, top_frac=0.50)
     paste_logo(canvas, chrome, scale=1.2)
-    draw = ImageDraw.Draw(canvas)
-    f_h = font(BOLD, 48)
-    for i, line in enumerate(["WHITEFIELD FEEDERS", "ADD A LATE LAST TRIP"]):
-        bb = draw.textbbox((0, 0), line, font=f_h)
-        x = (1920 - (bb[2] - bb[0])) // 2
-        y = 620 + i * 58
-        draw.text((x + 2, y + 2), line, font=f_h, fill=(0, 0, 0, 160))
-        draw.text((x, y), line, font=f_h, fill=(255, 255, 255, 255))
-    f_d = font(REG, 22)
-    deck = "DCN  ·  YouTube"
-    bb = draw.textbbox((0, 0), deck, font=f_d)
-    draw.text(((1920 - (bb[2] - bb[0])) // 2, 744), deck, font=f_d, fill=(255, 255, 255, 220))
+    draw_copy(
+        canvas,
+        "Whitefield feeders add a late last trip",
+        "DCN  ·  YouTube",
+        h_start=52,
+        d_size=22,
+        y_frac=0.55,
+    )
     draw_footer(canvas)
     dest = OUT / "dcn-yt.jpg"
     canvas.convert("RGB").save(dest, quality=92, optimize=True)
-    print(f"dcn-yt.jpg 16:9 {canvas.size}")
+    print(f"dcn-yt.jpg 16:9 {canvas.size} safe_x={SAFE_X}")
 
 
 def main() -> None:

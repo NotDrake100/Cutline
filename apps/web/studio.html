@@ -1447,6 +1447,8 @@
     background-position: center;
     overflow: hidden;
     cursor: pointer;
+    container-type: inline-size;
+    container-name: ig-frame;
   }
   .ig-frame[data-aspect="yt"] { aspect-ratio: 16 / 9; }
   .ig-frame > .ig-photo {
@@ -1486,39 +1488,59 @@
   }
   .ig-frame .ig-card-text {
     position: absolute;
-    left: 6%;
-    right: 6%;
-    top: 58%;
-    bottom: 11%;
+    left: 0;
+    right: 0;
+    top: 56%;
+    bottom: 10%;
     z-index: 3;
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
     text-align: center;
-    gap: 10px;
+    gap: 8px;
+    /* Safe inset from frame edges — desktop + ~390px mobile */
+    padding: 0 max(18px, 9%);
+    box-sizing: border-box;
     pointer-events: auto;
     cursor: text;
+    overflow: hidden;
+  }
+  .ig-frame[data-aspect="yt"] .ig-card-text {
+    top: 46%;
+    bottom: 12%;
+    padding: 0 max(20px, 8%);
+    gap: 6px;
   }
   .ig-frame .ig-card-text .ig-headline {
     padding: 0;
     margin: 0;
     width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
     color: #fff;
-    font-size: clamp(15px, 4.2vw, 22px);
+    font-size: clamp(14px, 3.8vw, 22px);
+    font-size: clamp(14px, 5.5cqw, 22px);
     font-weight: 800;
     letter-spacing: 0.02em;
     text-transform: uppercase;
-    line-height: 1.15;
+    line-height: 1.18;
     text-shadow: 0 2px 8px rgba(0,0,0,0.55);
     outline: none;
+    white-space: normal;
+    overflow-wrap: anywhere;
+    word-break: break-word;
+    hyphens: manual;
   }
   .ig-frame .ig-card-text .ig-caption {
     padding: 0;
     margin: 0;
     width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
     color: #fff;
-    font-size: clamp(11px, 2.6vw, 13px);
+    font-size: clamp(11px, 2.5vw, 13px);
+    font-size: clamp(11px, 3.4cqw, 13px);
     font-weight: 500;
     letter-spacing: 0.01em;
     line-height: 1.35;
@@ -1526,6 +1548,9 @@
     outline: none;
     max-height: 4.2em;
     overflow: hidden;
+    white-space: normal;
+    overflow-wrap: anywhere;
+    word-break: break-word;
   }
   .ig-frame.no-chrome .ig-plate,
   .ig-frame.no-chrome .ig-chrome,
@@ -1900,7 +1925,7 @@
     height: auto;
     max-width: none;
     object-fit: cover;
-    background: #0A0A0A;
+    background: var(--panel);
     display: block;
   }
   .browser-preview[data-kind="youtube"] .browser-fallback img { aspect-ratio: 16 / 9; object-fit: cover; }
@@ -4100,8 +4125,14 @@
   function postPlatform(run) {
     const beat = (run?.beat || "").toLowerCase();
     const src = resolveSourceUrl(run) || "";
-    if (beat === "youtube" || /youtube\.com|youtu\.be|sample-dcn-yt/i.test(src)) return "youtube";
-    if (beat === "x" || /(^|\.)x\.com|twitter\.com|sample-dcn-x/i.test(src)) return "x";
+    const pasted = (typeof pendingSourceUrl === "string" ? pendingSourceUrl : "")
+      || ($("pastePostUrl")?.value || "")
+      || ($("styleUrl")?.value || "");
+    const ref = (run?._postPlatform || run?.pack?.postPlatform || "").toLowerCase();
+    const blob = `${beat}\n${src}\n${pasted}\n${ref}`;
+    if (ref === "youtube" || beat === "youtube" || /youtube\.com|youtu\.be|sample-dcn-yt/i.test(blob)) return "youtube";
+    if (ref === "x" || beat === "x" || /(^|\.|\/)x\.com|twitter\.com|sample-dcn-x/i.test(blob)) return "x";
+    if (ref === "instagram" || /instagram\.com|instagr\.am|sample-dcn-ig/i.test(blob)) return "instagram";
     return "instagram";
   }
 
@@ -4367,6 +4398,8 @@
       });
       const data = await res.json().catch(() => ({}));
       if (data.run) {
+        data.run._postPlatform = postPlatform({ ...data.run, hits: [{ sourceUrl }, ...(data.run.hits || [])] });
+        if (data.run.pack) data.run.pack.postPlatform = data.run._postPlatform;
         applyRun(data.run, { preferBrowser: true });
         if ($("pastePostUrl")) $("pastePostUrl").value = sourceUrl;
         setStyleUrl(sourceUrl);
@@ -4412,7 +4445,11 @@
         const city = projectChromeCity();
         data.run._hydChrome = city === "hyderabad";
         data.run._styleChrome = true;
-        if (data.run.pack) data.run.pack.templateChrome = city === "hyderabad" ? "dcn_hyd" : ("dcn_" + city);
+        data.run._postPlatform = browserKind(ref) === "page" ? postPlatform({ hits: [{ sourceUrl: ref }] }) : browserKind(ref);
+        if (data.run.pack) {
+          data.run.pack.templateChrome = city === "hyderabad" ? "dcn_hyd" : ("dcn_" + city);
+          data.run.pack.postPlatform = data.run._postPlatform;
+        }
         applyRun(data.run, { preferBrowser: false });
       } else {
         setStatus("needs_input");
