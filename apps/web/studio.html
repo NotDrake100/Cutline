@@ -252,32 +252,86 @@
     width: 100%;
     background: var(--panel);
     border: 1px solid var(--line);
-    border-radius: 16px;
-    padding: 14px 14px 12px;
-    box-shadow: 0 1px 2px rgba(0,0,0,.03), 0 8px 24px rgba(0,0,0,.03);
+    border-radius: 22px;
+    padding: 16px 16px 12px;
+    box-shadow: 0 1px 2px rgba(0,0,0,.03), 0 10px 28px rgba(0,0,0,.04);
     transition: border-color .12s ease, box-shadow .12s ease;
   }
   .ask-box:focus-within {
     border-color: var(--line-strong);
-    box-shadow: 0 1px 2px rgba(0,0,0,.04), 0 10px 28px rgba(0,0,0,.05);
+    box-shadow: 0 1px 2px rgba(0,0,0,.04), 0 14px 32px rgba(0,0,0,.055);
   }
   .ask-box textarea {
     width: 100%;
-    min-height: 72px;
+    min-height: 104px;
     resize: none;
     border: none; outline: none;
     background: transparent;
-    font-size: 15px; line-height: 1.45;
+    font-size: 16.5px; line-height: 1.45;
     color: var(--ink);
-    padding: 4px 4px 8px;
+    padding: 4px 4px 10px;
   }
   .ask-box textarea::placeholder { color: var(--dim); }
+  .ask-attach {
+    display: none;
+    align-items: center;
+    gap: 8px;
+    margin: 0 2px 10px;
+    padding: 7px 10px;
+    border-radius: 10px;
+    background: var(--bg);
+    border: 1px solid var(--line);
+    font-size: 12.5px;
+    color: var(--muted);
+  }
+  .ask-attach.show { display: flex; }
+  .ask-attach .name { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .ask-attach .x {
+    width: 22px; height: 22px; border-radius: 6px;
+    color: var(--muted);
+  }
+  .ask-attach .x:hover { background: var(--nav-hover); color: var(--ink); }
   .ask-actions {
     display: flex; align-items: center; gap: 8px;
-    padding-top: 4px;
+    padding-top: 2px;
   }
-  .ask-hint {
-    font-size: 12px; color: var(--dim); flex: 1;
+  .ask-plus-wrap { position: relative; }
+  .ask-plus {
+    width: 36px; height: 36px;
+    border-radius: 10px;
+    border: 1px solid var(--line);
+    background: var(--bg);
+    font-size: 20px; font-weight: 500; line-height: 1;
+    color: var(--ink);
+    display: grid; place-items: center;
+  }
+  .ask-plus:hover, .ask-plus.open { background: var(--nav-hover); }
+  .ask-plus-menu {
+    position: absolute;
+    left: 0; bottom: calc(100% + 8px);
+    min-width: 168px;
+    padding: 6px;
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    box-shadow: 0 8px 24px rgba(0,0,0,.07);
+    z-index: 5;
+  }
+  .ask-plus-menu[hidden] { display: none; }
+  .ask-plus-menu button {
+    display: block; width: 100%;
+    text-align: left;
+    padding: 9px 10px;
+    border-radius: 8px;
+    font-size: 13.5px; font-weight: 500;
+  }
+  .ask-plus-menu button:hover { background: var(--nav-hover); }
+  .ask-safety {
+    width: 100%;
+    margin: 12px 4px 0;
+    font-size: 12.5px;
+    color: var(--dim);
+    letter-spacing: -.01em;
   }
   .btn {
     display: inline-flex; align-items: center; justify-content: center; gap: 6px;
@@ -1381,15 +1435,29 @@
         <h1>What should we finish today?</h1>
 
         <div class="ask-box">
-          <textarea id="headline" placeholder="Find a story or paste a headline…" rows="3"></textarea>
+          <textarea id="headline" placeholder="Finish a news post…" rows="4"></textarea>
+          <div class="ask-attach" id="askAttach">
+            <span class="name" id="askAttachName"></span>
+            <button type="button" class="x" id="askAttachClear" aria-label="Remove file">×</button>
+          </div>
           <div class="ask-actions">
-            <span class="ask-hint">Find news, rewrite, pick a photo, open Canva</span>
+            <div class="ask-plus-wrap">
+              <button type="button" class="ask-plus" id="askPlus" aria-label="Add photo, video, or more" aria-expanded="false">+</button>
+              <div class="ask-plus-menu" id="askPlusMenu" hidden>
+                <button type="button" id="askAddPhoto">Photo</button>
+                <button type="button" id="askAddVideo">Video</button>
+                <button type="button" id="askAddMore">Find news</button>
+              </div>
+            </div>
+            <span style="flex:1"></span>
             <button type="button" class="btn btn-lime" id="runBtn">Run</button>
           </div>
         </div>
+        <p class="ask-safety">Live source URL · you approve before ship</p>
         <div class="gemini-toast" id="geminiToast" hidden></div>
         <div class="err" id="errBox"></div>
         <input type="file" id="clipFile" accept="video/mp4,video/webm,video/quicktime,video/x-m4v" hidden/>
+        <input type="file" id="askPhotoFile" accept="image/jpeg,image/png,image/webp,image/gif" hidden/>
 
         <div class="suggestions" id="suggestions">
           <button type="button" class="sug" id="sugHunt">
@@ -1672,6 +1740,7 @@
 <script>
   let currentRun = null;
   let pendingSourceUrl = null; // from Hunt "Use on desk"
+  let pendingAskPhoto = null;
   let layerSnapshot = {}; // hash of last painted layer values for flash
   let selectedStyle = "tight_news";
 
@@ -2247,6 +2316,11 @@
     setSideRunReady();
     switchView("home");
     fillMagicLayers(run, { flash: true, preferBrowser: false });
+    if (pendingAskPhoto?.url) {
+      currentRun.photos = currentRun.photos || [];
+      currentRun.photos.unshift({ url: pendingAskPhoto.url, credit: pendingAskPhoto.credit || "Photo" });
+      setPostPhoto({ url: pendingAskPhoto.url, credit: pendingAskPhoto.credit || "Photo" });
+    }
   }
 
   async function doRun() {
@@ -2314,6 +2388,9 @@
   function newDesk() {
     $("headline").value = "";
     pendingSourceUrl = null;
+    pendingAskPhoto = null;
+    showAskAttach("");
+    closeAskPlus();
     $("approveBar").style.display = "none";
     $("result").classList.remove("show");
     $("homeWrap").classList.remove("has-run");
@@ -2418,6 +2495,62 @@
 
   $("sugHunt")?.addEventListener("click", () => switchView("hunt"));
   $("sugLibrary")?.addEventListener("click", () => switchView("library"));
+
+  function closeAskPlus() {
+    const menu = $("askPlusMenu");
+    const plus = $("askPlus");
+    if (menu) menu.hidden = true;
+    plus?.classList.remove("open");
+    plus?.setAttribute("aria-expanded", "false");
+  }
+  function showAskAttach(name) {
+    const row = $("askAttach");
+    if (!row) return;
+    $("askAttachName").textContent = name || "";
+    row.classList.toggle("show", !!name);
+  }
+  $("askPlus")?.addEventListener("click", (e) => {
+    e.stopPropagation();
+    const menu = $("askPlusMenu");
+    if (!menu) return;
+    const open = menu.hidden;
+    menu.hidden = !open;
+    $("askPlus").classList.toggle("open", open);
+    $("askPlus").setAttribute("aria-expanded", open ? "true" : "false");
+  });
+  document.addEventListener("click", (e) => {
+    if (!e.target.closest?.(".ask-plus-wrap")) closeAskPlus();
+  });
+  $("askAddPhoto")?.addEventListener("click", () => {
+    closeAskPlus();
+    $("askPhotoFile")?.click();
+  });
+  $("askAddVideo")?.addEventListener("click", () => {
+    closeAskPlus();
+    $("clipFile")?.click();
+  });
+  $("askAddMore")?.addEventListener("click", () => {
+    closeAskPlus();
+    switchView("hunt");
+  });
+  $("askPhotoFile")?.addEventListener("change", async (e) => {
+    const file = e.target.files && e.target.files[0];
+    e.target.value = "";
+    if (!file) return;
+    const url = URL.createObjectURL(file);
+    pendingAskPhoto = { url, credit: file.name || "Photo", name: file.name };
+    showAskAttach(file.name);
+    if (currentRun) {
+      currentRun.photos = currentRun.photos || [];
+      currentRun.photos.unshift({ url, credit: pendingAskPhoto.credit });
+      setPostPhoto({ url, credit: pendingAskPhoto.credit });
+      switchRightTab("structure");
+    }
+  });
+  $("askAttachClear")?.addEventListener("click", () => {
+    pendingAskPhoto = null;
+    showAskAttach("");
+  });
 
   $("navNew")?.addEventListener("click", () => newDesk());
   $("navApprovals")?.addEventListener("click", () => switchView("activity"));
@@ -2938,6 +3071,7 @@
     const file = e.target.files && e.target.files[0];
     e.target.value = "";
     if (!file) return;
+    showAskAttach(file.name);
     try {
       await uploadClipFile(file);
     } catch (err) {
