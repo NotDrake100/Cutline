@@ -82,6 +82,11 @@ export async function handleDesk(
   } catch {
     /* page photos optional */
   }
+  if (run.photo?.pathOrUrl && run.photo.via !== "gemini_gen") {
+    run.stillNote = "Using sourced photo";
+  } else if (!run.photo?.pathOrUrl) {
+    run.stillNote = "Still unavailable";
+  }
 
   return { run, mode: "desk" };
 }

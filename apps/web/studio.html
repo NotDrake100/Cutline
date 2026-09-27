@@ -927,6 +927,11 @@
     display: flex; gap: 8px;
     padding: 0 12px 12px;
   }
+  .ig-still-note {
+    padding: 8px 12px 0;
+    font-size: 11px;
+    color: var(--dim);
+  }
   .ig-source {
     padding: 0 12px 12px;
     font-size: 11px;
@@ -1581,6 +1586,7 @@
           </div>
         </div>
         <div class="ig-frame" id="igFrame" title="Click to cycle source photos"><div class="ph">Source photo</div></div>
+        <div class="ig-still-note" id="igStillNote" hidden></div>
         <div class="photo-strip-label" id="photoStripLabel" hidden>From the page</div>
         <div class="photo-strip" id="photoStrip" hidden></div>
         <div class="ig-headline" id="igHeadlineEdit" contenteditable="true" data-placeholder="Headline"></div>
@@ -1796,7 +1802,7 @@
     const ban = $("ban");
     const photo = run?.photo;
     if (!photo?.pathOrUrl) {
-      frame.innerHTML = `<div class="ph">Still waits for a run</div>`;
+      frame.innerHTML = `<div class="ph">${escapeHtml(run?.stillNote || "Still unavailable")}</div>`;
       ban.classList.remove("show");
       return;
     }
@@ -1956,11 +1962,11 @@
     if (stillKey) {
       thumb.innerHTML = stillRevealHtml(stillKey);
     } else {
-      thumb.innerHTML = `<div class="ph">No still yet</div>`;
+      thumb.innerHTML = `<div class="ph">${escapeHtml(run.stillNote || "Still unavailable")}</div>`;
     }
     const credit = photo
-      ? (photo.via === "article_og" || photo.via === "upload" ? "Source photo" : (photo.credit || "Still"))
-      : "—";
+      ? (photo.via === "article_og" || photo.via === "upload" ? "Using sourced photo" : (photo.credit || "Still"))
+      : (run.stillNote || "Still unavailable");
     $("layerStillMeta").textContent = credit;
     $("layerStillMeta").classList.toggle("muted", !photo);
     if (ban) ban.style.display = "none";
@@ -2152,7 +2158,18 @@
     if (frame) {
       frame.innerHTML = url
         ? `<img src="${escapeHtml(url)}" alt=""/>`
-        : `<div class="ph">Source photo</div>`;
+        : `<div class="ph">${escapeHtml(run.stillNote || "Still unavailable")}</div>`;
+    }
+    const note = $("igStillNote");
+    if (note) {
+      const quiet = (run.stillNote || (!url ? "Still unavailable" : (run.photo?.via === "article_og" ? "Using sourced photo" : ""))).trim();
+      if (quiet && quiet !== "Still unavailable") {
+        note.hidden = false;
+        note.textContent = quiet;
+      } else {
+        note.hidden = true;
+        note.textContent = "";
+      }
     }
     const hl = $("igHeadlineEdit");
     if (hl && document.activeElement !== hl) {

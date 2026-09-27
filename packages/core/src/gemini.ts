@@ -11,11 +11,11 @@ function apiKey(): string | undefined {
 }
 
 function textModel(): string {
-  return process.env[ENV.GEMINI_TEXT_MODEL]?.trim() || "gemini-2.5-flash";
+  return process.env[ENV.GEMINI_TEXT_MODEL]?.trim() || "gemini-3.8-flash";
 }
 
 function imageModel(): string {
-  return process.env[ENV.GEMINI_IMAGE_MODEL]?.trim() || "gemini-2.5-flash-image";
+  return process.env[ENV.GEMINI_IMAGE_MODEL]?.trim() || "gemini-3.1-flash-image";
 }
 
 export function requireGeminiKey(): string {
@@ -94,16 +94,21 @@ export const gemini = {
   },
 
   async image(prompt: string): Promise<{ url: string } | null> {
-    const key = requireGeminiKey();
-    const data = await generateContent(imageModel(), key, {
-      contents: [{ role: "user", parts: [{ text: prompt }] }],
-      generationConfig: {
-        responseModalities: ["TEXT", "IMAGE"],
-      },
-    });
-    const url = extractImageDataUrl(data);
-    if (!url) throw new Error("gemini_image_empty");
-    return { url };
+    try {
+      const key = apiKey();
+      if (!key) return null;
+      const data = await generateContent(imageModel(), key, {
+        contents: [{ role: "user", parts: [{ text: prompt }] }],
+        generationConfig: {
+          responseModalities: ["TEXT", "IMAGE"],
+        },
+      });
+      const url = extractImageDataUrl(data);
+      return url ? { url } : null;
+    } catch {
+      /* 429 / quota / paid-tier — caller uses sourced photo */
+      return null;
+    }
   },
 
   hasKey(): boolean {

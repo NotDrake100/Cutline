@@ -11,8 +11,13 @@ export async function stillFromBrief(
     md5?: (bytes: ArrayBuffer) => string;
   }
 ): Promise<PhotoAsset> {
-  const gen = await deps.geminiImage(brief.visualPrompt);
-  if (!gen) throw new Error("still generation failed");
+  let gen: { url: string; bytes?: ArrayBuffer } | null = null;
+  try {
+    gen = await deps.geminiImage(brief.visualPrompt);
+  } catch {
+    gen = null;
+  }
+  if (!gen?.url) throw new Error("still_unavailable");
 
   return {
     pathOrUrl: gen.url,

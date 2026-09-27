@@ -6,7 +6,7 @@ Set `GEMINI_API_KEY` on the host. Never put the key in git.
 
 Local `npm run dev` reads a gitignored repo-root `.env` into `process.env` only when the var is unset or empty — so a key Archit already has locally stays local, and Vercel/Cloud Run env always wins.
 
-Optional: `GEMINI_TEXT_MODEL` (default `gemini-2.5-flash`), `GEMINI_IMAGE_MODEL` (default `gemini-2.5-flash-image`), `PORT`, `CUTLINE_PUBLIC_URL`.
+Optional: `GEMINI_TEXT_MODEL` (default `gemini-3.8-flash`; `gemini-flash-latest` also works), `GEMINI_IMAGE_MODEL` (default `gemini-3.1-flash-image` — paid/quota may be required; a 429 does not fail the pack — the desk uses the sourced page photo), `PORT`, `CUTLINE_PUBLIC_URL`.
 
 `GET /api/health` and `GET /api/status` return `{ ok, geminiConfigured }` where `geminiConfigured` is a boolean. They never echo the key.
 

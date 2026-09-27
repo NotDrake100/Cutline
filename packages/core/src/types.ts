@@ -83,6 +83,8 @@ export interface StoryRun {
   photo?: PhotoAsset;
   pack?: Pack;
   photos?: { url: string; credit: string }[];
+  /** Quiet UI copy when Gemini still is skipped — never an error code. */
+  stillNote?: string;
   styleId?: string;
   log: AgentLogEntry[];
   spendCents: number;

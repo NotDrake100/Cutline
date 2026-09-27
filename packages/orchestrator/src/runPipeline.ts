@@ -20,6 +20,18 @@ function log(run: StoryRun, agent: AgentLogEntry["agent"], action: string, ok: b
   run.spendCents += spendCents;
 }
 
+function noteStill(run: StoryRun): void {
+  if (run.photo?.via === "gemini_gen") {
+    run.stillNote = undefined;
+    return;
+  }
+  if (run.photo?.pathOrUrl) {
+    run.stillNote = "Using sourced photo";
+    return;
+  }
+  run.stillNote = "Still unavailable";
+}
+
 /**
  * Full desk pipeline. Pauses at needs_input before ship.
  * Hackathon wedge can call runWedge(headline) instead (skip scout).
@@ -61,16 +73,21 @@ export async function runDeskPipeline(
   }
   log(run, "sub", "rewrite", true, 1);
 
-  run.photo =
-    (await resolvePhoto(
-      {
-        sourceUrl: hit.sourceUrl,
-        photoQuery: run.brief.visualPrompt,
-        allowGeminiGen: opts.allowGeminiGen,
-      },
-      deps.photo
-    )) ?? undefined;
-  log(run, "photo", run.photo?.via ?? "none", !!run.photo, run.photo?.via === "gemini_gen" ? 5 : 0);
+  try {
+    run.photo =
+      (await resolvePhoto(
+        {
+          sourceUrl: hit.sourceUrl,
+          photoQuery: run.brief.visualPrompt,
+          allowGeminiGen: opts.allowGeminiGen,
+        },
+        deps.photo
+      )) ?? undefined;
+  } catch {
+    run.photo = undefined;
+  }
+  noteStill(run);
+  log(run, "photo", run.photo?.via ?? "sourced", true, run.photo?.via === "gemini_gen" ? 5 : 0, run.stillNote);
 
   run.pack = await deps.desk(run.rewrite, run.photo);
   log(run, "desk", "pack", true, 1);
@@ -165,7 +182,8 @@ export async function runSourcedDesk(
   } catch {
     run.photo = undefined;
   }
-  log(run, "photo", run.photo?.via ?? "source", !!run.photo, run.photo?.via === "gemini_gen" ? 5 : 0);
+  noteStill(run);
+  log(run, "photo", run.photo?.via ?? "sourced", true, run.photo?.via === "gemini_gen" ? 5 : 0, run.stillNote);
 
   try {
     run.pack = await deps.desk(run.rewrite, run.photo);
@@ -222,6 +240,7 @@ export async function runWedge(
   } catch {
     run.photo = undefined;
   }
+  noteStill(run);
   run.rewrite = {
     headline: run.brief.headline,
     body: run.brief.angle,
