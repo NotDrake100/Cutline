@@ -156,18 +156,6 @@ function persistLibrary(run: StoryRun) {
       caption: run.pack?.igCaption || run.rewrite?.caption || null,
       clipUrl: run.pack?.clipUrl,
     });
-    for (const pic of run.photos || []) {
-      if (!pic.url || pic.url === imageUrl) continue;
-      try {
-        addMedia({
-          kind: "photo",
-          title: title,
-          url: pic.url,
-        });
-      } catch {
-        /* skip one photo */
-      }
-    }
   } catch {
     /* library write must not fail the run */
   }

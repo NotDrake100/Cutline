@@ -244,7 +244,11 @@ export async function analyzePostUrl(opts: {
 
   const fixtureStill = abs(opts.base, fx.still);
   const upgraded = image ? upgradeSocialImage(image) : "";
-  const still = (upgraded && !looksTinyThumb(upgraded) ? upgraded : "") || upgraded || fixtureStill;
+  /* Instagram OG thumbs are often a dark crop or 403 in-panel. Fixture is the readable still. */
+  const still =
+    kind === "instagram"
+      ? fixtureStill
+      : (upgraded && !looksTinyThumb(upgraded) ? upgraded : "") || upgraded || fixtureStill;
   const headline =
     kind === "instagram"
       ? (/on Instagram/i.test(title.split(":")[0] || "") ? title.split(":")[0]!.trim() : `${outlet} on Instagram`)
@@ -281,10 +285,10 @@ export async function analyzePostUrl(opts: {
   pack.igCaption = rewrite.caption || pack.igCaption;
   pack.canvaNotes = `${PLATFORM_LABEL[kind]} post → Cutline pack.`;
   const photos = [
-    { url: still, credit: outlet },
+    { url: still, credit: kind === "instagram" ? "Demo still" : outlet },
     { url: fixtureStill, credit: "Demo still" },
   ].filter((p, i, arr) => p.url && arr.findIndex((x) => x.url === p.url) === i);
-  if (image && image !== still) photos.splice(1, 0, { url: image, credit: outlet });
+  if (image && image !== still) photos.push({ url: image, credit: outlet });
   const now = new Date().toISOString();
   return {
     id: `post_${Date.now().toString(36)}`,
@@ -296,7 +300,12 @@ export async function analyzePostUrl(opts: {
     photo,
     photos,
     pack,
-    stillNote: image ? "Using post still" : "Using demo still — open the post in Browser",
+    stillNote:
+      kind === "instagram"
+        ? "Using a readable still — open Browser for the live post"
+        : image
+          ? "Using post still"
+          : "Using demo still — open the post in Browser",
     styleId: style.id,
     log: [
       { agent: "wire", at: now, action: "analyze", ok: true, spendCents: 0, detail: kind },

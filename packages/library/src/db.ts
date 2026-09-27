@@ -255,6 +255,15 @@ export function getLibraryEntry(id: string): LibraryEntry | null {
   };
 }
 
+export function findDeskItemByRunId(runId: string): DeskItem | null {
+  if (!runId) return null;
+  const database = open();
+  const row = database
+    .prepare("SELECT * FROM desk_items WHERE run_id = ? ORDER BY created_at DESC LIMIT 1")
+    .get(runId) as Record<string, unknown> | undefined;
+  return row ? rowItem(row) : null;
+}
+
 export function saveRunToLibrary(input: {
   runId: string;
   desk: string;
@@ -267,7 +276,9 @@ export function saveRunToLibrary(input: {
   caption?: string | null;
   clipUrl?: string | null;
 }): LibraryEntry {
+  const existing = findDeskItemByRunId(input.runId);
   const item = upsertDeskItem({
+    id: existing?.id,
     desk: input.desk,
     title: input.title,
     sourceUrl: input.sourceUrl,
