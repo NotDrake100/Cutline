@@ -3888,10 +3888,10 @@
     const kind = browserKind(url);
     const preview = $("browserPreview");
     const embed = socialEmbedUrl(url);
-    const usePoster = kind === "instagram" || kind === "x" || (kind === "youtube" && !embed);
+    const usePoster = kind === "instagram" || kind === "x" || kind === "youtube" || !embed;
     if (preview) {
       preview.dataset.kind = kind;
-      preview.classList.toggle("has-fallback", usePoster && kind !== "youtube");
+      preview.classList.toggle("has-fallback", kind !== "page");
     }
     paintBrowserPoster(usePoster ? url : "");
     const frameUrl = (kind === "youtube" || kind === "page") ? (embed || url) : "";
@@ -3911,20 +3911,34 @@
     }
     blocked.style.display = "none";
     clearTimeout(frame._bt);
+    frame.onload = null;
     if (!frameUrl) {
       frame.removeAttribute("src");
       delete frame.dataset.src;
     } else if (frame.dataset.src !== frameUrl) {
       frame.dataset.src = frameUrl;
-      frame.src = frameUrl;
       if (kind === "youtube" && embed) {
+        /* Poster first so a blocked embed never leaves a gray hole. */
+        paintBrowserPoster(url);
+        if (preview) preview.classList.add("has-fallback");
+        frame.onload = () => {
+          clearTimeout(frame._bt);
+          try {
+            const doc = frame.contentDocument;
+            if (doc && !doc.body) return;
+          } catch (_) { /* cross-origin player — treat as loaded */ }
+          if (preview) preview.classList.remove("has-fallback");
+          paintBrowserPoster("");
+        };
+        frame.src = frameUrl;
         frame._bt = setTimeout(() => {
-          /* If the 16:9 embed stays blank, keep the DCN mark in the same frame. */
           paintBrowserPoster(url);
           const box = $("browserPoster");
           if (box) box.classList.add("show");
           if (preview) preview.classList.add("has-fallback");
-        }, 2200);
+        }, 2500);
+      } else {
+        frame.src = frameUrl;
       }
     }
     if (switchTab) switchRightTab("browser");
