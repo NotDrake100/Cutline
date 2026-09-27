@@ -251,6 +251,77 @@ export async function fetchArticleImage(url: string): Promise<{ url: string; cre
   return all[0] || null;
 }
 
+export interface OgMeta {
+  title: string;
+  description: string;
+  image: string;
+  siteName: string;
+}
+
+function metaProp(html: string, keys: string[]): string {
+  for (const key of keys) {
+    const a = html.match(
+      new RegExp(`<meta[^>]+(?:property|name)=["']${key}["'][^>]+content=["']([^"']+)["']`, "i")
+    );
+    if (a?.[1]) return decodeHtml(a[1]);
+    const b = html.match(
+      new RegExp(`<meta[^>]+content=["']([^"']+)["'][^>]+(?:property|name)=["']${key}["']`, "i")
+    );
+    if (b?.[1]) return decodeHtml(b[1]);
+  }
+  return "";
+}
+
+/** OG / Twitter / title tags. Empty fields stay empty — never invents. */
+export async function fetchOgMeta(url: string): Promise<OgMeta | null> {
+  if (!url || !/^https?:\/\//i.test(url)) return null;
+  try {
+    const res = await fetch(url, {
+      headers: { "User-Agent": UA, Accept: "text/html,*/*" },
+      redirect: "follow",
+      signal: AbortSignal.timeout(8_000),
+    });
+    if (!res.ok) return null;
+    const html = await res.text();
+    const title =
+      metaProp(html, ["og:title", "twitter:title"]) ||
+      decodeHtml((html.match(/<title[^>]*>([\s\S]*?)<\/title>/i)?.[1] || "").replace(/\s+/g, " "));
+    const description = metaProp(html, ["og:description", "twitter:description", "description"]);
+    const image = metaProp(html, ["og:image:secure_url", "og:image", "twitter:image", "twitter:image:src"]);
+    const siteName = metaProp(html, ["og:site_name"]);
+    if (!title && !description && !image) return null;
+    return {
+      title: title.slice(0, 180),
+      description: description.slice(0, 400),
+      image: image && /^https?:\/\//i.test(image) ? image.split("#")[0] : "",
+      siteName: siteName.slice(0, 80),
+    };
+  } catch {
+    return null;
+  }
+}
+
+export async function fetchYoutubeOEmbed(
+  url: string
+): Promise<{ title: string; author: string; thumbnail: string } | null> {
+  try {
+    const q = new URL("https://www.youtube.com/oembed");
+    q.searchParams.set("url", url);
+    q.searchParams.set("format", "json");
+    const res = await fetch(q, { signal: AbortSignal.timeout(6_000) });
+    if (!res.ok) return null;
+    const body = (await res.json()) as { title?: string; author_name?: string; thumbnail_url?: string };
+    if (!body.title && !body.thumbnail_url) return null;
+    return {
+      title: String(body.title || "").slice(0, 180),
+      author: String(body.author_name || "").slice(0, 80),
+      thumbnail: String(body.thumbnail_url || ""),
+    };
+  } catch {
+    return null;
+  }
+}
+
 export function createScoutDeps() {
   return {
     fetchSection,

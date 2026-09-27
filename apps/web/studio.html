@@ -431,6 +431,32 @@
   }
   body.is-showcase .showcase-rail { display: block; }
   .showcase-rail strong { color: var(--ink); font-weight: 650; }
+  .paste-url {
+    width: 100%;
+    margin: 16px 0 4px;
+    text-align: left;
+  }
+  .paste-url-row {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+  }
+  .paste-url-row input {
+    flex: 1;
+    min-width: 0;
+    height: 44px;
+    padding: 0 14px;
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    background: var(--card);
+    font-size: 14.5px;
+    font-weight: 500;
+  }
+  .paste-url-row input:focus {
+    outline: none;
+    border-color: var(--line-strong);
+  }
+  .paste-url .assign-chips { margin-top: 10px; }
   .ask-box {
     width: 100%;
     background: var(--panel);
@@ -1598,7 +1624,7 @@
         <div class="kicker" id="homeKicker">Demo</div>
         <h1>What should we finish today?</h1>
         <div class="showcase-rail" id="showcaseRail">
-          <strong>See it work.</strong> Find news → open Browser → edit the post → Approve. Public demo never calls Gemini.
+          <strong>See it work.</strong> Paste a post URL or find news → Browser → edit → Approve. Public demo never calls Gemini.
         </div>
 
         <div class="ask-box">
@@ -1613,6 +1639,7 @@
               <div class="ask-plus-menu" id="askPlusMenu" hidden>
                 <button type="button" id="askAddPhoto">Photo</button>
                 <button type="button" id="askAddVideo">Video</button>
+                <button type="button" id="askAddPaste">Paste a post URL</button>
                 <button type="button" id="askAddMore">Find news</button>
               </div>
             </div>
@@ -1624,6 +1651,19 @@
         <div class="err" id="errBox"></div>
         <input type="file" id="clipFile" accept="video/mp4,video/webm,video/quicktime,video/x-m4v" hidden/>
         <input type="file" id="askPhotoFile" accept="image/jpeg,image/png,image/webp,image/gif" hidden/>
+
+        <div class="paste-url" id="pasteUrlWrap">
+          <p class="assign-label">Paste a post URL</p>
+          <div class="paste-url-row">
+            <input id="pastePostUrl" type="url" placeholder="Instagram, X, YouTube, or any post link" autocomplete="off" spellcheck="false"/>
+            <button type="button" class="btn btn-lime" id="analyzeBtn">Analyze</button>
+          </div>
+          <div class="assign-chips" id="socialChips">
+            <button type="button" class="assign-chip" data-social="instagram">DCN · Instagram</button>
+            <button type="button" class="assign-chip" data-social="x">DCN · X</button>
+            <button type="button" class="assign-chip" data-social="youtube">DCN · YouTube</button>
+          </div>
+        </div>
 
         <div class="assign" id="suggestions">
           <p class="assign-help">Pick a job and a city. Then run — Hunt, post, photo, or Canva.</p>
@@ -2588,9 +2628,49 @@
     }
   }
 
+  function looksLikePostUrl(u) {
+    return /^https?:\/\//i.test(u || "") && /(instagram\.com|instagr\.am|x\.com|twitter\.com|youtube\.com|youtu\.be|tiktok\.com|facebook\.com|fb\.com|threads\.net|sample-dcn-)/i.test(u);
+  }
+
+  async function doAnalyze(url) {
+    const sourceUrl = (url || $("pastePostUrl")?.value || $("headline").value || pendingSourceUrl || "").trim();
+    if (!isLiveSourceUrl(sourceUrl)) { setErr("Paste a post URL first."); return; }
+    setErr("");
+    if ($("pastePostUrl")) $("pastePostUrl").value = sourceUrl;
+    $("headline").value = sourceUrl;
+    pendingSourceUrl = sourceUrl;
+    if ($("analyzeBtn")) $("analyzeBtn").disabled = true;
+    $("runBtn").disabled = true;
+    setStatus("drafting");
+    startStillFill();
+    loadBrowserUrl(sourceUrl, { switchTab: true });
+    try {
+      const res = await fetch("/api/analyze", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ url: sourceUrl }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (data.run) applyRun(data.run);
+      else {
+        setStatus("needs_input");
+        $("frame").innerHTML = `<div class="ph">Using sourced photo</div>`;
+      }
+    } catch (_) {
+      setStatus("needs_input");
+      $("frame").innerHTML = `<div class="ph">Using sourced photo</div>`;
+    } finally {
+      if ($("analyzeBtn")) $("analyzeBtn").disabled = false;
+      $("runBtn").disabled = false;
+    }
+  }
+
   async function doRun() {
     setErr("");
+    const pasted = ($("pastePostUrl")?.value || "").trim();
     const headline = $("headline").value.trim();
+    const asUrl = looksLikePostUrl(pasted) ? pasted : (looksLikePostUrl(headline) ? headline : (looksLikePostUrl(pendingSourceUrl) ? pendingSourceUrl : ""));
+    if (asUrl) return doAnalyze(asUrl);
     const sourced = isLiveSourceUrl(pendingSourceUrl) || /^https?:\/\//i.test(headline);
     if (!headline && !sourced) { return runAssignment(); }
     $("runBtn").disabled = true;
@@ -2755,6 +2835,23 @@
       doRun();
     }
   });
+  $("analyzeBtn")?.addEventListener("click", () => doAnalyze());
+  $("pastePostUrl")?.addEventListener("keydown", (e) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      doAnalyze();
+    }
+  });
+  document.querySelectorAll("#socialChips [data-social]").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      const kind = btn.dataset.social || "instagram";
+      const page = kind === "x" ? "/sample-dcn-x.html" : kind === "youtube" ? "/sample-dcn-yt.html" : "/sample-dcn-ig.html";
+      const url = location.origin + page;
+      document.querySelectorAll("#socialChips [data-social]").forEach((b) => b.classList.remove("active"));
+      btn.classList.add("active");
+      doAnalyze(url);
+    });
+  });
 
   $("sugLibrary")?.addEventListener("click", () => switchView("library"));
 
@@ -2790,6 +2887,10 @@
   $("askAddVideo")?.addEventListener("click", () => {
     closeAskPlus();
     $("clipFile")?.click();
+  });
+  $("askAddPaste")?.addEventListener("click", () => {
+    closeAskPlus();
+    $("pastePostUrl")?.focus();
   });
   $("askAddMore")?.addEventListener("click", () => {
     closeAskPlus();
@@ -3582,12 +3683,27 @@
       switchView("home");
       $("structureEmpty") && ($("structureEmpty").style.display = "none");
       $("igPost") && ($("igPost").style.display = "");
-    } else if (preview === "flow") {
+    } else if (preview === "flow" || preview === "flow-browser") {
       document.body.classList.add("is-showcase");
       assignJob = "post";
       selectedDesk = "pune";
       paintCityChips();
       await runAssignment();
+      const hl = $("igHeadlineEdit");
+      if (hl) hl.innerText = "Pune overnight buses go to a vote — desk edit.";
+      const cap = $("igCaptionEdit");
+      if (cap) cap.innerText = "Pune · overnight buses. Edited on the desk. Approve still waits on you.";
+      savePostEdits();
+      switchRightTab(preview === "flow-browser" ? "browser" : "structure");
+    } else if (preview === "social") {
+      document.body.classList.add("is-showcase");
+      await doAnalyze(location.origin + "/sample-dcn-ig.html");
+      const hl = $("igHeadlineEdit");
+      if (hl) hl.innerText = "DCN: overnight buses go to a vote.";
+      const cap = $("igCaptionEdit");
+      if (cap) cap.innerText = "DCN · Instagram · overnight buses. Edited on the desk from the pasted post URL.";
+      savePostEdits();
+      switchRightTab("structure");
     }
   })();
 

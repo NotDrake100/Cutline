@@ -20,6 +20,7 @@ import {
   requestIp,
 } from "../../packages/core/src/owner";
 import { demoHits, demoRun, requestBase } from "./demo";
+import { analyzePostUrl, isPostUrl } from "./analyze";
 import { loadRun, saveRun } from "../../packages/core/src/runs";
 import { ENV } from "../../packages/core/src/env";
 import { uploadsRoot } from "../../packages/core/src/paths";
@@ -287,6 +288,53 @@ async function handleApi(req: IncomingMessage, res: ServerResponse, url: URL) {
     return json(res, 200, { owner: true, mode: "owner" });
   }
 
+  if (method === "POST" && path === "/api/analyze") {
+    const raw = await readBody(req);
+    let body: { url?: string; sourceUrl?: string };
+    try {
+      body = JSON.parse(raw || "{}") as typeof body;
+    } catch {
+      return json(res, 400, { error: "invalid_json" });
+    }
+    const sourceUrl = (body.url || body.sourceUrl || "").trim();
+    if (!/^https?:\/\//i.test(sourceUrl)) return json(res, 400, { error: "source_needed" });
+    const owner = ownerMode(req);
+    if (!owner && demoAiBlocked(requestIp(req))) {
+      return json(res, 429, { error: "ai_blocked_demo", mode: "demo" });
+    }
+    try {
+      const analyzed = owner
+        ? await withGeminiPermit(() =>
+            analyzePostUrl({
+              url: sourceUrl,
+              base: publicOrigin(req, url),
+              owner: true,
+              geminiText: (p) => gemini.text(p),
+            })
+          )
+        : await analyzePostUrl({
+            url: sourceUrl,
+            base: publicOrigin(req, url),
+            owner: false,
+          });
+      const run = sanitizeRun(ensureDeskLog(analyzed));
+      await saveRun(run);
+      persistLibrary(run);
+      return json(res, 200, { run, mode: owner ? "owner" : "demo", via: "analyze" });
+    } catch (e) {
+      const msg = (e as Error).message || "analyze_failed";
+      if (msg === "source_needed") return json(res, 400, { error: msg });
+      const fallback = sanitizeRun(ensureDeskLog(demoRun({
+        sourceUrl,
+        title: sourceUrl,
+        base: publicOrigin(req, url),
+      })));
+      await saveRun(fallback);
+      persistLibrary(fallback);
+      return json(res, 200, { run: fallback, mode: "demo", via: "analyze" });
+    }
+  }
+
   if (method === "POST" && path === "/api/wedge") {
     const raw = await readBody(req);
     let body: WedgeRequest;
@@ -367,6 +415,17 @@ async function handleApi(req: IncomingMessage, res: ServerResponse, url: URL) {
       if (demoAiBlocked(requestIp(req))) return json(res, 429, { error: "ai_blocked_demo", mode: "demo" });
       const sourceUrl = (body.sourceUrl || "").trim();
       if (sourceUrl && !/^https?:\/\//i.test(sourceUrl)) return json(res, 400, { error: "source_needed" });
+      if (isPostUrl(sourceUrl)) {
+        const analyzed = await analyzePostUrl({
+          url: sourceUrl,
+          base: publicOrigin(req, url),
+          owner: false,
+        });
+        const run = sanitizeRun(ensureDeskLog(analyzed));
+        await saveRun(run);
+        persistLibrary(run);
+        return json(res, 200, { run, mode: "demo", via: "analyze" });
+      }
       const run = sanitizeRun(ensureDeskLog(demoRun({
         sourceUrl,
         title: (body.title || sourceUrl).trim(),
