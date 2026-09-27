@@ -54,6 +54,37 @@
     --nav-active: rgba(255,255,255,.10);
     --shadow: 0 16px 48px rgba(0,0,0,0.55);
   }
+  /* Black home: badge / ask / chips / video must not keep cream or frosted white */
+  html[data-theme="black"] .gemini-badge {
+    background: var(--card);
+    border-color: var(--line);
+    color: var(--muted);
+  }
+  html[data-theme="black"] .ask-box {
+    background: var(--panel);
+    box-shadow: 0 1px 2px rgba(0,0,0,.4), 0 12px 32px rgba(0,0,0,.45);
+  }
+  html[data-theme="black"] .ask-chip {
+    background: var(--card);
+  }
+  html[data-theme="black"] .ask-chip:hover {
+    background: var(--panel);
+  }
+  html[data-theme="black"] .demo-video-card {
+    background: var(--card);
+  }
+  html[data-theme="black"] .frame,
+  html[data-theme="black"] .layer-thumb,
+  html[data-theme="black"] .still-fill,
+  html[data-theme="black"] .pack-pre {
+    background: var(--card);
+  }
+  html[data-theme="black"] .main,
+  html[data-theme="black"] .home-wrap,
+  html[data-theme="black"] body {
+    background: var(--bg);
+    color: var(--ink);
+  }
   html[data-density="compact"] { --sidebar-w: 228px; }
   * { box-sizing: border-box; }
   html, body { margin: 0; height: 100%; background: var(--bg); color: var(--ink); font-family: var(--font); -webkit-font-smoothing: antialiased; }
@@ -488,11 +519,14 @@
     display: inline-flex; align-items: center; gap: 7px;
     margin: 0 auto 16px; padding: 5px 10px;
     border: 1px solid var(--line); border-radius: 999px;
-    color: var(--muted); background: var(--card);
+    color: var(--muted); background: var(--card); /* theme vars — never frosted white */
     font-family: var(--mono); font-size: 10px; letter-spacing: .04em;
   }
   .gemini-badge strong { color: var(--ink); font-weight: 600; }
   .gemini-badge .gemini-spark { color: #4285F4; font-size: 13px; line-height: 1; }
+  /* Public demo: no Desk API key field in Settings or gate */
+  body.is-public-demo .settings-owner-key,
+  body.is-public-demo .gate-owner-key { display: none !important; }
   .demo-video-card {
     display: none; width: 100%; margin-top: 20px; padding: 14px;
     border: 1px solid var(--line); border-radius: 14px;
@@ -926,7 +960,7 @@
   }
   .frame {
     aspect-ratio: 1;
-    background: #F0F0EE;
+    background: var(--cream-dark);
     border-radius: 12px;
     border: 1px solid var(--line);
     display: grid; place-items: center;
@@ -942,7 +976,7 @@
     height: 100%;
     min-height: 160px;
     overflow: hidden;
-    background: #d8d8d2;
+    background: var(--cream-dark);
   }
   .still-fill-shimmer {
     position: absolute;
@@ -1037,7 +1071,7 @@
     white-space: pre-wrap; word-break: break-word;
     font-family: var(--mono); font-size: 12px; line-height: 1.55;
     color: var(--muted);
-    background: #FAFAF9;
+    background: var(--card);
     border: 1px solid var(--line);
     border-radius: 10px;
     padding: 12px;
@@ -1904,7 +1938,7 @@
     width: 100%;
     aspect-ratio: 16 / 10;
     border-radius: 8px;
-    background: #F0F0EE;
+    background: var(--cream-dark);
     border: 1px solid var(--line);
     overflow: hidden;
     display: grid; place-items: center;
@@ -2821,7 +2855,7 @@
       <div class="connect-wrap">
         <div class="kicker">Account</div>
         <h1>Settings</h1>
-        <p class="connect-sub">Your desk. Name, theme, and a desk API key for live Gemini.</p>
+        <p class="connect-sub" id="settingsSub">Your desk. Name and theme.</p>
         <form class="settings-form" id="settingsForm">
           <label>Name
             <input type="text" id="settingsName" maxlength="40" autocomplete="name"/>
@@ -2833,10 +2867,10 @@
               <button type="button" class="theme-opt" data-theme-opt="black" aria-pressed="false">Black</button>
             </div>
           </label>
-          <label>Desk API key
+          <label class="settings-owner-key" id="settingsOwnerKeyWrap">Desk API key
             <input type="password" id="settingsOwnerKey" autocomplete="off" placeholder="Unlock live Gemini"/>
           </label>
-          <p class="settings-help">Public demo stays on fixtures without a key. The key is never shown after you save.</p>
+          <p class="settings-help settings-owner-key">Public demo stays on fixtures without a key. The key is never shown after you save.</p>
           <button type="submit" class="btn btn-lime">Save</button>
         </form>
       </div>
@@ -3019,9 +3053,9 @@
   <div class="gate-card">
     <div class="mark" aria-hidden="true"><span class="fallback">C</span></div>
     <h1>Demo is open.</h1>
-    <p>Public desk uses fixtures. A desk API key unlocks live Gemini for your desk. Without a key, the demo stays fixture-only.</p>
+    <p id="gateCopy">Public desk uses fixtures. Continue to try the demo — no key needed.</p>
     <input type="text" id="gateName" placeholder="Your name" maxlength="40"/>
-    <input type="password" id="gateOwnerKey" placeholder="Desk API key (optional)" autocomplete="off"/>
+    <input type="password" id="gateOwnerKey" class="gate-owner-key" placeholder="Desk API key (optional)" autocomplete="off"/>
     <button type="button" class="btn btn-lime" id="gateOpen">Continue in demo</button>
   </div>
 </div>
@@ -3054,6 +3088,9 @@
   let deskMode = "demo";
   const demoForced = /(?:\?|&)(?:demo|showcase)=1\b/.test(location.search);
   let recentsReset = demoForced;
+  if (DEMO_FORCE || demoForced || /(?:^|;\s*)cutline_force_demo=1(?:;|$)/.test(document.cookie || "")) {
+    document.body.classList.add("is-public-demo");
+  }
   try {
     localStorage.removeItem("cutline.recents");
     localStorage.removeItem("cutline.recentList");
@@ -3177,12 +3214,34 @@
     paintThemeToggle(theme);
     paintCityChips();
   }
+  function isPublicDemo() {
+    return !!(DEMO_FORCE || demoForced
+      || /(?:^|;\s*)cutline_force_demo=1(?:;|$)/.test(document.cookie || "")
+      || deskMode === "demo");
+  }
+  function paintPublicDemoUi() {
+    const demo = isPublicDemo();
+    document.body.classList.toggle("is-public-demo", demo);
+    const sub = $("settingsSub") || document.querySelector("#viewSettings .connect-sub");
+    if (sub) {
+      sub.textContent = demo
+        ? "Your desk. Name and theme."
+        : "Your desk. Name, theme, and a desk API key for live Gemini.";
+    }
+    const gateCopy = $("gateCopy");
+    if (gateCopy) {
+      gateCopy.textContent = demo
+        ? "Public desk uses fixtures. Continue to try the demo — no key needed."
+        : "Public desk uses fixtures. A desk API key unlocks live Gemini for your desk.";
+    }
+  }
   function paintMode(mode) {
     deskMode = demoForced ? "demo" : (mode === "owner" ? "owner" : "demo");
     const label = deskMode === "owner" ? "Live desk" : "Demo";
     if ($("workspaceMode")) $("workspaceMode").textContent = label;
     if ($("homeKicker")) $("homeKicker").textContent = label;
     if (demoForced) recentsReset = true;
+    paintPublicDemoUi();
   }
   function paintCityChips() {
     document.querySelectorAll("#assignCities [data-desk], #beatChips [data-desk]").forEach((b) => {
@@ -5135,7 +5194,6 @@
     } else if (name === "connect" || name === "plugins") {
       $("viewConnect").classList.add("active");
       $("navPlugins")?.classList.add("active");
-      $("toolShip")?.classList.add("active-tool");
       if (typeof refreshConnect === "function") refreshConnect();
     } else if (name === "archived") {
       $("viewArchived")?.classList.add("active");
@@ -5372,10 +5430,7 @@
   $("navLibrary")?.addEventListener("click", () => switchView("library"));
   $("toolNews")?.addEventListener("click", () => switchView("hunt"));
   $("toolShip")?.addEventListener("click", () => {
-    switchView("home");
-    switchRightTab("structure");
-    if (currentRun) paintIgPost(currentRun);
-    else $("structureEmpty") && ($("structureEmpty").style.display = "");
+    openPostEditor({ toolId: "toolShip" });
   });
 
   let lastHits = [];
@@ -6274,30 +6329,24 @@
     }
   });
 
-  function focusPostTemplate() {
-    switchRightTab("structure");
-    if (currentRun) paintIgPost(currentRun);
+  function markToolActive(id) {
+    document.querySelectorAll(".tool-row").forEach((n) => n.classList.remove("active-tool"));
+    if (id) $(id)?.classList.add("active-tool");
   }
 
-  $("toolEditText")?.addEventListener("click", () => {
-    switchView("home");
-    focusPostTemplate();
-    const el = $("igHeadlineEdit");
-    if (el) {
-      el.focus();
-      const range = document.createRange();
-      range.selectNodeContents(el);
-      const sel = window.getSelection();
-      sel.removeAllRanges();
-      sel.addRange(range);
-    }
-  });
-  $("toolPhoto")?.addEventListener("click", () => {
-    focusPostTemplate();
-    if (!currentRun) {
-      setErr("Run or Analyze a story first — Photo cycles Pexels / RSS / demo card stills.");
-      return;
-    }
+  function showStructureEmpty(tip) {
+    const empty = $("structureEmpty");
+    if (!empty) return;
+    empty.style.display = "";
+    const h3 = empty.querySelector("h3");
+    const p = empty.querySelector("p");
+    if (h3) h3.textContent = (tip && tip.title) || "No post yet";
+    if (p) p.textContent = (tip && tip.body) || "Find a page, then use it here.";
+    if ($("igPost")) $("igPost").style.display = "none";
+  }
+
+  function cyclePostPhoto() {
+    if (!currentRun) return false;
     let photos = (currentRun.photos || []).filter((p) => p.url && !/cdninstagram\.com|fbcdn\.net/i.test(p.url) && !/\.svg(\?|$)/i.test(p.url));
     const src = resolveSourceUrl(currentRun) || "";
     if (looksLikePostUrl(src) && /instagram/i.test(src)) {
@@ -6321,6 +6370,53 @@
     const label = $("photoStripLabel");
     if (strip) strip.hidden = false;
     if (label) label.hidden = false;
+    return true;
+  }
+
+  /** Open Post / Magic Layer (desktop right pane + phone post pane). Never a dead click. */
+  function openPostEditor(opts) {
+    const o = opts || {};
+    switchView("home");
+    /* switchView clears active-tool and (on phone) forces chat — restore after. */
+    if (o.toolId) markToolActive(o.toolId);
+    switchRightTab("structure");
+    if (typeof setPhonePane === "function") setPhonePane("post");
+    setErr("");
+    if (currentRun) {
+      paintIgPost(currentRun);
+      if (typeof syncApproveBar === "function") syncApproveBar(currentRun);
+      if (o.cyclePhoto) cyclePostPhoto();
+    } else {
+      showStructureEmpty({
+        title: "Run a story first",
+        body: "Paste a URL or pick a tip, then Run. Photo cycles Pexels / RSS / demo stills from the run.",
+      });
+    }
+  }
+
+  function focusPostTemplate() {
+    switchRightTab("structure");
+    if (typeof setPhonePane === "function") setPhonePane("post");
+    if (currentRun) paintIgPost(currentRun);
+  }
+
+  $("toolEditText")?.addEventListener("click", () => {
+    switchView("home");
+    markToolActive(null);
+    focusPostTemplate();
+    const el = $("igHeadlineEdit");
+    if (el) {
+      el.focus();
+      const range = document.createRange();
+      range.selectNodeContents(el);
+      const sel = window.getSelection();
+      sel.removeAllRanges();
+      sel.addRange(range);
+    }
+  });
+  $("toolPhoto")?.addEventListener("click", () => {
+    /* Magic Layer Photo stays in sync with sidebar Photo (#toolStill). */
+    openPostEditor({ toolId: "toolStill", cyclePhoto: true });
   });
   $("toolCanva")?.addEventListener("click", () => {
     openCanva();
@@ -6451,6 +6547,7 @@
     switchView("home");
   });
   ensureSession();
+  paintPublicDemoUi();
   refreshDeskMode();
 
   updateNeedLabel();
@@ -6555,10 +6652,7 @@
   })();
 
   $("toolStill")?.addEventListener("click", () => {
-    switchView("home");
-    switchRightTab("structure");
-    if (currentRun) paintIgPost(currentRun);
-    $("toolPhoto")?.click();
+    openPostEditor({ toolId: "toolStill", cyclePhoto: true });
   });
 
   ensureProjects();
