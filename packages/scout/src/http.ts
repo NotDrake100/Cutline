@@ -25,6 +25,7 @@ function decodeHtml(s: string): string {
     .replace(/&quot;/g, '"')
     .replace(/&#39;/g, "'")
     .replace(/&apos;/g, "'")
+    .replace(/&#x([0-9a-f]+);/gi, (_, h) => String.fromCharCode(parseInt(h, 16)))
     .replace(/&#(\d+);/g, (_, n) => String.fromCharCode(Number(n)))
     .trim();
 }
@@ -48,9 +49,10 @@ function looksLikeArticle(link: string, sectionUrl: string): boolean {
     return false;
   }
   if (parsed.protocol !== "http:" && parsed.protocol !== "https:") return false;
-  if (parsed.pathname.length < 8) return false;
-  if (/\.(css|js|png|jpe?g|gif|svg|webp|ico|woff2?|mp4|xml)$/i.test(parsed.pathname)) return false;
-  if (/\/(cdn-cgi|privacy|terms|about|contact|login|subscribe|account)\b/i.test(parsed.pathname)) {
+  const path = parsed.pathname;
+  if (path.length < 12) return false;
+  if (/\.(css|js|png|jpe?g|gif|svg|webp|ico|woff2?|mp4|xml)$/i.test(path)) return false;
+  if (/\/(cdn-cgi|privacy|terms|about|contact|login|subscribe|account|video\/docs|category)\b/i.test(path)) {
     return false;
   }
   const host = parsed.hostname.replace(/^www\./, "");
@@ -58,7 +60,15 @@ function looksLikeArticle(link: string, sectionUrl: string): boolean {
   if (host !== sectionHost && !host.endsWith(`.${sectionHost}`) && !sectionHost.endsWith(`.${host}`)) {
     return false;
   }
-  return parsed.pathname.split("/").filter(Boolean).length >= 2 || /\/(news|article|story|sport|tech|world|business|culture)\b/i.test(parsed.pathname);
+  if (/\/(articles?|story|stories)\//i.test(path)) return true;
+  if (/\/\d{4}\/\d{1,2}\//.test(path)) return true;
+  if (/-\d{5,}(?:$|\/)/.test(path)) return true;
+  if (/\/story\/_\/id\//i.test(path)) return true;
+  const parts = path.split("/").filter(Boolean);
+  const last = parts[parts.length - 1] || "";
+  if (/^[a-z_]+$/i.test(last) && !/\d/.test(last)) return false;
+  if (parts.length >= 3 && last.length >= 28) return true;
+  return false;
 }
 
 function stripTags(html: string): string {
