@@ -120,13 +120,85 @@
     .shell { grid-template-columns: var(--sidebar-w) 1fr minmax(280px, 320px); }
     .shell.browser-focus { grid-template-columns: var(--sidebar-w) 0 1fr; }
   }
+  .mobile-bar, .mobile-backdrop, .mobile-post-close { display: none; }
+  body.mobile-lock { overflow: hidden; }
   @media (max-width: 860px) {
-    .shell, .shell.browser-focus, .shell.desk-collapsed, .shell.browser-focus.desk-collapsed {
-      grid-template-columns: 1fr; grid-template-rows: auto 1fr auto;
+    .shell,
+    .shell.browser-focus,
+    .shell.desk-collapsed,
+    .shell.browser-focus.desk-collapsed {
+      display: block;
+      height: 100dvh;
     }
-    .sidebar { width: 100%; height: auto; border-right: none; border-bottom: 1px solid var(--line); }
-    .right-pane { width: 100%; max-height: 42vh; border-left: none; border-top: 1px solid var(--line); }
-    .shell.desk-collapsed .sidebar { display: none; }
+    .main { height: 100%; }
+    .shell.browser-focus .main {
+      visibility: visible;
+      overflow: auto;
+      pointer-events: auto;
+    }
+    .shell.desk-collapsed .sidebar { display: flex; }
+    .shell.desk-collapsed .panel-restore { display: none; }
+
+    .mobile-bar {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      position: sticky;
+      top: 0;
+      z-index: 8;
+      padding: 10px 12px;
+      background: var(--bg);
+      border-bottom: 1px solid var(--line);
+    }
+    .mobile-bar-title {
+      flex: 1;
+      min-width: 0;
+      font-size: 15px;
+      font-weight: 650;
+      letter-spacing: -.02em;
+    }
+    .mobile-backdrop {
+      display: none;
+      position: fixed;
+      inset: 0;
+      z-index: 40;
+      background: rgba(10,10,10,.42);
+    }
+    .shell.nav-open .mobile-backdrop { display: block; }
+
+    .sidebar {
+      position: fixed;
+      top: 0; left: 0; bottom: 0;
+      width: min(320px, 88vw);
+      height: 100dvh;
+      z-index: 50;
+      border-right: 1px solid var(--line);
+      border-bottom: none;
+      transform: translateX(-110%);
+      transition: transform .2s ease;
+      box-shadow: none;
+    }
+    .shell.nav-open .sidebar {
+      transform: translateX(0);
+      box-shadow: var(--shadow);
+    }
+
+    .right-pane {
+      position: fixed;
+      inset: 0;
+      width: 100%;
+      max-width: none;
+      max-height: none;
+      height: 100dvh;
+      z-index: 46;
+      border: none;
+      transform: translateX(110%);
+      transition: transform .22s ease;
+    }
+    .shell.post-open .right-pane { transform: translateX(0); }
+    .mobile-post-close { display: grid; margin-left: auto; }
+    .home-wrap { padding: 20px 16px 28px; justify-content: flex-start; }
+    .paste-url-row { flex-wrap: wrap; }
   }
 
   /* ——— Sidebar ——— */
@@ -2148,6 +2220,13 @@
   </aside>
 
   <main class="main">
+    <div class="mobile-bar" id="mobileBar">
+      <button type="button" class="panel-toggle" id="mobileNavBtn" title="Open menu" aria-label="Open menu" aria-expanded="false">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4 6h16M4 12h16M4 18h16"/></svg>
+      </button>
+      <div class="mobile-bar-title" id="mobileBarTitle">Cutline</div>
+      <button type="button" class="btn btn-ink btn-sm" id="mobilePostBtn" aria-pressed="false">Post</button>
+    </div>
     <!-- HOME -->
     <section class="view active" id="viewHome" aria-label="Home">
       <div class="home-wrap" id="homeWrap">
@@ -2427,6 +2506,9 @@
         </span>
         Browser
       </button>
+      <button type="button" class="panel-toggle mobile-post-close" id="mobilePostClose" title="Back to desk" aria-label="Back to desk">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M15 6l-6 6 6 6"/></svg>
+      </button>
     </div>
     <div class="rp-magic"><span class="dot" aria-hidden="true"></span> Magic Layer</div>
     <div class="rp-tools" role="toolbar" aria-label="Edit post">
@@ -2565,6 +2647,7 @@
       </div>
     </div>
   </aside>
+  <div class="mobile-backdrop" id="mobileBackdrop" hidden></div>
 </div>
 <button type="button" class="panel-restore" id="panelRestore" title="Show desk" aria-label="Show desk panel">
   <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4 6h16M4 12h16M4 18h16"/></svg>
@@ -3666,12 +3749,46 @@
   function showSignedOut(on) {
     $("signedOutGate")?.classList.toggle("show", !!on);
   }
+  const NARROW_MQ = window.matchMedia("(max-width: 860px)");
+  function isNarrow() { return NARROW_MQ.matches; }
+  function syncMobileChrome() {
+    const shell = document.querySelector(".shell");
+    const navOn = !!shell?.classList.contains("nav-open");
+    const postOn = !!shell?.classList.contains("post-open");
+    $("mobileNavBtn")?.setAttribute("aria-expanded", navOn ? "true" : "false");
+    $("mobilePostBtn")?.setAttribute("aria-pressed", postOn ? "true" : "false");
+    const backdrop = $("mobileBackdrop");
+    if (backdrop) backdrop.hidden = !navOn;
+    document.body.classList.toggle("mobile-lock", isNarrow() && (navOn || postOn));
+    if (isNarrow()) {
+      $("panelToggle")?.setAttribute("aria-label", "Open menu");
+      $("panelToggle")?.setAttribute("title", "Open menu");
+    }
+  }
+  function setNavOpen(on) {
+    document.querySelector(".shell")?.classList.toggle("nav-open", !!on);
+    syncMobileChrome();
+  }
+  function setPostOpen(on) {
+    const shell = document.querySelector(".shell");
+    shell?.classList.toggle("post-open", !!on);
+    if (on) shell?.classList.remove("nav-open");
+    syncMobileChrome();
+  }
   function setDeskCollapsed(on) {
+    if (isNarrow()) {
+      document.querySelector(".shell")?.classList.remove("desk-collapsed");
+      return;
+    }
     document.querySelector(".shell")?.classList.toggle("desk-collapsed", !!on);
     $("panelToggle")?.setAttribute("aria-label", on ? "Show desk panel" : "Hide desk panel");
     $("panelToggle")?.setAttribute("title", on ? "Show desk" : "Hide desk");
   }
   function toggleDeskPanel() {
+    if (isNarrow()) {
+      setNavOpen(!document.querySelector(".shell")?.classList.contains("nav-open"));
+      return;
+    }
     const shell = document.querySelector(".shell");
     setDeskCollapsed(!shell?.classList.contains("desk-collapsed"));
   }
@@ -3824,6 +3941,7 @@
     document.querySelector(".shell")?.classList.toggle("browser-focus", name === "browser");
     $("rightPane")?.classList.toggle("browser-on", name === "browser");
     if (name === "structure" && currentRun) paintIgPost(currentRun);
+    if (isNarrow() && currentRun && (name === "structure" || name === "browser")) setPostOpen(true);
   }
 
   function resolveSourceUrl(run) {
@@ -4607,6 +4725,7 @@
     switchView("home");
     switchRightTab("structure");
     setDeskCollapsed(false);
+    if (isNarrow()) setPostOpen(false);
     currentRun = null;
     $("headline").focus();
   }
@@ -4649,6 +4768,21 @@
       $("viewHome").classList.add("active");
       $("navNew")?.classList.add("active");
     }
+    setNavOpen(false);
+    if (isNarrow() && name !== "home") setPostOpen(false);
+    const titles = {
+      home: "Cutline",
+      activity: "Approvals",
+      approvals: "Approvals",
+      scheduled: "Scheduled",
+      hunt: "Explore",
+      explore: "Explore",
+      library: "Library",
+      connect: "Plugins",
+      plugins: "Plugins",
+      settings: "Settings",
+    };
+    if ($("mobileBarTitle")) $("mobileBarTitle").textContent = titles[name] || "Cutline";
   }
 
   $("runBtn").addEventListener("click", doRun);
@@ -4814,6 +4948,7 @@
     switchRightTab("structure");
     if (currentRun) paintIgPost(currentRun);
     else $("structureEmpty") && ($("structureEmpty").style.display = "");
+    if (isNarrow()) setPostOpen(true);
   });
 
   let lastHits = [];
@@ -5830,6 +5965,26 @@
 
   $("panelToggle")?.addEventListener("click", toggleDeskPanel);
   $("panelRestore")?.addEventListener("click", () => setDeskCollapsed(false));
+  $("mobileNavBtn")?.addEventListener("click", () => setNavOpen(!document.querySelector(".shell")?.classList.contains("nav-open")));
+  $("mobilePostBtn")?.addEventListener("click", () => {
+    switchRightTab("structure");
+    setPostOpen(true);
+  });
+  $("mobilePostClose")?.addEventListener("click", () => setPostOpen(false));
+  $("mobileBackdrop")?.addEventListener("click", () => setNavOpen(false));
+  document.addEventListener("keydown", (e) => {
+    if (e.key !== "Escape" || !isNarrow()) return;
+    const shell = document.querySelector(".shell");
+    if (shell?.classList.contains("nav-open")) setNavOpen(false);
+    else if (shell?.classList.contains("post-open")) setPostOpen(false);
+  });
+  NARROW_MQ.addEventListener?.("change", () => {
+    if (!isNarrow()) {
+      document.querySelector(".shell")?.classList.remove("nav-open", "post-open");
+      document.body.classList.remove("mobile-lock");
+    }
+    syncMobileChrome();
+  });
   $("profileBtn")?.addEventListener("click", (e) => {
     e.stopPropagation();
     const menu = $("profileMenu");
