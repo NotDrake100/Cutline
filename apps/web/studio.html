@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="white">
 <head>
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
@@ -15,6 +15,7 @@
     --panel: #FFFEFB;
     --card: #FFFEFB;
     --cream-dark: #EDE6D9;
+    --on-ink: #FFFFFF;
     --ink: #0A0A0A;
     --muted: rgba(10,10,10,0.55);
     --dim: rgba(10,10,10,0.38);
@@ -37,7 +38,25 @@
     --right-w: 360px;
     --shadow: 0 12px 40px rgba(10,10,10,0.06);
   }
-  html[data-theme="paper"] { --bg: #FFFEFB; --sidebar: #F6F1E8; }
+  html[data-theme="paper"],
+  html[data-theme="white"],
+  html[data-theme="cream"] { --bg: #F6F1E8; --sidebar: #EDE6D9; }
+  html[data-theme="black"] {
+    --bg: #000000;
+    --sidebar: #0D0D0D;
+    --panel: #111111;
+    --card: #171717;
+    --cream-dark: #0D0D0D;
+    --ink: #F4F4F5;
+    --on-ink: #0A0A0A;
+    --muted: rgba(244,244,245,0.62);
+    --dim: rgba(244,244,245,0.40);
+    --line: rgba(255,255,255,.10);
+    --line-strong: rgba(255,255,255,.16);
+    --nav-hover: rgba(255,255,255,.06);
+    --nav-active: rgba(255,255,255,.10);
+    --shadow: 0 16px 48px rgba(0,0,0,0.55);
+  }
   html[data-density="compact"] { --sidebar-w: 228px; }
   * { box-sizing: border-box; }
   html, body { margin: 0; height: 100%; background: var(--bg); color: var(--ink); font-family: var(--font); -webkit-font-smoothing: antialiased; }
@@ -331,6 +350,60 @@
     text-transform: none; letter-spacing: 0;
     color: var(--ink);
   }
+  .theme-toggle {
+    display: flex; gap: 4px;
+    height: 44px; padding: 4px;
+    border: 1px solid var(--line); border-radius: 12px;
+    background: var(--bg);
+  }
+  .theme-opt {
+    flex: 1;
+    border-radius: 9px;
+    font-size: 14px; font-weight: 650;
+    color: var(--muted);
+  }
+  .theme-opt:hover { color: var(--ink); }
+  .theme-opt.active {
+    background: var(--card);
+    color: var(--ink);
+    box-shadow: 0 1px 0 var(--line);
+  }
+  .settings-help {
+    margin: 0;
+    font-size: 12.5px;
+    font-weight: 450;
+    letter-spacing: 0;
+    text-transform: none;
+    color: var(--dim);
+    line-height: 1.45;
+  }
+  .nav-item.has-actions {
+    display: flex; align-items: center;
+    padding: 0; gap: 0;
+  }
+  .nav-item-main {
+    display: flex; align-items: center; gap: 10px;
+    flex: 1; min-width: 0;
+    padding: 9px 8px 9px 12px;
+    text-align: left;
+    color: inherit;
+  }
+  .item-actions {
+    display: flex; align-items: center; gap: 2px;
+    padding-right: 6px;
+    flex-shrink: 0;
+  }
+  .item-act {
+    width: 28px; height: 28px;
+    border-radius: 8px;
+    display: grid; place-items: center;
+    color: var(--dim);
+  }
+  .item-act:hover { background: var(--nav-hover); color: var(--ink); }
+  .item-act.danger:hover { background: rgba(255,59,48,.12); color: var(--red); }
+  .item-act svg { width: 13px; height: 13px; }
+  .side-archived { margin-top: 6px; }
+  .side-archived .nav-item { opacity: .82; }
 
   /* ——— Main ——— */
   .main {
@@ -533,7 +606,8 @@
     display: flex;
     flex-wrap: wrap;
     gap: 8px;
-    padding: 0 2px 12px;
+    padding: 0 2px 14px;
+    width: 100%;
   }
   .ask-suggest[hidden] { display: none !important; }
   .ask-suggest-label {
@@ -1584,27 +1658,40 @@
     color: var(--ink);
   }
   .photo-strip-label {
-    padding: 0 12px 6px;
+    padding: 8px 12px 6px;
     font-size: 11px; font-weight: 650;
     letter-spacing: .04em; text-transform: uppercase;
     color: var(--dim);
+    flex: 0 0 auto;
   }
   .photo-strip {
-    display: flex; gap: 6px; overflow-x: auto;
-    padding: 0 12px 10px;
+    display: flex; gap: 10px; overflow-x: auto;
+    padding: 0 12px 14px;
+    flex: 0 0 auto;
+    min-height: 72px;
+    -webkit-overflow-scrolling: touch;
   }
   .photo-strip button {
-    width: 56px; height: 56px; border-radius: 8px;
+    width: 64px; height: 64px; border-radius: 50%;
     overflow: hidden; flex-shrink: 0;
     border: 2px solid transparent;
-    padding: 0; background: #eee;
+    padding: 0; background: var(--nav-active);
   }
   .photo-strip button.active { border-color: var(--ink); }
   .photo-strip img { width: 100%; height: 100%; object-fit: cover; }
   .ig-actions {
     display: flex; gap: 8px;
-    padding: 0 12px 12px;
+    padding: 10px 12px 12px;
+    flex: 0 0 auto;
+    position: sticky;
+    bottom: 0;
+    background: var(--panel);
+    border-top: 1px solid var(--line);
+    z-index: 4;
   }
+  .ig-frame[data-aspect="instagram"] { aspect-ratio: 4 / 5; }
+  .ig-frame[data-aspect="x"],
+  .ig-frame[data-aspect="youtube"] { aspect-ratio: 16 / 9; }
   .ig-still-note {
     padding: 8px 12px 0;
     font-size: 11px;
@@ -1831,12 +1918,12 @@
     height: 100%;
     object-fit: contain;
     object-position: center;
-    background: #111;
+    background: var(--panel);
     max-width: none;
   }
   .browser-frame-wrap {
     flex: 1; min-height: 360px;
-    background: #111;
+    background: var(--panel);
     position: relative;
   }
   .browser-frame-wrap iframe {
@@ -1961,11 +2048,252 @@
   .lib-card a { color: inherit; text-decoration: underline; text-underline-offset: 2px; }
   .lib-thumb { width: 72px; height: 72px; border-radius: 8px; overflow: hidden; background: #111; margin: 8px 0; }
   .lib-thumb img { width: 100%; height: 100%; object-fit: cover; }
+
+  /* ——— Phone chrome (Chat | Post | Browser + overlay drawer). Desktop ≥768px stays 3-col. ——— */
+  .phone-bar, .phone-backdrop { display: none; }
+  .sidebar-reach { display: flex; flex-direction: column; gap: 2px; padding-top: 8px; }
+  .sidebar-reach .nav-item { width: 100%; }
+
+  @media (min-width: 768px) {
+    .shell,
+    .shell.browser-focus,
+    .shell.desk-collapsed,
+    .shell.browser-focus.desk-collapsed {
+      grid-template-rows: none;
+    }
+    .shell { grid-template-columns: var(--sidebar-w) 1fr var(--right-w); }
+    .shell.browser-focus { grid-template-columns: var(--sidebar-w) 0 minmax(0, 1fr); }
+    .shell.desk-collapsed { grid-template-columns: 0 minmax(0, 1fr) var(--right-w); }
+    .sidebar {
+      width: auto;
+      height: auto;
+      border-right: 1px solid var(--line);
+      border-bottom: none;
+    }
+    .right-pane {
+      width: auto;
+      max-height: none;
+      border-left: 1px solid var(--line);
+      border-top: none;
+    }
+  }
+
+  @media (max-width: 767px) {
+    html, body { height: 100%; overflow: hidden; }
+    body.phone-lock { overflow: hidden; }
+
+    .phone-bar {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-shrink: 0;
+      position: relative;
+      height: 56px;
+      padding: 8px 10px;
+      background: var(--bg);
+      border-bottom: 1px solid var(--line);
+      z-index: 21;
+    }
+    .phone-menu-btn {
+      width: 40px; height: 40px;
+      border-radius: 12px;
+      display: grid; place-items: center;
+      color: var(--ink);
+      flex-shrink: 0;
+    }
+    .phone-menu-btn:hover { background: var(--nav-hover); }
+    .phone-menu-btn svg { width: 20px; height: 20px; }
+    .phone-seg {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex: 0 1 260px;
+      margin: 0 auto;
+      min-width: 0;
+      height: 38px;
+      padding: 3px;
+      border-radius: var(--radius-pill);
+      background: var(--nav-active);
+      border: 1px solid var(--line);
+    }
+    .phone-seg-btn {
+      flex: 1;
+      height: 100%;
+      border-radius: var(--radius-pill);
+      font-size: 13.5px;
+      font-weight: 650;
+      color: var(--dim);
+      letter-spacing: -.01em;
+    }
+    .phone-seg-btn.active {
+      background: var(--card);
+      color: var(--ink);
+      box-shadow: 0 1px 2px rgba(10,10,10,.10);
+    }
+
+    .phone-backdrop {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(10,10,10,.38);
+      z-index: 28;
+    }
+    .shell.phone-nav-open .phone-backdrop { display: block; }
+
+    .shell,
+    .shell.browser-focus,
+    .shell.desk-collapsed,
+    .shell.browser-focus.desk-collapsed {
+      display: flex;
+      flex-direction: column;
+      grid-template-columns: none;
+      grid-template-rows: none;
+      height: 100dvh;
+      min-height: 0;
+    }
+    .shell.browser-focus .main {
+      visibility: visible;
+      overflow: auto;
+      pointer-events: auto;
+    }
+    .shell.desk-collapsed .sidebar { display: flex; }
+    .shell.desk-collapsed .panel-restore { display: none; }
+
+    .sidebar {
+      position: fixed;
+      top: 0; left: 0; bottom: 0;
+      width: min(86vw, 320px);
+      height: 100dvh;
+      z-index: 30;
+      transform: translateX(-104%);
+      transition: transform .2s ease;
+      border-right: 1px solid var(--line);
+      border-bottom: none;
+      box-shadow: none;
+    }
+    .shell.phone-nav-open .sidebar {
+      transform: translateX(0);
+      box-shadow: 16px 0 40px rgba(10,10,10,.16);
+    }
+
+    .main {
+      flex: 1 1 auto;
+      min-height: 0;
+      width: 100%;
+    }
+    .right-pane {
+      display: none;
+      flex: 1 1 auto;
+      width: 100%;
+      max-height: none;
+      min-height: 0;
+      border-left: none;
+      border-top: none;
+    }
+    .shell.phone-pane-post .main,
+    .shell.phone-pane-browser .main { display: none; }
+    .shell.phone-pane-post .right-pane,
+    .shell.phone-pane-browser .right-pane { display: flex; }
+    .rp-tabs { display: none; }
+
+    .home-wrap {
+      justify-content: flex-start;
+      padding: 12px 18px 24px;
+    }
+    .home-wrap h1 { margin-bottom: 8px; font-size: 16px; }
+    .home-wrap .kicker { margin-bottom: 6px; }
+    .purpose-line,
+    .showcase-rail,
+    body.is-showcase .showcase-rail,
+    .project-home { display: none !important; }
+    .assign { display: none; }
+    .item-actions { opacity: 1; }
+    .item-act { width: 34px; height: 34px; }
+    .paste-url-row { flex-wrap: wrap; }
+    .paste-url-row input { flex: 1 1 100%; }
+    .paste-url-row .btn { flex: 1 1 auto; min-width: 0; }
+    .ask-suggest,
+    .ask-suggest.ask-tip-list {
+      display: flex;
+      flex-direction: column;
+      flex-wrap: nowrap;
+      gap: 22px;
+      width: 100%;
+      padding: 22px 4px 28px;
+      margin: 0;
+    }
+    .ask-suggest .ask-suggest-label { display: none; }
+    .ask-chip.ask-tip {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      width: 100%;
+      max-width: none;
+      padding: 0;
+      border: none;
+      border-radius: 0;
+      background: transparent;
+    }
+    .ask-chip.ask-tip:hover,
+    .ask-chip.ask-tip:active { background: transparent; transform: none; }
+    .ask-chip.ask-tip .k { display: none !important; }
+    .ask-chip.ask-tip .t {
+      white-space: nowrap !important;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: none !important;
+      font-size: 15px;
+      font-weight: 400;
+      letter-spacing: -.015em;
+      line-height: 1.35;
+      color: var(--ink);
+    }
+    .ask-tip-ico {
+      width: 20px; height: 20px;
+      border-radius: 0;
+      background: transparent;
+      color: var(--muted);
+      display: grid; place-items: center;
+      flex-shrink: 0;
+    }
+    .ask-tip-ico svg { width: 18px; height: 18px; }
+    .ask-box { padding: 12px 14px 10px; border-radius: 18px; }
+    .ask-box textarea { min-height: 56px; font-size: 15px; }
+    .shell.phone-pane-post .right-pane,
+    .shell.phone-pane-browser .right-pane { overflow: hidden; }
+    .shell.phone-pane-post .rp-body,
+    .shell.phone-pane-browser .rp-body { overflow: auto; -webkit-overflow-scrolling: touch; }
+    .ig-frame {
+      height: auto !important;
+      min-height: 0 !important;
+      max-height: 52vh;
+      flex: 0 0 auto !important;
+    }
+    .browser-poster,
+    .browser-poster img,
+    .browser-frame-wrap { background: var(--panel); }
+    .browser-frame-wrap { min-height: 220px; }
+    .rp-empty { background: var(--bg); }
+  }
+  @media (min-width: 768px) {
+    .ask-tip-ico { display: none; }
+  }
 </style>
 </head>
 <body>
-<div class="shell">
-  <aside class="sidebar" aria-label="Workspace">
+<div class="shell phone-pane-chat" id="deskShell">
+  <header class="phone-bar" id="phoneBar">
+    <button type="button" class="phone-menu-btn" id="phoneMenuBtn" aria-label="Open menu" aria-controls="deskSidebar" aria-expanded="false">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+    </button>
+    <div class="phone-seg" role="tablist" aria-label="Desk pane">
+      <button type="button" class="phone-seg-btn active" role="tab" aria-selected="true" data-phone-pane="chat" id="phoneChatBtn">Chat</button>
+      <button type="button" class="phone-seg-btn" role="tab" aria-selected="false" data-phone-pane="post" id="phonePostBtn">Post</button>
+      <button type="button" class="phone-seg-btn" role="tab" aria-selected="false" data-phone-pane="browser" id="phoneBrowserBtn">Browser</button>
+    </div>
+  </header>
+  <div class="phone-backdrop" id="phoneBackdrop" hidden></div>
+  <aside class="sidebar" id="deskSidebar" aria-label="Workspace">
     <div class="workspace">
       <div class="mark" aria-hidden="true">
         <img src="assets/cutline-mark.png" alt="" onerror="this.style.display='none';this.nextElementSibling.style.display='grid'"/>
@@ -2027,6 +2355,21 @@
       <div class="side-empty">No recent stories</div>
     </nav>
 
+    <nav class="sidebar-reach" aria-label="Account">
+      <button type="button" class="nav-item" data-view="archived" id="navArchived">
+        <span class="ico" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M4 7h16v12H4z"/><path d="M9 7V5h6v2"/></svg>
+        </span>
+        <span class="label">Archived</span>
+      </button>
+      <button type="button" class="nav-item" data-view="settings" id="navSettings">
+        <span class="ico" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9c.3.6.9 1 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg>
+        </span>
+        <span class="label">Settings</span>
+      </button>
+    </nav>
+
     <div class="section-label">Tools</div>
     <div class="tools" aria-label="Tools">
       <button type="button" class="tool-row t1" title="News" aria-label="News" id="toolNews">
@@ -2084,15 +2427,16 @@
           <!-- filled by paintProjectChips -->
         </div>
 
+        <div class="ask-suggest" id="askSuggest" aria-label="News suggestions">
+          <div class="ask-suggest-label">Try a story</div>
+          <!-- filled by paintNewsRecs: 1–3 rotating news-photo tips -->
+        </div>
+
         <div class="ask-box">
           <textarea id="headline" placeholder="Finish a news post…" rows="4"></textarea>
           <div class="ask-attach" id="askAttach">
             <span class="name" id="askAttachName"></span>
             <button type="button" class="x" id="askAttachClear" aria-label="Remove file">×</button>
-          </div>
-          <div class="ask-suggest" id="askSuggest" aria-label="News suggestions">
-            <div class="ask-suggest-label">Try a story</div>
-            <!-- filled by paintNewsRecs: 1–3 rotating news-photo tips -->
           </div>
           <div class="ask-actions">
             <div class="ask-plus-wrap">
@@ -2305,24 +2649,36 @@
       </div>
     </section>
 
+    <section class="view" id="viewArchived" aria-label="Archived">
+      <div class="activity-wrap">
+        <h1>Archived</h1>
+        <p class="activity-sub">Stories you put aside. Restore them from here.</p>
+        <div class="need-list" id="archivedMainList">
+          <div class="side-empty">Nothing archived yet.</div>
+        </div>
+      </div>
+    </section>
+
     <section class="view" id="viewSettings" aria-label="Settings">
       <div class="connect-wrap">
         <div class="kicker">Account</div>
         <h1>Settings</h1>
-        <p class="connect-sub">Your desk. Name, cream theme, owner key for live Gemini.</p>
+        <p class="connect-sub">Your desk. Name, theme, and a desk API key for live AI.</p>
         <form class="settings-form" id="settingsForm">
           <label>Name
             <input type="text" id="settingsName" maxlength="40" autocomplete="name"/>
           </label>
           <label>Theme
-            <select id="settingsTheme">
-              <option value="cream">Ace cream</option>
-              <option value="paper">Paper cream</option>
-            </select>
+            <input type="hidden" id="settingsTheme" value="white"/>
+            <div class="theme-toggle" role="radiogroup" aria-label="Theme">
+              <button type="button" class="theme-opt active" data-theme-opt="white" aria-pressed="true">White</button>
+              <button type="button" class="theme-opt" data-theme-opt="black" aria-pressed="false">Black</button>
+            </div>
           </label>
-          <label>Owner key
-            <input type="password" id="settingsOwnerKey" autocomplete="off" placeholder="Unlock live Gemini"/>
+          <label>Desk API key
+            <input type="password" id="settingsOwnerKey" autocomplete="off" placeholder="Unlocks live AI generation for your desk"/>
           </label>
+          <p class="settings-help">Public demo stays on fixtures without a key. The key is never shown after you save.</p>
           <button type="submit" class="btn btn-lime">Save</button>
         </form>
       </div>
@@ -2494,7 +2850,7 @@
     <h1>Demo is open.</h1>
     <p>Public desk uses fixtures. Enter an owner key only for live Gemini.</p>
     <input type="text" id="gateName" placeholder="Your name" maxlength="40"/>
-    <input type="password" id="gateOwnerKey" placeholder="Owner key (optional)" autocomplete="off"/>
+    <input type="password" id="gateOwnerKey" placeholder="Desk API key (optional)" autocomplete="off"/>
     <button type="button" class="btn btn-lime" id="gateOpen">Continue in demo</button>
   </div>
 </div>
@@ -2598,16 +2954,58 @@
   function setSideRunReady() { /* Run lives on the ask box only */ }
 
   const SESSION_KEY = "cutline.session";
+  const DCN_STYLE_URL = "https://www.instagram.com/p/DdwHjcpId9B/";
+  const ICON_ARCHIVE = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4 8h16v11H4z"/><path d="M4 8l2-3h12l2 3"/><path d="M10 12h4"/></svg>`;
+  const ICON_DELETE = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M5 8h14"/><path d="M9 8V6h6v2"/><path d="M8 8l1 11h6l1-11"/></svg>`;
+  const ICON_RESTORE = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M9 14H5l4 4"/><path d="M5 18v-6a7 7 0 1 1 2 5"/></svg>`;
+  const TIP_ICOS = [
+    `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M4 7h12v13H6a2 2 0 0 1-2-2V7z"/><path d="M16 9h3v9a2 2 0 0 1-2 2h-1"/><path d="M7 11h6M7 15h4"/></svg>`,
+    `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><circle cx="12" cy="12" r="8"/><path d="M12 8v5l3 2"/></svg>`,
+    `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M12 21s7-5.2 7-11a7 7 0 1 0-14 0c0 5.8 7 11 7 11z"/><circle cx="12" cy="10" r="2.2"/></svg>`,
+  ];
+
+  function normalizeTheme(t) {
+    const v = String(t || "").toLowerCase();
+    if (v === "black" || v === "dark" || v === "ink") return "black";
+    return "white";
+  }
+  function paintThemeToggle(theme) {
+    const next = normalizeTheme(theme);
+    if ($("settingsTheme")) $("settingsTheme").value = next;
+    document.querySelectorAll("[data-theme-opt]").forEach((btn) => {
+      const on = btn.dataset.themeOpt === next;
+      btn.classList.toggle("active", on);
+      btn.setAttribute("aria-pressed", on ? "true" : "false");
+    });
+  }
+  function seedPasteUrl() {
+    const el = $("pastePostUrl");
+    if (!el) return;
+    if (!el.value.trim() || /\/sample-[a-z0-9-]+\.html/i.test(el.value)) el.value = DCN_STYLE_URL;
+    el.placeholder = DCN_STYLE_URL;
+  }
+  function aspectFromUrl(url) {
+    const u = String(url || "");
+    if (/youtube|youtu\.be|sample-dcn-yt/i.test(u)) return "youtube";
+    if (/(^|\/\/)(www\.)?(x|twitter)\.com|sample-dcn-x/i.test(u)) return "x";
+    return "instagram";
+  }
+  function setPostAspect(kind) {
+    const frame = $("igFrame");
+    if (frame) frame.dataset.aspect = kind || "instagram";
+  }
   function readSession() {
     try { return JSON.parse(localStorage.getItem(SESSION_KEY) || "null"); } catch (_) { return null; }
   }
   function writeSession(next) {
-    localStorage.setItem(SESSION_KEY, JSON.stringify(next));
-    applySession(next);
+    const mapped = { ...next, theme: normalizeTheme(next?.theme) };
+    localStorage.setItem(SESSION_KEY, JSON.stringify(mapped));
+    applySession(mapped);
   }
   function applySession(session) {
-    const s = session || { name: "You", desk: "pune", theme: "cream" };
-    document.documentElement.dataset.theme = s.theme === "paper" ? "paper" : "cream";
+    const s = session || { name: "You", desk: "pune", theme: "white" };
+    const theme = normalizeTheme(s.theme);
+    document.documentElement.dataset.theme = theme;
     if (s.desk) selectedDesk = s.desk;
     const ini = (s.name || "You").trim().slice(0, 1).toUpperCase() || "Y";
     const pic = $("profilePic");
@@ -2615,7 +3013,7 @@
       pic.innerHTML = `<span class="ini">${ini}</span>`;
     }
     if ($("settingsName")) $("settingsName").value = s.name || "You";
-    if ($("settingsTheme")) $("settingsTheme").value = s.theme || "cream";
+    paintThemeToggle(theme);
     paintCityChips();
   }
   function paintMode(mode) {
@@ -2680,6 +3078,9 @@
     try {
       localStorage.setItem(PROJECTS_KEY, JSON.stringify({
         activeId: store.activeId || null,
+        removedIds: store.removedIds || [],
+        archivedRecentKeys: store.archivedRecentKeys || [],
+        deletedRecentKeys: store.deletedRecentKeys || [],
         projects: (store.projects || []).map((p) => ({
           id: p.id,
           name: p.name,
@@ -2687,6 +3088,7 @@
           outlet: p.outlet || "DCN",
           styleUrl: p.styleUrl || "",
           chrome: p.chrome || p.city || "pune",
+          archived: !!p.archived,
           recentRunIds: Array.isArray(p.recentRunIds) ? p.recentRunIds.slice(0, 20) : [],
           recents: Array.isArray(p.recents) ? p.recents.slice(0, 8) : [],
         })),
@@ -2696,9 +3098,14 @@
 
   function ensureProjects() {
     const store = readProjectsStore();
+    store.removedIds = Array.isArray(store.removedIds) ? store.removedIds : [];
+    store.archivedRecentKeys = Array.isArray(store.archivedRecentKeys) ? store.archivedRecentKeys : [];
+    store.deletedRecentKeys = Array.isArray(store.deletedRecentKeys) ? store.deletedRecentKeys : [];
     const seeds = demoProjectSeeds();
+    const removed = new Set(store.removedIds);
     const byId = new Map(store.projects.map((p) => [p.id, p]));
     for (const s of seeds) {
+      if (removed.has(s.id)) continue;
       if (!byId.has(s.id)) {
         store.projects.push(s);
         byId.set(s.id, s);
@@ -2713,6 +3120,88 @@
     writeProjectsStore(store);
     activeProjectId = store.activeId || null;
     return store;
+  }
+
+  function isBuiltInProject(id) {
+    return id === "dcn-pune" || id === "dcn-hyderabad";
+  }
+  function archiveProject(id) {
+    const store = ensureProjects();
+    const p = store.projects.find((x) => x.id === id);
+    if (!p) return;
+    p.archived = true;
+    if (store.activeId === id) store.activeId = null;
+    writeProjectsStore(store);
+    if (activeProjectId === id) clearActiveProject();
+    else { paintProjectNav(); paintProjectChips(); }
+    if (typeof paintArchived === "function") paintArchived();
+  }
+  function restoreProject(id) {
+    const store = ensureProjects();
+    const p = store.projects.find((x) => x.id === id);
+    if (!p) return;
+    p.archived = false;
+    writeProjectsStore(store);
+    paintProjectNav();
+    paintProjectChips();
+    if (typeof paintArchived === "function") paintArchived();
+  }
+  function deleteProject(id) {
+    const store = ensureProjects();
+    const p = store.projects.find((x) => x.id === id);
+    if (!p) return;
+    const builtIn = isBuiltInProject(id);
+    if (!window.confirm(builtIn
+      ? `Delete the built-in “${p.name}” project from this browser? This cannot be undone.`
+      : `Delete “${p.name}”? This cannot be undone.`)) return;
+    store.projects = store.projects.filter((x) => x.id !== id);
+    if (builtIn && !store.removedIds.includes(id)) store.removedIds.push(id);
+    if (store.activeId === id) store.activeId = null;
+    writeProjectsStore(store);
+    if (activeProjectId === id) clearActiveProject();
+    else { paintProjectNav(); paintProjectChips(); }
+    if (typeof paintArchived === "function") paintArchived();
+  }
+  function recentStateSets() {
+    const store = ensureProjects();
+    return {
+      store,
+      archived: new Set(store.archivedRecentKeys || []),
+      deleted: new Set(store.deletedRecentKeys || []),
+    };
+  }
+  function archiveRecentItem(title, sourceUrl) {
+    const key = recentKey(title, sourceUrl);
+    if (!key) return;
+    const store = ensureProjects();
+    store.archivedRecentKeys = Array.from(new Set([...(store.archivedRecentKeys || []), key]));
+    store.deletedRecentKeys = (store.deletedRecentKeys || []).filter((k) => k !== key);
+    writeProjectsStore(store);
+    renderRecents([]);
+    if (typeof paintArchived === "function") paintArchived();
+  }
+  function restoreRecentItem(title, sourceUrl) {
+    const key = recentKey(title, sourceUrl);
+    if (!key) return;
+    const store = ensureProjects();
+    store.archivedRecentKeys = (store.archivedRecentKeys || []).filter((k) => k !== key);
+    writeProjectsStore(store);
+    renderRecents([]);
+    if (typeof paintArchived === "function") paintArchived();
+  }
+  function deleteRecentItem(title, sourceUrl) {
+    if (!window.confirm("Remove this recent story? This cannot be undone.")) return;
+    const key = recentKey(title, sourceUrl);
+    if (!key) return;
+    const store = ensureProjects();
+    store.deletedRecentKeys = Array.from(new Set([...(store.deletedRecentKeys || []), key]));
+    store.archivedRecentKeys = (store.archivedRecentKeys || []).filter((k) => k !== key);
+    for (const p of store.projects || []) {
+      p.recents = (p.recents || []).filter((r) => recentKey(r.title, r.sourceUrl) !== key);
+    }
+    writeProjectsStore(store);
+    renderRecents([]);
+    if (typeof paintArchived === "function") paintArchived();
   }
 
   function listProjects() {
@@ -2881,25 +3370,43 @@
     const root = $("projectList");
     if (!root) return;
     const projects = listProjects();
+    const live = projects.filter((p) => !p.archived);
+    const archived = projects.filter((p) => p.archived);
     const active = activeProjectId;
     const folderSvg = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M4 8h16v11H4z"/><path d="M8 8V6h8v2"/></svg>`;
     const plusSvg = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>`;
-    if (!projects.length) {
-      root.innerHTML = `<div class="side-empty">No projects yet</div>`;
-      return;
-    }
-    root.innerHTML = projects.map((p) =>
-      `<button type="button" class="nav-item${p.id === active ? " active" : ""}" data-project="${escapeHtml(p.id)}" title="${escapeHtml(p.outlet || "DCN")} · ${escapeHtml(p.city || "")}">
-        <span class="ico" aria-hidden="true">${folderSvg}</span>
-        <span class="label">${escapeHtml(p.name)}</span>
-      </button>`
-    ).join("") +
+    const row = (p, archivedRow) =>
+      `<div class="nav-item has-actions${p.id === active ? " active" : ""}" data-project="${escapeHtml(p.id)}" title="${escapeHtml(p.outlet || "DCN")} · ${escapeHtml(p.city || "")}">
+        <button type="button" class="nav-item-main" data-project-open="${escapeHtml(p.id)}">
+          <span class="ico" aria-hidden="true">${folderSvg}</span>
+          <span class="label">${escapeHtml(p.name)}</span>
+        </button>
+        <span class="item-actions">
+          ${archivedRow
+            ? `<button type="button" class="item-act" data-restore-project="${escapeHtml(p.id)}" title="Restore" aria-label="Restore">${ICON_RESTORE}</button>`
+            : `<button type="button" class="item-act" data-archive-project="${escapeHtml(p.id)}" title="Archive" aria-label="Archive">${ICON_ARCHIVE}</button>`}
+          <button type="button" class="item-act danger" data-delete-project="${escapeHtml(p.id)}" title="Delete" aria-label="Delete">${ICON_DELETE}</button>
+        </span>
+      </div>`;
+    root.innerHTML = (live.length ? live.map((p) => row(p, false)).join("") : `<div class="side-empty">No projects yet</div>`) +
       `<button type="button" class="nav-item nav-project-new" id="navNewProject" title="New project">
         <span class="ico" aria-hidden="true">${plusSvg}</span>
         <span class="label">New project</span>
-      </button>`;
-    root.querySelectorAll("[data-project]").forEach((btn) => {
-      btn.addEventListener("click", () => openOrCreateSeedProject(btn.dataset.project));
+      </button>` +
+      (archived.length
+        ? `<div class="side-archived"><div class="section-label">Archived</div>${archived.map((p) => row(p, true)).join("")}</div>`
+        : "");
+    root.querySelectorAll("[data-project-open]").forEach((btn) => {
+      btn.addEventListener("click", () => openOrCreateSeedProject(btn.dataset.projectOpen));
+    });
+    root.querySelectorAll("[data-archive-project]").forEach((btn) => {
+      btn.addEventListener("click", (e) => { e.stopPropagation(); archiveProject(btn.dataset.archiveProject); });
+    });
+    root.querySelectorAll("[data-restore-project]").forEach((btn) => {
+      btn.addEventListener("click", (e) => { e.stopPropagation(); restoreProject(btn.dataset.restoreProject); });
+    });
+    root.querySelectorAll("[data-delete-project]").forEach((btn) => {
+      btn.addEventListener("click", (e) => { e.stopPropagation(); deleteProject(btn.dataset.deleteProject); });
     });
     $("navNewProject")?.addEventListener("click", () => createProjectFromWork());
   }
@@ -2907,7 +3414,7 @@
   function paintProjectChips() {
     const root = $("projectHome");
     if (!root) return;
-    const projects = listProjects().filter((p) => p.id === "dcn-pune" || p.id === "dcn-hyderabad" || p.id === activeProjectId);
+    const projects = listProjects().filter((p) => !p.archived && (p.id === "dcn-pune" || p.id === "dcn-hyderabad" || p.id === activeProjectId));
     /* Always show the two demo seeds + any other active */
     const seen = new Set();
     const chips = [];
@@ -3372,13 +3879,13 @@
 
   function ensureSession() {
     if (localStorage.getItem("cutline.signedOut") === "1") {
-      applySession({ name: "You", desk: "pune", theme: "cream" });
+      applySession({ name: "You", desk: "pune", theme: "white" });
       showSignedOut(true);
       return null;
     }
     let s = readSession();
     if (!s) {
-      s = { name: "You", desk: "pune", theme: "cream" };
+      s = { name: "You", desk: "pune", theme: "white" };
       localStorage.setItem(SESSION_KEY, JSON.stringify(s));
     }
     applySession(s);
@@ -4003,6 +4510,7 @@
     const cardText = $("igCardText");
     const framePh = $("igFramePh");
     if (frame) {
+      setPostAspect(aspectFromUrl(resolveSourceUrl(run)));
       const fill = frame.querySelector(":scope > .still-fill");
       if (fill) fill.hidden = true;
       const src = url || cachedIg;
@@ -4085,7 +4593,7 @@
     const uniqueThumbs = photos.filter((p) => p.url && p.url !== url && preferRaster(p.url) && !/\.svg(\?|$)/i.test(p.url));
     if (strip) {
       /* Big Post still is the proof. Hide a one-thumb "From the page" strip. */
-      if (isIg || photos.length <= 1 || uniqueThumbs.length === 0) {
+      if (uniqueThumbs.length === 0 && photos.length <= 1) {
         strip.hidden = true;
         strip.innerHTML = "";
         if (label) label.hidden = true;
@@ -4188,6 +4696,7 @@
     if ($("pastePostUrl")) $("pastePostUrl").value = sourceUrl;
     $("headline").value = sourceUrl;
     pendingSourceUrl = sourceUrl;
+    setPostAspect(aspectFromUrl(sourceUrl));
     if ($("analyzeBtn")) $("analyzeBtn").disabled = true;
     $("runBtn").disabled = true;
     setStatus("drafting");
@@ -4391,8 +4900,13 @@
       $("navPlugins")?.classList.add("active");
       $("toolShip")?.classList.add("active-tool");
       if (typeof refreshConnect === "function") refreshConnect();
+    } else if (name === "archived") {
+      $("viewArchived")?.classList.add("active");
+      $("navArchived")?.classList.add("active");
+      if (typeof paintArchived === "function") paintArchived();
     } else if (name === "settings") {
       $("viewSettings")?.classList.add("active");
+      $("navSettings")?.classList.add("active");
       applySession(readSession() || ensureSession());
     } else {
       $("viewHome").classList.add("active");
@@ -4485,6 +4999,7 @@
           : "https://www.instagram.com/p/DdwHjcpId9B/");
       document.querySelectorAll("#socialChips [data-social]").forEach((b) => b.classList.remove("active"));
       btn.classList.add("active");
+      setPostAspect(kind);
       doAnalyze(url);
     });
   });
@@ -4557,6 +5072,8 @@
   $("navPlugins")?.addEventListener("click", () => switchView("connect"));
   $("navExplore")?.addEventListener("click", () => switchView("hunt"));
   $("navLibrary")?.addEventListener("click", () => switchView("library"));
+  $("navArchived")?.addEventListener("click", () => switchView("archived"));
+  $("navSettings")?.addEventListener("click", () => switchView("settings"));
   $("toolNews")?.addEventListener("click", () => switchView("hunt"));
   $("toolShip")?.addEventListener("click", () => {
     switchView("home");
@@ -4741,29 +5258,19 @@
     return out;
   }
 
-  async function runNewsTip(t) {
+  function fillNewsTip(t) {
     if (!t) return;
     selectedDesk = t.desk;
     paintCityChips();
     $("headline").value = t.title;
-    /* Keep tip URL in paste field so Copy this style is one click away */
-    if ($("pastePostUrl")) $("pastePostUrl").value = t.url;
     pendingSourceUrl = t.url;
-    setStyleUrl(t.url);
-    /* Tips = news photo + editable text only — never Hyd chrome */
-    if (currentRun) {
-      currentRun._hydChrome = false;
-      if (currentRun.pack) delete currentRun.pack.templateChrome;
-    }
-    loadBrowserUrl(t.url, { switchTab: true });
+    seedPasteUrl();
     switchView("home");
-    await doRun();
-    if (currentRun) {
-      currentRun._hydChrome = false;
-      if (currentRun.pack) delete currentRun.pack.templateChrome;
-      paintIgPost(currentRun);
-    }
-    switchRightTab("structure");
+    if (typeof setPhonePane === "function" && typeof isPhone === "function" && isPhone()) setPhonePane("chat");
+    $("headline")?.focus();
+  }
+  async function runNewsTip(t) {
+    fillNewsTip(t);
   }
 
   function paintNewsRecs() {
@@ -4771,14 +5278,16 @@
     const ask = $("askSuggest");
     if (ask) {
       ask.hidden = tips.length === 0;
+      ask.classList.add("ask-tip-list");
       ask.innerHTML = `<div class="ask-suggest-label">Try a story</div>` + tips.map((t, i) =>
-        `<button type="button" class="ask-chip" data-ask-rec="${i}" title="${escapeHtml(t.title)}">
+        `<button type="button" class="ask-chip ask-tip" data-ask-rec="${i}" title="${escapeHtml(t.title)}">
+          <span class="ask-tip-ico" aria-hidden="true">${TIP_ICOS[i % TIP_ICOS.length]}</span>
           <span class="k">${escapeHtml(t.kicker)}</span>
           <span class="t">${escapeHtml(t.title)}</span>
         </button>`
       ).join("");
       ask.querySelectorAll("[data-ask-rec]").forEach((btn) => {
-        btn.addEventListener("click", () => runNewsTip(tips[Number(btn.dataset.askRec)]));
+        btn.addEventListener("click", () => fillNewsTip(tips[Number(btn.dataset.askRec)]));
       });
     }
     /* Legacy below-fold list kept in DOM but hidden — chips in ask box are primary */
@@ -5313,36 +5822,80 @@
       });
       seedRecents().forEach(push);
     }
-    const shown = rows.slice(0, 5);
-    root.innerHTML = shown.map((r) =>
-      `<button type="button" class="nav-item" data-recent-run="${escapeHtml(r.runId)}" data-recent-title="${escapeHtml(r.title)}" data-recent-src="${escapeHtml(r.sourceUrl)}">
-        <span class="label">${escapeHtml(r.title.length > 48 ? r.title.slice(0, 46) + "…" : r.title)}</span>
-      </button>`
-    ).join("");
-    root.querySelectorAll("[data-recent-run]").forEach((btn) => {
-      btn.addEventListener("click", async () => {
-        const runId = btn.dataset.recentRun;
-        const title = btn.dataset.recentTitle || "";
-        const src = btn.dataset.recentSrc || "";
-        switchView("home");
-        if (runId) {
-          try {
-            const res = await fetch("/api/runs/" + encodeURIComponent(runId));
-            const data = await res.json();
-            if (res.ok && data.run) {
-              applyRun(data.run);
-              return;
-            }
-          } catch (_) { /* open as ask */ }
-        }
-        if (looksLikePostUrl(src)) return doAnalyze(src);
-        if (title) $("headline").value = title;
-        if (isLiveSourceUrl(src)) {
-          pendingSourceUrl = src;
-          loadBrowserUrl(src, { switchTab: true });
-          setStyleUrl(src);
-        }
-        setSideRunReady();
+    const { archived, deleted } = recentStateSets();
+    const live = [];
+    const archivedRows = [];
+    for (const r of rows) {
+      const key = recentKey(r.title, r.sourceUrl);
+      if (deleted.has(key)) continue;
+      if (archived.has(key)) archivedRows.push(r);
+      else live.push(r);
+    }
+    const shown = live.slice(0, 5);
+    const recentRow = (r, archivedRow) =>
+      `<div class="nav-item has-actions" data-recent-run="${escapeHtml(r.runId)}" data-recent-title="${escapeHtml(r.title)}" data-recent-src="${escapeHtml(r.sourceUrl)}">
+        <button type="button" class="nav-item-main" data-recent-open="1">
+          <span class="label">${escapeHtml(r.title.length > 48 ? r.title.slice(0, 46) + "…" : r.title)}</span>
+        </button>
+        <span class="item-actions">
+          ${archivedRow
+            ? `<button type="button" class="item-act" data-restore-recent="1" title="Restore" aria-label="Restore">${ICON_RESTORE}</button>`
+            : `<button type="button" class="item-act" data-archive-recent="1" title="Archive" aria-label="Archive">${ICON_ARCHIVE}</button>`}
+          <button type="button" class="item-act danger" data-delete-recent="1" title="Delete" aria-label="Delete">${ICON_DELETE}</button>
+        </span>
+      </div>`;
+    root.innerHTML = (shown.length ? shown.map((r) => recentRow(r, false)).join("") : (archivedRows.length ? "" : `<div class="side-empty">No recent stories</div>`)) +
+      (archivedRows.length
+        ? `<div class="side-archived"><div class="section-label">Archived</div>${archivedRows.map((r) => recentRow(r, true)).join("")}</div>`
+        : "");
+    async function openRecent(btn) {
+      const row = btn.closest("[data-recent-title]");
+      if (!row) return;
+      const runId = row.dataset.recentRun;
+      const title = row.dataset.recentTitle || "";
+      const src = row.dataset.recentSrc || "";
+      switchView("home");
+      if (runId) {
+        try {
+          const res = await fetch("/api/runs/" + encodeURIComponent(runId));
+          const data = await res.json();
+          if (res.ok && data.run) {
+            applyRun(data.run);
+            return;
+          }
+        } catch (_) { /* open as ask */ }
+      }
+      if (looksLikePostUrl(src)) return doAnalyze(src);
+      if (title) $("headline").value = title;
+      if (isLiveSourceUrl(src)) {
+        pendingSourceUrl = src;
+        loadBrowserUrl(src, { switchTab: true });
+        setStyleUrl(src);
+      }
+      setSideRunReady();
+    }
+    root.querySelectorAll("[data-recent-open]").forEach((btn) => {
+      btn.addEventListener("click", () => openRecent(btn));
+    });
+    root.querySelectorAll("[data-archive-recent]").forEach((btn) => {
+      btn.addEventListener("click", (e) => {
+        e.stopPropagation();
+        const row = btn.closest("[data-recent-title]");
+        if (row) archiveRecentItem(row.dataset.recentTitle, row.dataset.recentSrc);
+      });
+    });
+    root.querySelectorAll("[data-restore-recent]").forEach((btn) => {
+      btn.addEventListener("click", (e) => {
+        e.stopPropagation();
+        const row = btn.closest("[data-recent-title]");
+        if (row) restoreRecentItem(row.dataset.recentTitle, row.dataset.recentSrc);
+      });
+    });
+    root.querySelectorAll("[data-delete-recent]").forEach((btn) => {
+      btn.addEventListener("click", (e) => {
+        e.stopPropagation();
+        const row = btn.closest("[data-recent-title]");
+        if (row) deleteRecentItem(row.dataset.recentTitle, row.dataset.recentSrc);
       });
     });
   }
@@ -5565,7 +6118,7 @@
     const name = ($("gateName")?.value || "You").trim() || "You";
     const key = ($("gateOwnerKey")?.value || "").trim();
     localStorage.removeItem("cutline.signedOut");
-    writeSession({ name, desk: selectedDesk || "pune", theme: "cream" });
+    writeSession({ name, desk: selectedDesk || "pune", theme: normalizeTheme(readSession()?.theme || "white") });
     if (key) await unlockOwner(key);
     else paintMode("demo");
     showSignedOut(false);
@@ -5576,14 +6129,22 @@
     writeSession({
       name: ($("settingsName")?.value || "You").trim() || "You",
       desk: selectedDesk || "pune",
-      theme: $("settingsTheme")?.value || "cream",
+      theme: normalizeTheme($("settingsTheme")?.value || "white"),
     });
     const key = ($("settingsOwnerKey")?.value || "").trim();
     if (key) await unlockOwner(key);
     if ($("settingsOwnerKey")) $("settingsOwnerKey").value = "";
     switchView("home");
   });
+  document.querySelectorAll("[data-theme-opt]").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      const theme = normalizeTheme(btn.dataset.themeOpt);
+      const s = readSession() || { name: "You", desk: selectedDesk || "pune" };
+      writeSession({ ...s, name: s.name || "You", desk: s.desk || selectedDesk || "pune", theme });
+    });
+  });
   ensureSession();
+  seedPasteUrl();
   refreshDeskMode();
 
   updateNeedLabel();
@@ -5715,6 +6276,135 @@
     const n = (ap.pending || []).length;
     if ($("activityDot")) $("activityDot").style.display = n > 0 ? "" : "none";
   } catch (_) { /* ignore */ }
+
+  /* ——— Phone chrome: drawer + Chat | Post | Browser ——— */
+  const PHONE_MQ = window.matchMedia("(max-width: 767px)");
+  function isPhone() { return PHONE_MQ.matches; }
+  function deskShell() { return document.querySelector(".shell"); }
+
+  function setPhoneNavOpen(on) {
+    const shell = deskShell();
+    if (!shell) return;
+    const open = !!on && isPhone();
+    shell.classList.toggle("phone-nav-open", open);
+    $("phoneMenuBtn")?.setAttribute("aria-expanded", open ? "true" : "false");
+    $("phoneMenuBtn")?.setAttribute("aria-label", open ? "Close menu" : "Open menu");
+    const backdrop = $("phoneBackdrop");
+    if (backdrop) backdrop.hidden = !open;
+    document.body.classList.toggle("phone-lock", open);
+  }
+
+  function setPhonePane(pane) {
+    const next = pane === "post" || pane === "browser" ? pane : "chat";
+    const shell = deskShell();
+    if (!shell) return;
+    shell.classList.toggle("phone-pane-chat", next === "chat");
+    shell.classList.toggle("phone-pane-post", next === "post");
+    shell.classList.toggle("phone-pane-browser", next === "browser");
+    document.querySelectorAll(".phone-seg-btn").forEach((btn) => {
+      const on = btn.dataset.phonePane === next;
+      btn.classList.toggle("active", on);
+      btn.setAttribute("aria-selected", on ? "true" : "false");
+    });
+    if (next === "post") switchRightTab("structure");
+    if (next === "browser") switchRightTab("browser");
+    if (next === "chat" && isPhone()) {
+      document.querySelector(".shell")?.classList.remove("browser-focus");
+    }
+    if (isPhone()) setPhoneNavOpen(false);
+  }
+
+  function paintArchived() {
+    const root = $("archivedMainList");
+    if (!root) return;
+    const store = ensureProjects();
+    const { archived } = recentStateSets();
+    const projRows = (store.projects || []).filter((p) => p.archived).map((p) => ({ title: p.name, sourceUrl: p.styleUrl || "" }));
+    const recentRows = seedRecents().filter((r) => archived.has(recentKey(r.title, r.sourceUrl)));
+    const rows = [...projRows, ...recentRows];
+    if (!rows.length) {
+      root.innerHTML = `<div class="side-empty">Nothing archived yet.</div>`;
+      return;
+    }
+    root.innerHTML = rows.map((r, i) => `
+      <article class="need-card">
+        <h3>${escapeHtml(r.title || "Archived story")}</h3>
+        <p>${escapeHtml(r.sourceUrl || "No source URL")}</p>
+        <div class="need-actions">
+          <button type="button" class="pill pill-adjust" data-archived-open="${i}">Open in Chat</button>
+        </div>
+      </article>`).join("");
+    root.querySelectorAll("[data-archived-open]").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        const item = rows[Number(btn.dataset.archivedOpen)];
+        if (!item) return;
+        switchView("home");
+        setPhonePane("chat");
+        if (item.sourceUrl && typeof doAnalyze === "function") doAnalyze(item.sourceUrl);
+        else if (item.title && $("headline")) $("headline").value = item.title;
+      });
+    });
+  }
+
+  $("phoneMenuBtn")?.addEventListener("click", () => {
+    const open = deskShell()?.classList.contains("phone-nav-open");
+    setPhoneNavOpen(!open);
+  });
+  $("phoneBackdrop")?.addEventListener("click", () => setPhoneNavOpen(false));
+  document.querySelectorAll(".phone-seg-btn").forEach((btn) => {
+    btn.addEventListener("click", () => setPhonePane(btn.dataset.phonePane || "chat"));
+  });
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape") setPhoneNavOpen(false);
+  });
+  PHONE_MQ.addEventListener?.("change", () => {
+    if (!isPhone()) {
+      setPhoneNavOpen(false);
+      document.body.classList.remove("phone-lock");
+    } else {
+      setPhonePane("chat");
+    }
+  });
+
+  const _switchViewPhone = switchView;
+  switchView = function(name) {
+    _switchViewPhone(name);
+    if (isPhone()) {
+      setPhoneNavOpen(false);
+      if (name === "home" || name === "activity" || name === "scheduled" || name === "hunt" || name === "explore" || name === "library" || name === "connect" || name === "plugins" || name === "settings" || name === "archived") {
+        setPhonePane("chat");
+      }
+    }
+  };
+
+  const _switchRightTabPhone = switchRightTab;
+  switchRightTab = function(name) {
+    _switchRightTabPhone(name);
+    if (!isPhone()) return;
+    if (name === "browser") {
+      const shell = deskShell();
+      if (shell?.classList.contains("phone-pane-chat") && !shell.classList.contains("phone-nav-open")) {
+        /* Analyze / open-in-browser should surface the Browser tab */
+        shell.classList.remove("phone-pane-chat", "phone-pane-post");
+        shell.classList.add("phone-pane-browser");
+        document.querySelectorAll(".phone-seg-btn").forEach((btn) => {
+          const on = btn.dataset.phonePane === "browser";
+          btn.classList.toggle("active", on);
+          btn.setAttribute("aria-selected", on ? "true" : "false");
+        });
+      }
+    }
+  };
+
+  const _loadBrowserUrlPhone = loadBrowserUrl;
+  loadBrowserUrl = function(url, opts) {
+    const out = _loadBrowserUrlPhone(url, opts);
+    if (isPhone() && opts && opts.switchTab) setPhonePane("browser");
+    return out;
+  };
+
+  if (isPhone()) setPhonePane("chat");
+  seedPasteUrl();
 </script>
 </body>
 </html>
