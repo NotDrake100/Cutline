@@ -1,0 +1,20 @@
+{
+  "hosting": {
+    "site": "cutline-desk",
+    "public": "hosting-public",
+    "ignore": [
+      "firebase.json",
+      "**/.*",
+      "**/node_modules/**"
+    ],
+    "rewrites": [
+      {
+        "source": "**",
+        "run": {
+          "serviceId": "cutline",
+          "region": "us-central1"
+        }
+      }
+    ]
+  }
+}

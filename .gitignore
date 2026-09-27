@@ -20,3 +20,5 @@ coverage/
 tmp/
 .cache/
 apps/web/studio.html.bak*
+hosting-public/
+firebase-debug.log
