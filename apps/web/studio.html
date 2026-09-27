@@ -907,6 +907,15 @@
     padding: 4px 4px 10px;
   }
   .ask-box textarea::placeholder { color: var(--dim); }
+  @media (max-width: 860px) {
+    .ask-box { border-radius: 24px; padding: 10px 12px 8px; }
+    .ask-box textarea {
+      min-height: 44px;
+      height: 44px;
+      padding: 2px 4px;
+      font-size: 16px;
+    }
+  }
   .ask-attach {
     display: none;
     align-items: center;
