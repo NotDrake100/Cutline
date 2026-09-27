@@ -1,9 +1,12 @@
 #!/usr/bin/env python3
 """Bake DCN Hyderabad-style Telegram news cards for Cutline demo tips.
 
-Layout matches /workspace/dcn-hyd-card-fix/after.png + auto_post.py plate:
-  1080x1350, dark bottom plate ~56–68%H, ALL CAPS headline ~62px, deck,
-  red DCN logo + city pill top-right, red divider + dcnnews.co.in footer.
+Matches /workspace/dcn-hyd-card-fix/auto_post.py:
+  photo cover-crop → dark plate → chroma_key green (0,122,63) on real
+  template_post.png → composite → draw ALL CAPS headline + body deck.
+
+Does NOT redraw the DCN logo or footer — those come from the real template.
+City pill text is swapped per card (template ships with HYDERABAD).
 
 Run once; demo serves the baked JPGs — never call Gemini per request.
 """
@@ -16,19 +19,17 @@ from PIL import Image, ImageDraw, ImageFont
 
 ROOT = Path(__file__).resolve().parents[1]
 OUT = ROOT / "apps/web/assets/demo"
+TEMPLATE = OUT / "templates" / "template_post.png"
 SRC = Path("/tmp/pexels-dl")
 MANIFEST = OUT / "dcn-card-sources.json"
 
 W, H = 1080, 1350
-DCN_RED = (220, 20, 40)
-NEWS_YELLOW = (255, 214, 0)
-WHITE = (255, 255, 255)
-BLACK = (0, 0, 0)
-
+GREEN = (0, 122, 63)
 BOLD = "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf"
 REG = "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf"
-LOGO_BOLD = "/usr/share/fonts/truetype/sand-box/google/Montserrat Alternates/MontserratAlternates-ExtraBold.ttf"
-LOGO_SEMI = "/usr/share/fonts/truetype/sand-box/google/Montserrat Alternates/MontserratAlternates-Bold.ttf"
+
+# Pill region on template_post.png (black capsule under red DCN badge)
+PILL = (851, 173, 1063, 216)
 
 
 def font(path: str, size: int) -> ImageFont.FreeTypeFont:
@@ -36,7 +37,7 @@ def font(path: str, size: int) -> ImageFont.FreeTypeFont:
 
 
 def cover_crop(img: Image.Image, tw: int, th: int) -> Image.Image:
-    """Cover-fit, bias upper so faces/subject sit above the plate."""
+    """Cover-fit crop biased toward the upper third (auto_post.py)."""
     sw, sh = img.size
     scale = max(tw / sw, th / sh)
     nw, nh = int(sw * scale), int(sh * scale)
@@ -48,6 +49,7 @@ def cover_crop(img: Image.Image, tw: int, th: int) -> Image.Image:
 
 
 def dark_plate(base: Image.Image) -> Image.Image:
+    """Strong dark bottom plate with soft fade — newspaper IG/Telegram card style."""
     overlay = Image.new("RGBA", (W, H), (0, 0, 0, 0))
     od = ImageDraw.Draw(overlay)
     plate_top = int(H * 0.56)
@@ -61,6 +63,57 @@ def dark_plate(base: Image.Image) -> Image.Image:
             alpha = solid
         od.line([(0, y), (W, y)], fill=(0, 0, 0, alpha))
     return Image.alpha_composite(base.convert("RGBA"), overlay)
+
+
+def chroma_key(template_rgba: Image.Image, green_rgb=GREEN, tolerance=45) -> Image.Image:
+    """Replace green pixels with transparency so the photo shows through."""
+    data = template_rgba.load()
+    tw, th = template_rgba.size
+    gr, gg, gb = green_rgb
+    for y in range(th):
+        for x in range(tw):
+            r, g, b, a = data[x, y]
+            if (
+                abs(r - gr) < tolerance
+                and abs(g - gg) < tolerance
+                and abs(b - gb) < tolerance
+                and g > r + 15
+                and g > b + 15
+            ):
+                data[x, y] = (r, g, b, 0)
+    return template_rgba
+
+
+def erase_lorem(tpl: Image.Image) -> Image.Image:
+    """Blank placeholder Lorem ipsum in the text zone; keep red divider pixels."""
+    edit = tpl.copy()
+    data = edit.load()
+    erase_top = int(H * 0.60)
+    erase_bot = int(H * 0.930)
+    for y in range(erase_top, erase_bot):
+        for x in range(0, W):
+            r, g, b, a = data[x, y]
+            is_red = r > 150 and g < 60 and b < 60
+            if not is_red and max(r, g, b) > 60:
+                data[x, y] = (0, 0, 0, 0)
+    return edit
+
+
+def swap_city_pill(tpl: Image.Image, city: str) -> Image.Image:
+    """Replace HYDERABAD pill text with the demo city name (keep real pill chrome)."""
+    edit = tpl.copy()
+    x0, y0, x1, y1 = PILL
+    draw = ImageDraw.Draw(edit)
+    draw.rounded_rectangle([x0 + 2, y0 + 2, x1 - 2, y1 - 2], radius=18, fill=(0, 0, 0, 255))
+    label = city.upper()
+    f_city = font(BOLD, 22)
+    bb = draw.textbbox((0, 0), label, font=f_city)
+    tw = bb[2] - bb[0]
+    th = bb[3] - bb[1]
+    cx = x0 + (x1 - x0 - tw) // 2
+    cy = y0 + (y1 - y0 - th) // 2 - 1
+    draw.text((cx, cy), label, font=f_city, fill=(255, 255, 255, 255))
+    return edit
 
 
 def wrap(draw: ImageDraw.ImageDraw, text: str, fnt, max_w: int, max_lines: int | None = None) -> list[str]:
@@ -82,41 +135,11 @@ def wrap(draw: ImageDraw.ImageDraw, text: str, fnt, max_w: int, max_lines: int |
     return lines[:max_lines] if max_lines else lines
 
 
-def draw_logo(draw: ImageDraw.ImageDraw, city: str) -> None:
-    # Red badge top-right — matches after.png (~212x168 at x≈852,y≈16)
-    bx, by, bw, bh = 852, 16, 212, 168
-    draw.rounded_rectangle([bx, by, bx + bw, by + bh], radius=10, fill=DCN_RED)
-    f_dcn = font(LOGO_BOLD if Path(LOGO_BOLD).exists() else BOLD, 64)
-    f_sub = font(LOGO_SEMI if Path(LOGO_SEMI).exists() else BOLD, 18)
-    f_news = font(LOGO_BOLD if Path(LOGO_BOLD).exists() else BOLD, 28)
-    # DCN
-    bb = draw.textbbox((0, 0), "DCN", font=f_dcn)
-    draw.text((bx + (bw - (bb[2] - bb[0])) // 2, by + 8), "DCN", font=f_dcn, fill=WHITE)
-    # DAILY CITY
-    bb = draw.textbbox((0, 0), "DAILY CITY", font=f_sub)
-    draw.text((bx + (bw - (bb[2] - bb[0])) // 2, by + 78), "DAILY CITY", font=f_sub, fill=WHITE)
-    # NEWS (yellow)
-    bb = draw.textbbox((0, 0), "NEWS", font=f_news)
-    draw.text((bx + (bw - (bb[2] - bb[0])) // 2, by + 104), "NEWS", font=f_news, fill=NEWS_YELLOW)
-
-    # City pill under logo
-    f_city = font(BOLD, 22)
-    label = city.upper()
-    cbb = draw.textbbox((0, 0), label, font=f_city)
-    cw = (cbb[2] - cbb[0]) + 36
-    ch = 36
-    cx = bx + bw - cw
-    cy = by + bh - 6
-    # white outline ring
-    draw.rounded_rectangle([cx - 2, cy - 2, cx + cw + 2, cy + ch + 2], radius=ch // 2 + 2, fill=WHITE)
-    draw.rounded_rectangle([cx, cy, cx + cw, cy + ch], radius=ch // 2, fill=BLACK)
-    draw.text((cx + (cw - (cbb[2] - cbb[0])) // 2, cy + 6), label, font=f_city, fill=WHITE)
-
-
-def draw_text_block(draw: ImageDraw.ImageDraw, headline: str, deck: str) -> None:
+def draw_headline_deck(composite: Image.Image, headline: str, deck: str) -> None:
+    """Draw ALL CAPS headline + body deck only (logo/footer already on template)."""
+    draw = ImageDraw.Draw(composite)
     f_h = font(BOLD, 62)
     f_d = font(REG, 28)
-    f_f = font(BOLD, 18)
     max_w = W - 120
     lines = wrap(draw, headline.upper().strip(), f_h, max_w)
     body = wrap(draw, deck.strip(), f_d, max_w, max_lines=2) if deck else []
@@ -132,7 +155,7 @@ def draw_text_block(draw: ImageDraw.ImageDraw, headline: str, deck: str) -> None
         y = start_y + i * line_h
         for dx, dy in ((3, 3), (2, 2), (-1, 1), (1, -1)):
             draw.text((x + dx, y + dy), line, font=f_h, fill=(0, 0, 0, 160))
-        draw.text((x, y), line, font=f_h, fill=WHITE)
+        draw.text((x, y), line, font=f_h, fill=(255, 255, 255, 255))
 
     if body:
         by = start_y + len(lines) * line_h + 18
@@ -141,32 +164,31 @@ def draw_text_block(draw: ImageDraw.ImageDraw, headline: str, deck: str) -> None
             x = (W - (bb[2] - bb[0])) // 2
             y = by + i * body_h
             draw.text((x + 3, y + 3), line, font=f_d, fill=(0, 0, 0, 255))
-            draw.text((x, y), line, font=f_d, fill=WHITE)
-
-    # Red divider + footer (matches after.png ~y=1242)
-    ly = 1242
-    draw.line([(340, ly), (740, ly)], fill=DCN_RED, width=3)
-    footer = "DCNNEWS.CO.IN"
-    # small globe disc
-    gx, gy, gr = W // 2 - 90, ly + 22, 10
-    draw.ellipse([gx - gr, gy - gr, gx + gr, gy + gr], fill=DCN_RED)
-    draw.ellipse([gx - gr + 3, gy - gr + 3, gx + gr - 3, gy + gr - 3], outline=WHITE, width=1)
-    fbb = draw.textbbox((0, 0), footer, font=f_f)
-    draw.text((gx + 18, gy - (fbb[3] - fbb[1]) // 2 - 1), footer, font=f_f, fill=WHITE)
+            draw.text((x, y), line, font=f_d, fill=(255, 255, 255, 255))
 
 
-def bake(photo: Path, city: str, headline: str, deck: str, out_card: Path, out_base: Path | None) -> dict:
+def bake(
+    photo: Path,
+    city: str,
+    headline: str,
+    deck: str,
+    out_card: Path,
+    out_base: Path | None,
+    template: Image.Image,
+) -> dict:
     img = Image.open(photo).convert("RGB")
     fitted = cover_crop(img, W, H)
     if out_base:
-        # also save a landscape-ish article still (1080x720 crop from fitted upper)
         still = fitted.crop((0, 80, W, 80 + 720)).resize((1080, 720), Image.LANCZOS)
         still.save(out_base, quality=90, optimize=True)
-    card = dark_plate(fitted)
-    draw = ImageDraw.Draw(card, "RGBA")
-    draw_logo(draw, city)
-    draw_text_block(draw, headline, deck)
-    card.convert("RGB").save(out_card, quality=92, optimize=True)
+
+    base = dark_plate(fitted)
+    tpl = erase_lorem(template)
+    tpl = swap_city_pill(tpl, city)
+    keyed = chroma_key(tpl)
+    composite = Image.alpha_composite(base, keyed)
+    draw_headline_deck(composite, headline, deck)
+    composite.convert("RGB").save(out_card, quality=92, optimize=True)
     return {
         "city": city,
         "photo": str(photo),
@@ -174,6 +196,7 @@ def bake(photo: Path, city: str, headline: str, deck: str, out_card: Path, out_b
         "card": str(out_card.relative_to(ROOT)),
         "base": str(out_base.relative_to(ROOT)) if out_base else None,
         "headline": headline,
+        "template": str(TEMPLATE.relative_to(ROOT)),
     }
 
 
@@ -214,17 +237,25 @@ CARDS = [
 
 
 def main() -> None:
+    if not TEMPLATE.exists():
+        raise SystemExit(f"missing real DCN template: {TEMPLATE}")
+    for c in CARDS:
+        if not c["photo"].exists():
+            raise SystemExit(f"missing photo: {c['photo']}")
+
     OUT.mkdir(parents=True, exist_ok=True)
+    template = Image.open(TEMPLATE).convert("RGBA")
+    if template.size != (W, H):
+        template = template.resize((W, H), Image.LANCZOS)
+    print(f"template {TEMPLATE} {template.size}")
+
     records = []
     for c in CARDS:
-        photo = c["photo"]
-        if not photo.exists():
-            raise SystemExit(f"missing photo: {photo}")
         card_path = OUT / f"{c['slug']}-card.jpg"
         base_path = OUT / f"{c['slug']}.jpg"
-        rec = bake(photo, c["city"], c["headline"], c["deck"], card_path, base_path)
+        tpl = template.copy()
+        rec = bake(c["photo"], c["city"], c["headline"], c["deck"], card_path, base_path, tpl)
         rec["pexels"] = c["pexels"]
-        # also copy card over as primary still alias used by older paths? keep separate
         records.append(rec)
         print(f"baked {c['slug']}: {card_path.name} + {base_path.name}")
     MANIFEST.write_text(json.dumps(records, indent=2) + "\n")

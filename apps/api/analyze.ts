@@ -49,7 +49,9 @@ export function classifyPostUrl(raw: string): SocialKind | null {
 }
 
 export function isPostUrl(raw: string): boolean {
-  return classifyPostUrl(raw) !== null;
+  const kind = classifyPostUrl(raw);
+  /* "web" = any http(s) page — desk tips / articles use demoRun, not Analyze. */
+  return kind !== null && kind !== "web";
 }
 
 function handleFromUrl(url: string, kind: SocialKind): string {
@@ -284,6 +286,7 @@ export async function analyzePostUrl(opts: {
   const photos = [
     { url: still, credit: kind === "instagram" ? "Sourced still" : outlet },
     { url: fixtureStill, credit: "Sourced still" },
+    { url: "/assets/demo/alt.jpg", credit: "Alt still" },
   ].filter((p, i, arr) => p.url && arr.findIndex((x) => x.url === p.url) === i);
   const now = new Date().toISOString();
   return {

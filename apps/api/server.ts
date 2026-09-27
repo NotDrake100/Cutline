@@ -453,10 +453,24 @@ async function handleApi(req: IncomingMessage, res: ServerResponse, url: URL) {
     } catch {
       return json(res, 400, { error: "invalid_json" });
     }
-    if (!ownerMode(req)) {
-      if (demoAiBlocked(requestIp(req))) return json(res, 429, { error: "ai_blocked_demo", mode: "demo" });
-      const sourceUrl = (body.sourceUrl || "").trim();
+    const sourceUrlEarly = (body.sourceUrl || "").trim();
+    const demoSample = !!(sourceUrlEarly && demoStillFor(sourceUrlEarly, body.beat || body.beatId));
+    /* Sample city tips always use non-billable fixtures (DCN cards) — even on a local owner desk. */
+    if (!ownerMode(req) || demoSample) {
+      if (!ownerMode(req) && demoAiBlocked(requestIp(req))) return json(res, 429, { error: "ai_blocked_demo", mode: "demo" });
+      const sourceUrl = sourceUrlEarly;
       if (sourceUrl && !/^https?:\/\//i.test(sourceUrl)) return json(res, 400, { error: "source_needed" });
+      if (demoSample || (sourceUrl && /sample-(pune|mumbai|bengaluru|delhi|source)\.html/i.test(sourceUrl))) {
+        const run = sanitizeRun(ensureDeskLog(demoRun({
+          sourceUrl,
+          title: (body.title || sourceUrl).trim(),
+          desk: body.beat || body.beatId,
+          base: publicOrigin(req, url),
+        })));
+        await saveRun(run);
+        persistLibrary(run);
+        return json(res, 200, { run, mode: "demo" });
+      }
       if (isPostUrl(sourceUrl)) {
         const analyzed = await analyzePostUrl({
           url: sourceUrl,
@@ -490,7 +504,10 @@ async function handleApi(req: IncomingMessage, res: ServerResponse, url: URL) {
       if (run.status === "failed") run.status = "needs_input";
       const forced = demoStillFor(body.sourceUrl || "", body.beat || body.beatId);
       if (forced) {
-        const absCard = forced.startsWith("http") ? forced : `${publicOrigin(req, url)}${forced}`;
+        const origin = publicOrigin(req, url);
+        const absCard = forced.startsWith("http") ? forced : `${origin}${forced}`;
+        const absBase = absCard.replace(/-card\.jpg(\?.*)?$/i, ".jpg");
+        const absAlt = `${origin}/assets/demo/alt.jpg`;
         run.photo = {
           pathOrUrl: absCard,
           credit: "DCN demo card",
@@ -498,7 +515,17 @@ async function handleApi(req: IncomingMessage, res: ServerResponse, url: URL) {
           via: "article_og",
           bannedForPrint: false,
         };
-        run.photos = [{ url: absCard, credit: "DCN demo card" }, ...(run.photos || [])];
+        const cycle = [
+          { url: absCard, credit: "DCN demo card" },
+          { url: absBase, credit: "Demo source still" },
+          { url: absAlt, credit: "Alt still" },
+        ];
+        const seen = new Set<string>();
+        run.photos = [...cycle, ...(run.photos || [])].filter((p) => {
+          if (!p.url || seen.has(p.url)) return false;
+          seen.add(p.url);
+          return true;
+        });
         if (run.pack) run.pack.stillUrl = absCard;
         run.stillNote = "Using DCN demo card";
       }
@@ -531,7 +558,10 @@ async function handleApi(req: IncomingMessage, res: ServerResponse, url: URL) {
       }
       const demoCard = demoStillFor(sourceUrl, body.beat || body.beatId);
       if (demoCard) {
-        const absCard = demoCard.startsWith("http") ? demoCard : `${publicOrigin(req, url)}${demoCard}`;
+        const origin = publicOrigin(req, url);
+        const absCard = demoCard.startsWith("http") ? demoCard : `${origin}${demoCard}`;
+        const absBase = absCard.replace(/-card\.jpg(\?.*)?$/i, ".jpg");
+        const absAlt = `${origin}/assets/demo/alt.jpg`;
         photo = {
           pathOrUrl: absCard,
           credit: "DCN demo card",
@@ -539,7 +569,17 @@ async function handleApi(req: IncomingMessage, res: ServerResponse, url: URL) {
           via: "article_og",
           bannedForPrint: false,
         };
-        photos = [{ url: absCard, credit: "DCN demo card" }, ...photos.filter((p) => p.url !== absCard)];
+        const cycle = [
+          { url: absCard, credit: "DCN demo card" },
+          { url: absBase, credit: "Demo source still" },
+          { url: absAlt, credit: "Alt still" },
+        ];
+        const seen = new Set<string>();
+        photos = [...cycle, ...photos].filter((p) => {
+          if (!p.url || seen.has(p.url)) return false;
+          seen.add(p.url);
+          return true;
+        });
       }
       const now = new Date().toISOString();
       const fallback: StoryRun = {

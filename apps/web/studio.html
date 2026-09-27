@@ -1200,19 +1200,13 @@
     z-index: 2;
     display: block;
     width: 100%;
-<<<<<<< HEAD
     aspect-ratio: 4 / 5;
+    min-height: 320px;
+    max-height: 460px;
+    flex: 0 0 auto;
     background: #0A0A0A;
     background-size: cover;
-=======
-    height: 420px;
-    min-height: 420px;
-    max-height: 420px;
-    flex: 0 0 420px;
-    background: #111;
-    background-size: contain;
     background-repeat: no-repeat;
->>>>>>> 8ffb53d (Show the real DCN photo in the Post still, not thumbs or Alt still.)
     background-position: center;
     overflow: hidden;
     cursor: pointer;
@@ -1222,7 +1216,7 @@
     inset: 0;
     width: 100%;
     height: 100%;
-    object-fit: contain;
+    object-fit: cover;
     object-position: center;
     display: block;
     background: #0A0A0A;
@@ -2001,7 +1995,7 @@
             <div class="ig-handle-sub">Instagram post</div>
           </div>
         </div>
-        <div class="ig-frame" id="igFrame" title="Click to cycle source photos"><div class="ph">Source photo</div></div>
+        <div class="ig-frame" id="igFrame" title="Click to cycle Pexels / source / demo card stills"><div class="ph">Source photo</div></div>
         <div class="ig-still-note" id="igStillNote" hidden></div>
         <div class="photo-strip-label" id="photoStripLabel" hidden>From the page</div>
         <div class="photo-strip" id="photoStrip" hidden></div>
@@ -2764,9 +2758,10 @@
     const safeStill = deskAsset((photos.find((p) => p.url) || {}).url || "");
     let current = deskAsset(run.photo?.pathOrUrl) || deskAsset(run.pack?.stillUrl);
     if (current && !preferRaster(current)) current = "";
-    let url = (isIg ? cachedIg : "") || (current && preferRaster(current) ? current : "") || rasterStill || safeStill || cachedIg;
+    /* Prefer the selected still (Photo tool cycle). Only fall back to the cached IG JPG. */
+    let url = (current && preferRaster(current) ? current : "") || (isIg ? cachedIg : "") || rasterStill || safeStill || cachedIg;
     const fallbacks = photos.map((p) => deskAsset(p.url)).filter((u) => u && u !== url && preferRaster(u));
-    if (!fallbacks.includes(cachedIg)) fallbacks.push(cachedIg);
+    if (isIg && !fallbacks.includes(cachedIg) && url !== cachedIg) fallbacks.push(cachedIg);
     if (url && run.photo && run.photo.pathOrUrl !== url) {
       run.photo.pathOrUrl = url;
       if (run.pack) run.pack.stillUrl = url;
@@ -3010,13 +3005,14 @@
     setErr("");
     const pasted = ($("pastePostUrl")?.value || "").trim();
     const headline = $("headline").value.trim();
+    const samplePending = isLiveSourceUrl(pendingSourceUrl) && /sample-(pune|mumbai|bengaluru|delhi|source)\.html/i.test(pendingSourceUrl || "");
     const refUrl = looksLikePostUrl(resolveSourceUrl(currentRun))
       ? resolveSourceUrl(currentRun)
       : (looksLikePostUrl(pasted) ? pasted : (looksLikePostUrl(pendingSourceUrl) ? pendingSourceUrl : ""));
     if (looksLikeStyleMatch(headline) && isLiveSourceUrl(refUrl)) return doStyleMatch(headline);
     const asUrl = looksLikePostUrl(headline) ? headline : "";
     if (asUrl) return doAnalyze(asUrl);
-    if (looksLikePostUrl(pasted) && !currentRun) return doAnalyze(pasted);
+    if (!samplePending && looksLikePostUrl(pasted) && !currentRun) return doAnalyze(pasted);
     const sourced = isLiveSourceUrl(pendingSourceUrl) || /^https?:\/\//i.test(headline);
     if (!headline && !sourced) { return runAssignment(); }
     $("runBtn").disabled = true;
@@ -3075,6 +3071,7 @@
 
   function newDesk() {
     $("headline").value = "";
+    if ($("pastePostUrl")) $("pastePostUrl").value = "";
     pendingSourceUrl = null;
     pendingAskPhoto = null;
     showAskAttach("");
@@ -3099,6 +3096,9 @@
     renderRecents([]);
     setSideRunReady();
     switchView("home");
+    switchRightTab("structure");
+    setDeskCollapsed(false);
+    currentRun = null;
     $("headline").focus();
   }
 
@@ -3444,6 +3444,7 @@
         selectedDesk = t.desk;
         paintCityChips();
         $("headline").value = t.title;
+        if ($("pastePostUrl")) $("pastePostUrl").value = "";
         pendingSourceUrl = t.url;
         setStyleUrl(t.url);
         loadBrowserUrl(t.url, { switchTab: true });
@@ -3969,21 +3970,32 @@
   $("toolPhoto")?.addEventListener("click", () => {
     focusPostTemplate();
     if (!currentRun) {
-      setErr("Run or Analyze a story first — Photo cycles sourced stills.");
+      setErr("Run or Analyze a story first — Photo cycles Pexels / RSS / demo card stills.");
       return;
     }
     let photos = (currentRun.photos || []).filter((p) => p.url && !/cdninstagram\.com|fbcdn\.net/i.test(p.url) && !/\.svg(\?|$)/i.test(p.url));
-    if (looksLikePostUrl(resolveSourceUrl(currentRun)) && /instagram/i.test(resolveSourceUrl(currentRun))) {
-      setPostPhoto({ url: "/assets/demo/dcn-ig.jpg", credit: "Sourced still" });
-      return;
-    }
-    if (!photos.length) {
-      photos = [{ url: "/assets/demo/dcn-ig.jpg", credit: "Sourced still" }];
+    const src = resolveSourceUrl(currentRun) || "";
+    if (looksLikePostUrl(src) && /instagram/i.test(src)) {
+      const ig = { url: "/assets/demo/dcn-ig.jpg", credit: "Sourced still" };
+      const alt = { url: "/assets/demo/alt.jpg", credit: "Alt still" };
+      photos = [ig, ...photos.filter((p) => p.url !== ig.url && p.url !== alt.url), alt];
       currentRun.photos = photos;
     }
-    const cur = currentRun.photo?.pathOrUrl;
-    const idx = Math.max(0, photos.findIndex((p) => p.url === cur));
+    if (photos.length < 2) {
+      const extra = { url: "/assets/demo/alt.jpg", credit: "Alt still" };
+      if (!photos.some((p) => p.url === extra.url)) photos = photos.concat([extra]);
+      if (!photos.length) photos = [{ url: "/assets/demo/dcn-ig.jpg", credit: "Sourced still" }, extra];
+      currentRun.photos = photos;
+    }
+    const cur = currentRun.photo?.pathOrUrl || "";
+    const base = (u) => (u || "").split("?")[0].split("/").pop();
+    let idx = photos.findIndex((p) => p.url === cur || base(p.url) === base(cur));
+    if (idx < 0) idx = 0;
     setPostPhoto(photos[(idx + 1) % photos.length]);
+    const strip = $("photoStrip");
+    const label = $("photoStripLabel");
+    if (strip) strip.hidden = false;
+    if (label) label.hidden = false;
   });
   $("toolCanva")?.addEventListener("click", () => {
     if (currentRun?.id) {
@@ -4057,15 +4069,12 @@
     else switchView("connect");
   });
   $("igFrame")?.addEventListener("click", () => {
-    if (!currentRun) return;
-    if (looksLikePostUrl(resolveSourceUrl(currentRun)) && /instagram/i.test(resolveSourceUrl(currentRun))) {
-      setPostPhoto({ url: "/assets/demo/dcn-ig.jpg", credit: "Sourced still" });
-      return;
-    }
-    const photos = (currentRun.photos || []).filter((p) => p.url && !/\.svg(\?|$)/i.test(p.url) && !/cdninstagram\.com|fbcdn\.net/i.test(p.url));
+    const photos = (currentRun?.photos || []).filter((p) => p.url && !/cdninstagram\.com|fbcdn\.net/i.test(p.url));
     if (!photos.length) return;
-    const cur = currentRun.photo?.pathOrUrl;
-    const idx = Math.max(0, photos.findIndex((p) => p.url === cur));
+    const cur = currentRun.photo?.pathOrUrl || "";
+    const base = (u) => (u || "").split("?")[0].split("/").pop();
+    let idx = photos.findIndex((p) => p.url === cur || base(p.url) === base(cur));
+    if (idx < 0) idx = 0;
     setPostPhoto(photos[(idx + 1) % photos.length]);
   });
 

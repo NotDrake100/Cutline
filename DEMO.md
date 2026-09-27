@@ -8,7 +8,20 @@ Landing **Open the desk** → `/studio?demo=1`. Public traffic is Demo: fixtures
 2. **Find news** — Home city recs (Pune / Mumbai) or Explore. Pick a story.
 3. **Browser** — The pane holds the live source URL (cached city / DCN page in Demo).
 4. **Edit text** — Magic Layer fills the post. Edit headline / caption.
-5. **Approve** — human gate. Then **Canva** or ZIP.
+5. **Photo** — Magic Layer **Photo** (or click the still) cycles credit-safe stills: baked DCN card → Pexels/source still → alt. Demo never calls Gemini image gen.
+6. **Approve** — human gate. Then **Canva** or ZIP.
+
+## DCN Hyderabad card path (demo truth)
+
+Instagram-style posts use the **real** DCN template (`apps/web/assets/demo/templates/template_post.png`): green chroma center, real logo + footer chrome kept. Bake (`scripts/bake_dcn_cards.py`, mirrors Hyd `auto_post.py`):
+
+1. Cover-crop photo (Pexels first; RSS/article images on the owner desk)
+2. Dark bottom plate
+3. Chroma-key green `(0,122,63)` on the template
+4. Composite photo under keyed template
+5. Draw ALL CAPS headline + deck only — **do not** redraw the logo/footer
+
+Sample tips serve `*-card.jpg`. Owner desk (Settings → Owner key) may later Gemini-judge still quality and gen a replacement; public Demo stays on baked cards.
 
 Owner desk (Settings → Owner key) is the only path that may call Gemini. See README “Demo vs owner AI”.
 
