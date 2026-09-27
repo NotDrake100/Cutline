@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="white">
 <head>
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
@@ -37,7 +37,23 @@
     --right-w: 360px;
     --shadow: 0 12px 40px rgba(10,10,10,0.06);
   }
-  html[data-theme="paper"] { --bg: #FFFEFB; --sidebar: #F6F1E8; }
+  html[data-theme="white"] { /* White is the default desk theme */ }
+  html[data-theme="black"] {
+    --bg: #000000;
+    --sidebar: #0D0D0D;
+    --panel: #111111;
+    --card: #171717;
+    --cream-dark: #0D0D0D;
+    --ink: #F4F4F5;
+    --on-ink: #0A0A0A;
+    --muted: rgba(244,244,245,0.62);
+    --dim: rgba(244,244,245,0.40);
+    --line: rgba(255,255,255,.10);
+    --line-strong: rgba(255,255,255,.16);
+    --nav-hover: rgba(255,255,255,.06);
+    --nav-active: rgba(255,255,255,.10);
+    --shadow: 0 16px 48px rgba(0,0,0,0.55);
+  }
   html[data-density="compact"] { --sidebar-w: 228px; }
   * { box-sizing: border-box; }
   html, body { margin: 0; height: 100%; background: var(--bg); color: var(--ink); font-family: var(--font); -webkit-font-smoothing: antialiased; }
@@ -331,6 +347,29 @@
     text-transform: none; letter-spacing: 0;
     color: var(--ink);
   }
+  .settings-help {
+    margin: -6px 0 0;
+    font-size: 12.5px; font-weight: 500; color: var(--dim);
+    letter-spacing: 0; text-transform: none; line-height: 1.4;
+  }
+  .theme-toggle {
+    display: grid; grid-template-columns: 1fr 1fr;
+    height: 44px; padding: 4px;
+    border: 1px solid var(--line); border-radius: 12px;
+    background: var(--bg);
+    text-transform: none; letter-spacing: 0;
+  }
+  .theme-opt {
+    border-radius: 9px;
+    font-size: 14px; font-weight: 650;
+    color: var(--muted);
+  }
+  .theme-opt:hover { color: var(--ink); }
+  .theme-opt.active {
+    background: var(--card);
+    color: var(--ink);
+    box-shadow: 0 1px 0 var(--line);
+  }
 
   /* ——— Main ——— */
   .main {
@@ -449,7 +488,7 @@
     display: inline-flex; align-items: center; gap: 7px;
     margin: 0 auto 16px; padding: 5px 10px;
     border: 1px solid var(--line); border-radius: 999px;
-    color: var(--muted); background: rgba(255,255,255,.45);
+    color: var(--muted); background: var(--card);
     font-family: var(--mono); font-size: 10px; letter-spacing: .04em;
   }
   .gemini-badge strong { color: var(--ink); font-weight: 600; }
@@ -1478,7 +1517,7 @@
   .gemini-toast { display: none !important; }
   .ig-post {
     margin: 8px 10px 12px;
-    background: #fff;
+    background: var(--panel);
     border: 1px solid var(--line);
     border-radius: 16px;
     overflow: auto;
@@ -2522,8 +2561,8 @@
         <div class="kicker" id="homeKicker">Demo</div>
         <h1>What should we finish today?</h1>
         <p class="purpose-line" id="purposeLine">Cutline helps news desks finish sourced stories faster — fair use, you approve. Built to make the news industry better, not to steal work.</p>
-        <div class="gemini-badge" aria-label="Built with Gemini for the Gemini Online hackathon">
-          <span class="gemini-spark" aria-hidden="true">✦</span><strong>Built with Gemini</strong><span>Gemini Online hackathon</span>
+        <div class="gemini-badge" aria-label="Built with Gemini">
+          <span class="gemini-spark" aria-hidden="true">✦</span><strong>Built with Gemini</strong>
         </div>
         <div class="showcase-rail" id="showcaseRail">
           Paste a post URL or find news → Browser → edit → Approve. Public demo never calls Gemini.
@@ -2782,20 +2821,22 @@
       <div class="connect-wrap">
         <div class="kicker">Account</div>
         <h1>Settings</h1>
-        <p class="connect-sub">Your desk. Name, cream theme, owner key for live Gemini.</p>
+        <p class="connect-sub">Your desk. Name, theme, and a desk API key for live Gemini.</p>
         <form class="settings-form" id="settingsForm">
           <label>Name
             <input type="text" id="settingsName" maxlength="40" autocomplete="name"/>
           </label>
           <label>Theme
-            <select id="settingsTheme">
-              <option value="cream">Ace cream</option>
-              <option value="paper">Paper cream</option>
-            </select>
+            <input type="hidden" id="settingsTheme" value="white"/>
+            <div class="theme-toggle" role="radiogroup" aria-label="Theme">
+              <button type="button" class="theme-opt active" data-theme-opt="white" aria-pressed="true">White</button>
+              <button type="button" class="theme-opt" data-theme-opt="black" aria-pressed="false">Black</button>
+            </div>
           </label>
-          <label>Owner key
+          <label>Desk API key
             <input type="password" id="settingsOwnerKey" autocomplete="off" placeholder="Unlock live Gemini"/>
           </label>
+          <p class="settings-help">Public demo stays on fixtures without a key. The key is never shown after you save.</p>
           <button type="submit" class="btn btn-lime">Save</button>
         </form>
       </div>
@@ -2978,9 +3019,9 @@
   <div class="gate-card">
     <div class="mark" aria-hidden="true"><span class="fallback">C</span></div>
     <h1>Demo is open.</h1>
-    <p>Public desk uses fixtures. Enter an owner key only for live Gemini.</p>
+    <p>Public desk uses fixtures. A desk API key unlocks live Gemini for your desk. Without a key, the demo stays fixture-only.</p>
     <input type="text" id="gateName" placeholder="Your name" maxlength="40"/>
-    <input type="password" id="gateOwnerKey" placeholder="Owner key (optional)" autocomplete="off"/>
+    <input type="password" id="gateOwnerKey" placeholder="Desk API key (optional)" autocomplete="off"/>
     <button type="button" class="btn btn-lime" id="gateOpen">Continue in demo</button>
   </div>
 </div>
@@ -3093,16 +3134,39 @@
   function setSideRunReady() { /* Run lives on the ask box only */ }
 
   const SESSION_KEY = "cutline.session";
+  function normalizeTheme(t) {
+    const v = String(t || "").toLowerCase();
+    if (v === "black" || v === "dark" || v === "ink") return "black";
+    /* cream / paper / light / anything else → White */
+    return "white";
+  }
+  function paintThemeToggle(theme) {
+    const next = normalizeTheme(theme);
+    if ($("settingsTheme")) $("settingsTheme").value = next;
+    document.querySelectorAll("[data-theme-opt]").forEach((btn) => {
+      const on = btn.dataset.themeOpt === next;
+      btn.classList.toggle("active", on);
+      btn.setAttribute("aria-pressed", on ? "true" : "false");
+    });
+  }
   function readSession() {
     try { return JSON.parse(localStorage.getItem(SESSION_KEY) || "null"); } catch (_) { return null; }
   }
   function writeSession(next) {
-    localStorage.setItem(SESSION_KEY, JSON.stringify(next));
-    applySession(next);
+    const mapped = { ...next, theme: normalizeTheme(next?.theme) };
+    localStorage.setItem(SESSION_KEY, JSON.stringify(mapped));
+    applySession(mapped);
   }
   function applySession(session) {
-    const s = session || { name: "You", desk: "pune", theme: "cream" };
-    document.documentElement.dataset.theme = s.theme === "paper" ? "paper" : "cream";
+    const s = session || { name: "You", desk: "pune", theme: "white" };
+    const theme = normalizeTheme(s.theme);
+    if (s.theme !== theme) {
+      try {
+        const cur = readSession() || {};
+        localStorage.setItem(SESSION_KEY, JSON.stringify({ ...cur, ...s, theme }));
+      } catch (_) { /* ignore */ }
+    }
+    document.documentElement.dataset.theme = theme;
     if (s.desk) selectedDesk = s.desk;
     const ini = (s.name || "You").trim().slice(0, 1).toUpperCase() || "Y";
     const pic = $("profilePic");
@@ -3110,12 +3174,12 @@
       pic.innerHTML = `<span class="ini">${ini}</span>`;
     }
     if ($("settingsName")) $("settingsName").value = s.name || "You";
-    if ($("settingsTheme")) $("settingsTheme").value = s.theme || "cream";
+    paintThemeToggle(theme);
     paintCityChips();
   }
   function paintMode(mode) {
     deskMode = demoForced ? "demo" : (mode === "owner" ? "owner" : "demo");
-    const label = deskMode === "owner" ? "Owner desk" : "Demo";
+    const label = deskMode === "owner" ? "Live desk" : "Demo";
     if ($("workspaceMode")) $("workspaceMode").textContent = label;
     if ($("homeKicker")) $("homeKicker").textContent = label;
     if (demoForced) recentsReset = true;
@@ -3913,13 +3977,16 @@
 
   function ensureSession() {
     if (localStorage.getItem("cutline.signedOut") === "1") {
-      applySession({ name: "You", desk: "pune", theme: "cream" });
+      applySession({ name: "You", desk: "pune", theme: "white" });
       showSignedOut(true);
       return null;
     }
     let s = readSession();
     if (!s) {
-      s = { name: "You", desk: "pune", theme: "cream" };
+      s = { name: "You", desk: "pune", theme: "white" };
+      localStorage.setItem(SESSION_KEY, JSON.stringify(s));
+    } else if (s.theme !== normalizeTheme(s.theme)) {
+      s = { ...s, theme: normalizeTheme(s.theme) };
       localStorage.setItem(SESSION_KEY, JSON.stringify(s));
     }
     applySession(s);
@@ -6365,7 +6432,7 @@
     const name = ($("gateName")?.value || "You").trim() || "You";
     const key = ($("gateOwnerKey")?.value || "").trim();
     localStorage.removeItem("cutline.signedOut");
-    writeSession({ name, desk: selectedDesk || "pune", theme: "cream" });
+    writeSession({ name, desk: selectedDesk || "pune", theme: normalizeTheme(readSession()?.theme) });
     if (key) await unlockOwner(key);
     else paintMode("demo");
     showSignedOut(false);
@@ -6376,7 +6443,7 @@
     writeSession({
       name: ($("settingsName")?.value || "You").trim() || "You",
       desk: selectedDesk || "pune",
-      theme: $("settingsTheme")?.value || "cream",
+      theme: normalizeTheme($("settingsTheme")?.value || "white"),
     });
     const key = ($("settingsOwnerKey")?.value || "").trim();
     if (key) await unlockOwner(key);
@@ -6640,6 +6707,17 @@
   };
 
   if (isPhone()) setPhonePane("chat");
+
+  document.querySelectorAll("[data-theme-opt]").forEach((btn) => {
+    btn.addEventListener("click", (e) => {
+      e.preventDefault();
+      const next = normalizeTheme(btn.dataset.themeOpt);
+      paintThemeToggle(next);
+      document.documentElement.dataset.theme = next;
+      const cur = readSession() || { name: "You", desk: selectedDesk || "pune" };
+      writeSession({ ...cur, theme: next });
+    });
+  });
 </script>
 </body>
 </html>
