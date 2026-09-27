@@ -64,11 +64,17 @@
     pointer-events: none;
   }
   .shell.desk-collapsed {
-    grid-template-columns: 0 1fr var(--right-w);
+    grid-template-columns: 0 minmax(0, 1fr) var(--right-w);
   }
   .shell.desk-collapsed .sidebar { display: none; }
   .shell.browser-focus.desk-collapsed {
-    grid-template-columns: 0 0 1fr;
+    grid-template-columns: 0 0 minmax(640px, 1fr);
+  }
+  .shell.desk-collapsed .right-pane,
+  .shell.browser-focus.desk-collapsed .right-pane {
+    width: auto;
+    min-width: 0;
+    max-width: none;
   }
   .panel-toggle {
     width: 34px; height: 34px;
@@ -1136,8 +1142,6 @@
   .layer-clip-ph .clip-actions { margin-top: 8px; display: flex; gap: 8px; justify-content: center; }
 
   /* ——— Right pane · Magic Layer / Browser ——— */
-  .right-pane.browser-on .rp-tools,
-  .right-pane.browser-on .rp-magic { display: none; }
   .right-pane.browser-on .rp-tools,
   .right-pane.browser-on .rp-magic { display: none; }
   .right-pane {
