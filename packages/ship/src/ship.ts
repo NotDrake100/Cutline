@@ -313,16 +313,13 @@ export async function shipRun(
 
   const account = await getFreshAccount(channel);
   if (!account) {
+    /* Honest gate: never toast Published without a real OAuth-linked account */
     if (channel === "canva") {
-      return {
-        ok: true,
-        channel: "canva",
-        status: "published",
-        connectUrl: canvaCreateUrl(run),
-        nextStep: "Opened Canva with this headline. Finish the layout there.",
-        pack: packPreview(run, shareText),
-        warning,
-      };
+      return connectStub(channel, run, shareText, {
+        connectUrl: `/studio.html?view=connect`,
+        nextStep: "Connect Canva with OAuth to publish. Until then, use ZIP or open canva.com yourself.",
+        warning: warning || "Canva is not connected — no publish happened.",
+      });
     }
     return connectStub(channel, run, shareText, {
       connectUrl: `/studio.html?view=connect`,

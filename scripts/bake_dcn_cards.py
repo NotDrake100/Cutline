@@ -236,6 +236,22 @@ CARDS = [
 ]
 
 
+
+def export_chrome(template: Image.Image) -> None:
+    """Write transparent chrome PNGs (logo + pill + red line + footer; no lorem)."""
+    out_dir = OUT / "templates"
+    out_dir.mkdir(parents=True, exist_ok=True)
+    base = chroma_key(erase_lorem(template.copy()))
+    path = out_dir / "template_post_chrome.png"
+    base.save(path, optimize=True)
+    print(f"chrome {path.name}")
+    for city in ("Pune", "Mumbai", "Delhi", "Bengaluru", "Hyderabad"):
+        c = chroma_key(swap_city_pill(erase_lorem(template.copy()), city))
+        cp = out_dir / f"template_post_chrome_{city.lower()}.png"
+        c.save(cp, optimize=True)
+        print(f"chrome {cp.name}")
+
+
 def main() -> None:
     if not TEMPLATE.exists():
         raise SystemExit(f"missing real DCN template: {TEMPLATE}")
@@ -248,6 +264,7 @@ def main() -> None:
     if template.size != (W, H):
         template = template.resize((W, H), Image.LANCZOS)
     print(f"template {TEMPLATE} {template.size}")
+    export_chrome(template)
 
     records = []
     for c in CARDS:

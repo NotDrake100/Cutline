@@ -62,6 +62,8 @@ export interface Pack {
   canvaNotes?: string;
   stillUrl?: string;
   clipUrl?: string;
+  /** When set (e.g. dcn_hyd), studio layers real template chrome + editable on-card headline. */
+  templateChrome?: "dcn_hyd";
 }
 
 export interface AgentLogEntry {

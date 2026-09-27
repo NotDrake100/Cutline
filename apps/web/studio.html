@@ -474,6 +474,26 @@
     font-weight: 500;
   }
   .paste-url .assign-chips { margin-top: 8px; }
+  .paste-url-row { flex-wrap: wrap; }
+  .paste-style-hint {
+    margin: 8px 0 0;
+    font-size: 12px;
+    color: var(--dim);
+    line-height: 1.4;
+  }
+  .paste-style-hint .linkish {
+    border: 0;
+    background: none;
+    padding: 0;
+    margin: 0;
+    font: inherit;
+    font-weight: 650;
+    color: var(--ink, #111);
+    text-decoration: underline;
+    text-underline-offset: 2px;
+    cursor: pointer;
+  }
+  .paste-style-hint .linkish:hover { color: var(--lime-ink, #0a7); }
   .style-url {
     display: none;
     align-items: center;
@@ -1211,7 +1231,7 @@
     overflow: hidden;
     cursor: pointer;
   }
-  .ig-frame img {
+  .ig-frame > .ig-photo {
     position: absolute;
     inset: 0;
     width: 100%;
@@ -1220,7 +1240,78 @@
     object-position: center;
     display: block;
     background: #0A0A0A;
+    z-index: 0;
   }
+  .ig-frame > .ig-photo.broken { opacity: 0; }
+  .ig-frame .ig-plate {
+    position: absolute;
+    left: 0; right: 0; bottom: 0;
+    height: 48%;
+    z-index: 1;
+    pointer-events: none;
+    background: linear-gradient(to bottom,
+      rgba(0,0,0,0) 0%,
+      rgba(0,0,0,0.55) 28%,
+      rgba(0,0,0,0.92) 55%,
+      rgba(0,0,0,0.96) 100%);
+  }
+  .ig-frame .ig-chrome {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center;
+    display: block;
+    z-index: 2;
+    pointer-events: none;
+  }
+  .ig-frame .ig-card-text {
+    position: absolute;
+    left: 6%;
+    right: 6%;
+    top: 58%;
+    bottom: 11%;
+    z-index: 3;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    gap: 10px;
+    pointer-events: auto;
+    cursor: text;
+  }
+  .ig-frame .ig-card-text .ig-headline {
+    padding: 0;
+    margin: 0;
+    width: 100%;
+    color: #fff;
+    font-size: clamp(15px, 4.2vw, 22px);
+    font-weight: 800;
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
+    line-height: 1.15;
+    text-shadow: 0 2px 8px rgba(0,0,0,0.55);
+    outline: none;
+  }
+  .ig-frame .ig-card-text .ig-caption {
+    padding: 0;
+    margin: 0;
+    width: 100%;
+    color: #fff;
+    font-size: clamp(11px, 2.6vw, 13px);
+    font-weight: 500;
+    letter-spacing: 0.01em;
+    line-height: 1.35;
+    text-shadow: 0 1px 4px rgba(0,0,0,0.5);
+    outline: none;
+    max-height: 4.2em;
+    overflow: hidden;
+  }
+  .ig-frame.no-chrome .ig-plate,
+  .ig-frame.no-chrome .ig-chrome,
+  .ig-frame.no-chrome .ig-card-text { display: none; }
   .ig-frame img.broken { opacity: 0; }
   .ig-frame .ph { font-size: 12px; color: var(--dim); padding: 16px; text-align: center; }
   .ig-headline {
@@ -1235,6 +1326,34 @@
     content: attr(data-placeholder);
     color: var(--dim);
     font-weight: 500;
+  }
+  .ig-frame .ig-card-text .ig-headline:empty:before,
+  .ig-frame .ig-card-text .ig-caption:empty:before {
+    color: rgba(255,255,255,0.45);
+  }
+  .ig-editors-below {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+  }
+  .ig-editors-below:empty { display: none; }
+  .ig-editors-below .ig-headline {
+    padding: 10px 12px 0;
+    font-size: 14px; font-weight: 650;
+    letter-spacing: -.015em;
+    outline: none;
+    line-height: 1.3;
+    color: inherit;
+    text-transform: none;
+    text-shadow: none;
+  }
+  .ig-editors-below .ig-caption {
+    padding: 6px 12px 0;
+    font-size: 12.5px;
+    color: var(--muted, #555);
+    outline: none;
+    line-height: 1.4;
+    text-shadow: none;
   }
   .ig-caption {
     display: block;
@@ -1767,7 +1886,9 @@
           <div class="paste-url-row">
             <input id="pastePostUrl" type="url" placeholder="Instagram, X, YouTube, or any post link" autocomplete="off" spellcheck="false"/>
             <button type="button" class="btn btn-lime" id="analyzeBtn">Analyze</button>
+            <button type="button" class="btn btn-ink" id="copyStyleBtn" title="Build a Hyderabad-style DCN card from this URL">Copy this style</button>
           </div>
+          <p class="paste-style-hint">Have a post URL? <button type="button" class="linkish" id="copyStyleLink">Copy this style</button> → real template chrome + photo + editable headline.</p>
           <div class="assign-chips" id="socialChips">
             <button type="button" class="assign-chip" data-social="instagram" data-url="https://www.instagram.com/p/DdwHjcpId9B/">DCN · Instagram</button>
             <button type="button" class="assign-chip" data-social="x">DCN · X</button>
@@ -1995,12 +2116,22 @@
             <div class="ig-handle-sub">Instagram post</div>
           </div>
         </div>
-        <div class="ig-frame" id="igFrame" title="Click to cycle Pexels / source / demo card stills"><div class="ph">Source photo</div></div>
+        <div class="ig-frame" id="igFrame" title="Click to cycle Pexels / source / demo stills">
+          <img class="ig-photo" id="igPhoto" alt="Sourced still" width="640" height="800" decoding="async" hidden />
+          <div class="ig-plate" id="igPlate" aria-hidden="true" hidden></div>
+          <img class="ig-chrome" id="igChrome" alt="" decoding="async" hidden />
+          <div class="ig-card-text" id="igCardText" hidden>
+            <div class="ig-headline" id="igHeadlineEdit" contenteditable="true" data-placeholder="HEADLINE" spellcheck="false"></div>
+            <div class="ig-caption" id="igCaptionEdit" contenteditable="true" data-placeholder="Deck" spellcheck="false"></div>
+          </div>
+          <div class="ph" id="igFramePh">Source photo</div>
+        </div>
         <div class="ig-still-note" id="igStillNote" hidden></div>
         <div class="photo-strip-label" id="photoStripLabel" hidden>From the page</div>
         <div class="photo-strip" id="photoStrip" hidden></div>
-        <div class="ig-headline" id="igHeadlineEdit" contenteditable="true" data-placeholder="Rewrite"></div>
-        <div class="ig-caption" id="igCaptionEdit" contenteditable="true" data-placeholder="Full caption"></div>
+        <div class="ig-editors-below" id="igEditorsBelow">
+          <!-- headline/caption live here for plain tips; reparented into card for style-copy chrome -->
+        </div>
         <div class="ig-actions">
           <button type="button" class="btn btn-ink btn-sm" id="igApproveBtn">Approve</button>
           <button type="button" class="btn btn-lime btn-sm" id="igZipBtn">ZIP</button>
@@ -2101,6 +2232,22 @@
 
 <script>
   let currentRun = null;
+  /* Public /studio.html?demo=1 → never Gemini (cookie + fetch header) */
+  const DEMO_FORCE = new URLSearchParams(location.search).get("demo") === "1"
+    || /(?:^|;\s*)cutline_force_demo=1(?:;|$)/.test(document.cookie || "");
+  if (new URLSearchParams(location.search).get("demo") === "1") {
+    document.cookie = "cutline_force_demo=1; Path=/; SameSite=Lax; Max-Age=86400";
+  }
+  const _fetch = window.fetch.bind(window);
+  window.fetch = function(input, init) {
+    init = init || {};
+    const headers = new Headers(init.headers || {});
+    if (DEMO_FORCE || /(?:^|;\s*)cutline_force_demo=1(?:;|$)/.test(document.cookie || "")) {
+      headers.set("x-cutline-demo", "1");
+    }
+    return _fetch(input, { ...init, headers });
+  };
+
   let pendingSourceUrl = null; // from Hunt "Use on desk"
   let pendingAskPhoto = null;
   let layerSnapshot = {}; // hash of last painted layer values for flash
@@ -2130,7 +2277,19 @@
     const thumb = $("layerStillThumb");
     if (thumb) thumb.innerHTML = STILL_FILL_HTML;
     const ig = $("igFrame");
-    if (ig) ig.innerHTML = STILL_FILL_HTML;
+    if (ig) {
+      let fill = ig.querySelector(":scope > .still-fill");
+      if (!fill) {
+        fill = document.createElement("div");
+        fill.className = "still-fill";
+        fill.setAttribute("aria-busy", "true");
+        fill.setAttribute("aria-label", "Generating still");
+        fill.innerHTML = `<div class="still-fill-shimmer"></div><div class="still-fill-wash"></div><div class="still-fill-label">Generating still</div>`;
+        fill.style.cssText = "position:absolute;inset:0;z-index:5;";
+        ig.appendChild(fill);
+      }
+      fill.hidden = false;
+    }
     $("structureEmpty") && ($("structureEmpty").style.display = "none");
     $("layerTree") && ($("layerTree").style.display = "none");
     $("igPost") && ($("igPost").style.display = "");
@@ -2629,8 +2788,18 @@
       clearTimeout(frame._bt);
       if (embed) {
         frame._bt = setTimeout(() => {
-          /* keep embed visible; chrome already has Open + note */
-        }, 1600);
+          /* Embed often blanks (IG login wall). Keep cached still poster + clear note — never look broken. */
+          paintBrowserPoster(url);
+          const box = $("browserPoster");
+          if (box) box.classList.add("show");
+          if (hint) {
+            const stillHint = /instagram/i.test(url)
+              ? "<strong>Instagram embed</strong> may stay blank here. Cached still is on Post — open the original if you need the live page."
+              : hintText;
+            hint.innerHTML = stillHint || hintText;
+            hint.classList.add("show");
+          }
+        }, 1800);
       }
     }
     if (switchTab) switchRightTab("browser");
@@ -2726,6 +2895,47 @@
     }
   }
 
+
+  const DCN_CHROME_VER = "20260928a";
+  const DCN_CITIES = ["pune", "mumbai", "delhi", "bengaluru", "hyderabad"];
+
+  function wantsHydChrome(run) {
+    if (!run) return false;
+    if (run.pack?.templateChrome === "dcn_hyd") return true;
+    if (run._hydChrome) return true;
+    const note = (run.stillNote || "") + " " + (run.pack?.canvaNotes || "");
+    if (/style copy|template chrome|Same type as/i.test(note)) return true;
+    const logs = run.log || [];
+    if (logs.some((e) => e.action === "style_match")) return true;
+    return false;
+  }
+
+  function chromeUrlFor(run) {
+    /* Hyderabad DCN chrome ONLY for Copy this style / style-match — never default tip click */
+    if (!wantsHydChrome(run)) return null;
+    return `/assets/demo/templates/template_post_chrome_hyderabad.png?v=${DCN_CHROME_VER}`;
+  }
+
+  function placeEditors(chromeOn) {
+    const hl = $("igHeadlineEdit");
+    const cap = $("igCaptionEdit");
+    const cardText = $("igCardText");
+    const below = $("igEditorsBelow");
+    if (!hl || !cap || !cardText || !below) return;
+    if (chromeOn) {
+      if (hl.parentElement !== cardText) cardText.appendChild(hl);
+      if (cap.parentElement !== cardText) cardText.appendChild(cap);
+    } else {
+      if (hl.parentElement !== below) below.appendChild(hl);
+      if (cap.parentElement !== below) below.appendChild(cap);
+    }
+  }
+
+  function preferBaseCityStill(url) {
+    if (!url) return url;
+    return url.replace(/\/(pune|mumbai|delhi|bengaluru)-card\.jpg(\?.*)?$/i, "/$1.jpg$2");
+  }
+
   function paintIgPost(run) {
     const card = $("igPost");
     if (!card) return;
@@ -2766,29 +2976,52 @@
       run.photo.pathOrUrl = url;
       if (run.pack) run.pack.stillUrl = url;
     }
+    /* Prefer base city JPGs so chrome overlay + editable text supply logo/headline */
+    url = preferBaseCityStill(url);
+    if (url && run.photo) run.photo.pathOrUrl = url;
+    if (url && run.pack) run.pack.stillUrl = url;
+    const chromeSrc = chromeUrlFor(run);
+    placeEditors(!!chromeSrc);
     const frame = $("igFrame");
+    const photo = $("igPhoto");
+    const plate = $("igPlate");
+    const chrome = $("igChrome");
+    const cardText = $("igCardText");
+    const framePh = $("igFramePh");
     if (frame) {
+      const fill = frame.querySelector(":scope > .still-fill");
+      if (fill) fill.hidden = true;
       const src = url || cachedIg;
-      frame.style.backgroundImage = `url("${src}")`;
-      frame.style.backgroundSize = "contain";
-      frame.style.backgroundRepeat = "no-repeat";
-      frame.style.backgroundPosition = "center";
+      frame.style.backgroundImage = "none";
       frame.style.height = "420px";
       frame.style.minHeight = "420px";
       frame.style.flex = "0 0 420px";
-      frame.innerHTML = `<img src="${escapeHtml(src)}" alt="Sourced still" width="640" height="800" decoding="async" style="position:absolute;inset:0;width:100%;height:100%;object-fit:contain;background:#111"/>`;
-      const img = frame.querySelector("img");
-      if (img) {
-        img.addEventListener("error", () => {
-          const next = fallbacks.find((u) => u && u !== img.getAttribute("src") && !/\.svg(\?|$)/i.test(u)) || cachedIg;
-          if (img.getAttribute("src") === next) return;
-          img.src = next;
-          frame.style.backgroundImage = `url("${next}")`;
+      frame.classList.toggle("no-chrome", !chromeSrc);
+      if (photo) {
+        photo.hidden = false;
+        photo.classList.remove("broken");
+        if (photo.getAttribute("src") !== src) photo.src = src;
+        photo.onerror = () => {
+          const next = preferBaseCityStill(fallbacks.find((u) => u && u !== photo.getAttribute("src") && !/\.svg(\?|$)/i.test(u)) || cachedIg);
+          if (photo.getAttribute("src") === next) return;
+          photo.src = next;
           if (run.photo) run.photo.pathOrUrl = next;
           if (run.pack) run.pack.stillUrl = next;
-        });
-        img.addEventListener("load", () => img.classList.remove("broken"));
+        };
+        photo.onload = () => photo.classList.remove("broken");
       }
+      if (plate) plate.hidden = !chromeSrc;
+      if (chrome) {
+        if (chromeSrc) {
+          chrome.hidden = false;
+          if (chrome.getAttribute("src") !== chromeSrc) chrome.src = chromeSrc;
+        } else {
+          chrome.hidden = true;
+          chrome.removeAttribute("src");
+        }
+      }
+      if (cardText) cardText.hidden = !chromeSrc;
+      if (framePh) framePh.hidden = !!src;
     }
     const note = $("igStillNote");
     if (note) {
@@ -2814,12 +3047,17 @@
     }
     const hl = $("igHeadlineEdit");
     if (hl && document.activeElement !== hl) {
-      hl.textContent = run.rewrite?.headline || run.brief?.headline || "";
+      const raw = (run.rewrite?.headline || run.brief?.headline || "").trim();
+      hl.textContent = chromeSrc ? raw.toUpperCase() : raw;
     }
     const cap = $("igCaptionEdit");
     if (cap && document.activeElement !== cap) {
       cap.hidden = false;
-      cap.textContent = run.pack?.igCaption || run.rewrite?.caption || run.rewrite?.body || "";
+      /* On-card deck: story body; pack caption stays available via save */
+      const deck = chromeSrc
+        ? (run.rewrite?.body || run.brief?.lede || run.pack?.igCaption || run.rewrite?.caption || "")
+        : (run.pack?.igCaption || run.rewrite?.caption || run.rewrite?.body || "");
+      cap.textContent = deck;
     }
     const src = resolveSourceUrl(run);
     const line = $("igSourceLine");
@@ -2970,7 +3208,7 @@
   }
 
   function looksLikeStyleMatch(ask) {
-    return /same type|same kind|similar (post|style)|like this|in this style|match (this|the) style|make another|another (one|post)|same style/i.test(ask || "");
+    return /same type|same kind|similar (post|style)|like this|in this style|match (this|the) style|copy (this |the )?style|copy this|make another|another (one|post)|same style|hyd(erabad)? (template|style)|dcn (template|style)/i.test(ask || "");
   }
 
   async function doStyleMatch(ask) {
@@ -2989,8 +3227,11 @@
         body: JSON.stringify({ url: ref, ask: ask || "make the same type of post", desk: selectedDesk || "pune" }),
       });
       const data = await res.json().catch(() => ({}));
-      if (data.run) applyRun(data.run, { preferBrowser: false });
-      else {
+      if (data.run) {
+        data.run._hydChrome = true;
+        if (data.run.pack) data.run.pack.templateChrome = "dcn_hyd";
+        applyRun(data.run, { preferBrowser: false });
+      } else {
         setStatus("needs_input");
         $("frame").innerHTML = `<div class="ph">Using sourced photo</div>`;
       }
@@ -3184,7 +3425,27 @@
       doRun();
     }
   });
+  async function runCopyStyleFromPaste() {
+    const raw = cleanPastedUrl(($("pastePostUrl")?.value || $("styleUrl")?.value || pendingSourceUrl || "").trim());
+    if (!isLiveSourceUrl(raw)) {
+      setErr("Paste a post or news URL first, then Copy this style.");
+      $("pastePostUrl")?.focus();
+      return;
+    }
+    if ($("pastePostUrl")) $("pastePostUrl").value = raw;
+    pendingSourceUrl = raw;
+    setStyleUrl(raw);
+    loadBrowserUrl(raw, { switchTab: false });
+    $("headline").value = "copy this style";
+    switchView("home");
+    await doStyleMatch("copy this style");
+    switchRightTab("structure");
+    $("toolEditText")?.focus?.();
+    $("igHeadlineEdit")?.focus();
+  }
   $("analyzeBtn")?.addEventListener("click", () => doAnalyze());
+  $("copyStyleBtn")?.addEventListener("click", () => runCopyStyleFromPaste());
+  $("copyStyleLink")?.addEventListener("click", () => runCopyStyleFromPaste());
   $("pastePostUrl")?.addEventListener("keydown", (e) => {
     if (e.key === "Enter") {
       e.preventDefault();
@@ -3294,13 +3555,14 @@
   }
 
   function openCanva() {
+    switchView("connect");
     if (currentRun?.id) {
       savePostEdits();
       if (typeof doShip === "function") doShip("canva");
-      else switchView("connect");
+      else showConnectToast("<strong>Connect Canva</strong> with OAuth to publish. No story was posted.", "warn");
       return;
     }
-    switchView("connect");
+    showConnectToast("<strong>Connect Canva</strong> to publish. Nothing was posted yet.", "warn");
   }
 
   async function runAssignment() {
@@ -3420,17 +3682,30 @@
 
   function newsTips() {
     const origin = location.origin;
+    /* Pool rotates so recommendations feel different across sessions — plain news photos, no Hyd chrome */
     return [
       { desk: "pune", kicker: "Pune", title: "Overnight bus routes go to a vote in Pune.", url: origin + "/sample-pune.html" },
+      { desk: "pune", kicker: "Pune", title: "Metro Phase 2 stations get weekend trial hours.", url: origin + "/sample-pune.html" },
       { desk: "mumbai", kicker: "Mumbai", title: "Harbour line holds a late-night clearance window.", url: origin + "/sample-mumbai.html" },
+      { desk: "mumbai", kicker: "Mumbai", title: "Marine Drive stretch marked for Sunday cycle hours.", url: origin + "/sample-mumbai.html" },
       { desk: "bengaluru", kicker: "Bengaluru", title: "Whitefield feeder buses add a late last trip.", url: origin + "/sample-bengaluru.html" },
+      { desk: "delhi", kicker: "Delhi", title: "Yellow Line weekend work shifts to early Monday.", url: origin + "/sample-delhi.html" },
     ];
+  }
+
+  function rotatedTips(n) {
+    const all = newsTips();
+    const seed = Math.floor(Date.now() / 3600000); /* rotate hourly */
+    const start = seed % all.length;
+    const out = [];
+    for (let i = 0; i < Math.min(n, all.length); i++) out.push(all[(start + i) % all.length]);
+    return out;
   }
 
   function paintNewsRecs() {
     const list = $("newsRecList");
     if (!list) return;
-    const tips = newsTips().slice(0, 3);
+    const tips = rotatedTips(3);
     list.innerHTML = tips.map((t, i) =>
       `<button type="button" class="news-rec" data-rec="${i}">
         <div class="k">${escapeHtml(t.kicker)}</div>
@@ -3444,12 +3719,24 @@
         selectedDesk = t.desk;
         paintCityChips();
         $("headline").value = t.title;
-        if ($("pastePostUrl")) $("pastePostUrl").value = "";
+        /* Keep tip URL in paste field so Copy this style is one click away */
+        if ($("pastePostUrl")) $("pastePostUrl").value = t.url;
         pendingSourceUrl = t.url;
         setStyleUrl(t.url);
+        /* Tips = news photo + editable text only — never Hyd chrome */
+        if (currentRun) {
+          currentRun._hydChrome = false;
+          if (currentRun.pack) delete currentRun.pack.templateChrome;
+        }
         loadBrowserUrl(t.url, { switchTab: true });
         switchView("home");
         await doRun();
+        if (currentRun) {
+          currentRun._hydChrome = false;
+          if (currentRun.pack) delete currentRun.pack.templateChrome;
+          paintIgPost(currentRun);
+        }
+        switchRightTab("structure");
       });
     });
   }
@@ -3565,13 +3852,15 @@
       }
 
       if (data.status === "published") {
+        /* Client guard: Canva must not claim Published without a real linked account */
+        if (channel === "canva" && (data.warning || /connect/i.test(data.nextStep || ""))) {
+          showConnectToast("<strong>Connect required.</strong> " + escapeHtml(data.nextStep || "Connect Canva with OAuth first."), "warn");
+          return;
+        }
         const link = data.connectUrl
           ? ` <a href="${escapeHtml(data.connectUrl)}" target="_blank" rel="noopener noreferrer">Open</a>`
           : "";
         showConnectToast("<strong>Published.</strong> " + escapeHtml(data.nextStep || channel) + link, "ok");
-        if (channel === "canva" && data.connectUrl) {
-          window.open(data.connectUrl, "_blank", "noopener,noreferrer");
-        }
         return;
       }
 
@@ -3998,14 +4287,7 @@
     if (label) label.hidden = false;
   });
   $("toolCanva")?.addEventListener("click", () => {
-    if (currentRun?.id) {
-      savePostEdits();
-      if (typeof doShip === "function") doShip("canva");
-      else switchView("connect");
-    } else {
-      switchView("connect");
-      showConnectToast("<strong>Connect Canva</strong> to ship a pack, or Analyze a post first.", "warn");
-    }
+    openCanva();
   });
   $("toolStyle")?.addEventListener("click", () => {
     selectedStyle = "tight_news";
@@ -4068,7 +4350,11 @@
     if (typeof doShip === "function") doShip("zip");
     else switchView("connect");
   });
-  $("igFrame")?.addEventListener("click", () => {
+  $("igCardText")?.addEventListener("click", (e) => e.stopPropagation());
+  $("igHeadlineEdit")?.addEventListener("click", (e) => e.stopPropagation());
+  $("igCaptionEdit")?.addEventListener("click", (e) => e.stopPropagation());
+  $("igFrame")?.addEventListener("click", (e) => {
+    if (e.target?.closest?.("[contenteditable], .ig-card-text")) return;
     const photos = (currentRun?.photos || []).filter((p) => p.url && !/cdninstagram\.com|fbcdn\.net/i.test(p.url));
     if (!photos.length) return;
     const cur = currentRun.photo?.pathOrUrl || "";

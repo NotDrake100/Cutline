@@ -26,6 +26,19 @@ export function forceDemo(): boolean {
   return envValue("CUTLINE_FORCE_DEMO") === "1";
 }
 
+export const DEMO_COOKIE = "cutline_force_demo";
+export const DEMO_HEADER = "x-cutline-demo";
+
+/** Request asked for Demo (?demo=1 cookie or x-cutline-demo: 1). Never Gemini. */
+export function requestForcesDemo(req: IncomingMessage): boolean {
+  if (forceDemo()) return true;
+  const hdr = req.headers[DEMO_HEADER];
+  const headerVal = Array.isArray(hdr) ? hdr[0] : hdr;
+  if (headerVal && headerVal.trim() === "1") return true;
+  const cookie = parseCookies(req.headers.cookie)[DEMO_COOKIE];
+  return cookie === "1";
+}
+
 export function ownerCookieDigest(key = ownerKey()): string {
   if (!key) return "";
   return createHmac("sha256", key).update("cutline-owner-v1").digest("hex").slice(0, 40);
@@ -52,7 +65,7 @@ export function parseCookies(header: string | undefined): Record<string, string>
 }
 
 export function isOwnerRequest(req: IncomingMessage): boolean {
-  if (forceDemo()) return false;
+  if (requestForcesDemo(req)) return false;
   const key = ownerKey();
   if (!key) {
     /* Vercel public deploy: no owner key means Demo, even with GEMINI_API_KEY. */

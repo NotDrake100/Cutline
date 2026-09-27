@@ -505,19 +505,17 @@ async function handleApi(req: IncomingMessage, res: ServerResponse, url: URL) {
       const forced = demoStillFor(body.sourceUrl || "", body.beat || body.beatId);
       if (forced) {
         const origin = publicOrigin(req, url);
-        const absCard = forced.startsWith("http") ? forced : `${origin}${forced}`;
-        const absBase = absCard.replace(/-card\.jpg(\?.*)?$/i, ".jpg");
+        const absStill = forced.startsWith("http") ? forced : `${origin}${forced}`;
         const absAlt = `${origin}/assets/demo/alt.jpg`;
         run.photo = {
-          pathOrUrl: absCard,
-          credit: "DCN demo card",
-          md5: "demo-card",
+          pathOrUrl: absStill,
+          credit: "Pexels / city still",
+          md5: "demo-still",
           via: "article_og",
           bannedForPrint: false,
         };
         const cycle = [
-          { url: absCard, credit: "DCN demo card" },
-          { url: absBase, credit: "Demo source still" },
+          { url: absStill, credit: "Pexels / city still" },
           { url: absAlt, credit: "Alt still" },
         ];
         const seen = new Set<string>();
@@ -526,8 +524,8 @@ async function handleApi(req: IncomingMessage, res: ServerResponse, url: URL) {
           seen.add(p.url);
           return true;
         });
-        if (run.pack) run.pack.stillUrl = absCard;
-        run.stillNote = "Using DCN demo card";
+        if (run.pack) run.pack.stillUrl = absStill;
+        run.stillNote = "Using sourced photo";
       }
       await saveRun(run);
       persistLibrary(run);
@@ -559,19 +557,17 @@ async function handleApi(req: IncomingMessage, res: ServerResponse, url: URL) {
       const demoCard = demoStillFor(sourceUrl, body.beat || body.beatId);
       if (demoCard) {
         const origin = publicOrigin(req, url);
-        const absCard = demoCard.startsWith("http") ? demoCard : `${origin}${demoCard}`;
-        const absBase = absCard.replace(/-card\.jpg(\?.*)?$/i, ".jpg");
+        const absStill = demoCard.startsWith("http") ? demoCard : `${origin}${demoCard}`;
         const absAlt = `${origin}/assets/demo/alt.jpg`;
         photo = {
-          pathOrUrl: absCard,
-          credit: "DCN demo card",
-          md5: "demo-card",
+          pathOrUrl: absStill,
+          credit: "Pexels / city still",
+          md5: "demo-still",
           via: "article_og",
           bannedForPrint: false,
         };
         const cycle = [
-          { url: absCard, credit: "DCN demo card" },
-          { url: absBase, credit: "Demo source still" },
+          { url: absStill, credit: "Pexels / city still" },
           { url: absAlt, credit: "Alt still" },
         ];
         const seen = new Set<string>();

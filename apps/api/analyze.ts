@@ -339,8 +339,12 @@ export async function styleMatchFromPost(opts: {
   run.beat = desk;
   run.styleId = "tight_news";
   if (run.brief) run.brief.angle = note;
-  if (run.pack) run.pack.canvaNotes = note;
-  run.stillNote = "Using demo still — new story, not the pasted post";
+  if (run.pack) {
+    run.pack.canvaNotes = note;
+    /* Style-copy only: layer real DCN Hyderabad template chrome in studio */
+    run.pack.templateChrome = "dcn_hyd";
+  }
+  run.stillNote = "DCN template chrome · edit headline on the card (style copy)";
   run.log = [
     { agent: "wire", at: now, action: "style_match", ok: true, spendCents: 0, detail: kind },
     { agent: "still", at: now, action: "sourced", ok: true, spendCents: 0, detail: "demo fixture" },
