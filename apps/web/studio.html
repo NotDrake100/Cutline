@@ -4979,7 +4979,8 @@
 
   async function doAnalyze(url, opts) {
     const copyStyle = !!(opts && opts.copyStyle);
-    const preferBrowser = copyStyle ? false : (opts && opts.preferBrowser === false ? false : true);
+    /* Analyze must open Browser on the source page. copyStyle does not hide it. */
+    const preferBrowser = !(opts && opts.preferBrowser === false);
     const sourceUrl = cleanPastedUrl(url || $("pastePostUrl")?.value || $("headline").value || pendingSourceUrl || "");
     if (!isLiveSourceUrl(sourceUrl)) { setErr("Paste a post URL first."); return; }
     setErr("");
@@ -5024,15 +5025,23 @@
       if ($("analyzeBtn")) $("analyzeBtn").disabled = false;
       $("runBtn").disabled = false;
     }
-    /* Paste-URL Analyze = analyze + Copy this style (DCN composite on Post, not Browser photo). */
-    if (copyStyle) await runCopyStyleFromPaste();
+    /* Analyze = Browser (source) + Copy this style + make the post. Stay on Browser. */
+    if (copyStyle) {
+      await runCopyStyleFromPaste({ keepBrowser: true });
+      if (currentRun) {
+        applyPostAspect(currentRun);
+        paintIgPost(currentRun);
+      }
+      switchRightTab("browser");
+    }
   }
 
   function looksLikeStyleMatch(ask) {
     return /same type|same kind|similar (post|style)|like this|in this style|match (this|the) style|copy (this |the )?style|copy this|make another|another (one|post)|same style|hyd(erabad)? (template|style)|dcn (template|style)/i.test(ask || "");
   }
 
-  async function doStyleMatch(ask) {
+  async function doStyleMatch(ask, opts) {
+    const preferBrowser = !!(opts && opts.preferBrowser);
     const ref = cleanPastedUrl(
       resolveSourceUrl(currentRun) || $("pastePostUrl")?.value || pendingSourceUrl || ""
     );
@@ -5057,7 +5066,7 @@
           data.run.pack.templateChrome = city === "hyderabad" ? "dcn_hyd" : ("dcn_" + city);
           data.run.pack.postPlatform = data.run._postPlatform;
         }
-        applyRun(data.run, { preferBrowser: false });
+        applyRun(data.run, { preferBrowser });
       } else {
         setStatus("needs_input");
         $("frame").innerHTML = `<div class="ph">Using sourced photo</div>`;
@@ -5277,7 +5286,8 @@
       doRun();
     }
   });
-  async function runCopyStyleFromPaste() {
+  async function runCopyStyleFromPaste(opts) {
+    const keepBrowser = !!(opts && opts.keepBrowser);
     const raw = cleanPastedUrl(($("pastePostUrl")?.value || $("styleUrl")?.value || pendingSourceUrl || "").trim());
     if (!isLiveSourceUrl(raw)) {
       setErr("Paste a post or news URL first, then Copy this style.");
@@ -5287,13 +5297,17 @@
     if ($("pastePostUrl")) $("pastePostUrl").value = raw;
     pendingSourceUrl = raw;
     setStyleUrl(raw);
-    loadBrowserUrl(raw, { switchTab: false });
+    loadBrowserUrl(raw, { switchTab: keepBrowser });
     $("headline").value = "copy this style";
     switchView("home");
-    await doStyleMatch("copy this style");
+    await doStyleMatch("copy this style", { preferBrowser: keepBrowser });
     if (currentRun) {
       applyPostAspect(currentRun);
       paintIgPost(currentRun);
+    }
+    if (keepBrowser) {
+      switchRightTab("browser");
+      return;
     }
     switchRightTab("structure");
     $("toolEditText")?.focus?.();
