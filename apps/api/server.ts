@@ -329,7 +329,7 @@ async function handleApi(req: IncomingMessage, res: ServerResponse, url: URL) {
 
   if (method === "POST" && path === "/api/style-match") {
     const raw = await readBody(req);
-    let body: { url?: string; sourceUrl?: string; ask?: string; desk?: string };
+    let body: { url?: string; sourceUrl?: string; ask?: string; desk?: string; title?: string };
     try {
       body = JSON.parse(raw || "{}") as typeof body;
     } catch {
@@ -337,6 +337,7 @@ async function handleApi(req: IncomingMessage, res: ServerResponse, url: URL) {
     }
     const sourceUrl = (body.url || body.sourceUrl || "").trim();
     if (!/^https?:\/\//i.test(sourceUrl)) return json(res, 400, { error: "source_needed" });
+    const title = (body.title || "").trim();
     const owner = ownerMode(req);
     if (!owner && demoAiBlocked(requestIp(req))) {
       return json(res, 429, { error: "ai_blocked_demo", mode: "demo" });
@@ -348,6 +349,7 @@ async function handleApi(req: IncomingMessage, res: ServerResponse, url: URL) {
               url: sourceUrl,
               ask: body.ask,
               desk: body.desk,
+              title,
               base: publicOrigin(req, url),
               owner: true,
               geminiText: (p) => gemini.text(p),
@@ -357,6 +359,7 @@ async function handleApi(req: IncomingMessage, res: ServerResponse, url: URL) {
             url: sourceUrl,
             ask: body.ask,
             desk: body.desk,
+            title,
             base: publicOrigin(req, url),
             owner: false,
           });
@@ -368,6 +371,8 @@ async function handleApi(req: IncomingMessage, res: ServerResponse, url: URL) {
       const msg = (e as Error).message || "style_match_failed";
       if (msg === "source_needed") return json(res, 400, { error: msg });
       const fallback = sanitizeRun(ensureDeskLog(demoRun({
+        sourceUrl,
+        title,
         desk: body.desk || "pune",
         base: publicOrigin(req, url),
       })));

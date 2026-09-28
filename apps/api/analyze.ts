@@ -330,6 +330,7 @@ export async function styleMatchFromPost(opts: {
   url: string;
   ask?: string;
   desk?: string;
+  title?: string;
   base: string;
   owner: boolean;
   geminiText?: (prompt: string) => Promise<string>;
@@ -338,7 +339,7 @@ export async function styleMatchFromPost(opts: {
   if (!/^https?:\/\//i.test(refUrl)) throw new Error("source_needed");
   const kind = classifyPostUrl(refUrl) || "web";
   const desk = (opts.desk || "pune").toLowerCase();
-  const run = demoRun({ desk, base: opts.base });
+  const run = demoRun({ sourceUrl: refUrl, title: opts.title || "", desk, base: opts.base });
   const now = new Date().toISOString();
   const note = `Same type as ${PLATFORM_LABEL[kind]} · new story. Style from ${refUrl}`;
   run.beat = desk;

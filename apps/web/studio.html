@@ -5045,10 +5045,13 @@
 
   async function doStyleMatch(ask, opts) {
     const preferBrowser = !!(opts && opts.preferBrowser);
+    /* Prefer paste / pending tip URL over an older currentRun (e.g. overnight bus). */
     const ref = cleanPastedUrl(
-      resolveSourceUrl(currentRun) || $("pastePostUrl")?.value || pendingSourceUrl || ""
+      $("pastePostUrl")?.value || pendingSourceUrl || resolveSourceUrl(currentRun) || ""
     );
     if (!isLiveSourceUrl(ref)) { setErr("Analyze a post first."); return; }
+    const tipTitle = (opts && opts.title) || ($("headline")?.value || "").trim();
+    const titleForApi = tipTitle && !looksLikeStyleMatch(tipTitle) ? tipTitle : ((opts && opts.title) || "");
     setErr("");
     $("runBtn").disabled = true;
     setStatus("drafting");
@@ -5057,7 +5060,12 @@
       const res = await fetch("/api/style-match", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ url: ref, ask: ask || "make the same type of post", desk: selectedDesk || "pune" }),
+        body: JSON.stringify({
+          url: ref,
+          ask: ask || "make the same type of post",
+          desk: selectedDesk || "pune",
+          title: titleForApi || undefined,
+        }),
       });
       const data = await res.json().catch(() => ({}));
       if (data.run) {
@@ -5297,13 +5305,16 @@
       $("pastePostUrl")?.focus();
       return;
     }
+    /* Save tip headline before overwriting so style-match can resolve the story. */
+    const tipHeadline = ($("headline")?.value || "").trim();
+    const titleForMatch = tipHeadline && !looksLikeStyleMatch(tipHeadline) ? tipHeadline : "";
     if ($("pastePostUrl")) $("pastePostUrl").value = raw;
     pendingSourceUrl = raw;
     setStyleUrl(raw);
     loadBrowserUrl(raw, { switchTab: keepBrowser });
     $("headline").value = "copy this style";
     switchView("home");
-    await doStyleMatch("copy this style", { preferBrowser: keepBrowser });
+    await doStyleMatch("copy this style", { preferBrowser: keepBrowser, title: titleForMatch });
     if (currentRun) {
       applyPostAspect(currentRun);
       paintIgPost(currentRun);
