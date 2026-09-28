@@ -2668,7 +2668,7 @@
             <button type="button" class="btn btn-lime" id="analyzeBtn">Analyze</button>
             <button type="button" class="btn btn-ink" id="copyStyleBtn" title="Build a DCN-style card from this URL">Copy this style</button>
           </div>
-          <p class="paste-style-hint">Have a post URL? <button type="button" class="linkish" id="copyStyleLink">Copy this style</button> → real template chrome + photo + editable headline.</p>
+          <p class="paste-style-hint"><b>Analyze</b> opens the story and drafts posts. <button type="button" class="linkish" id="copyStyleLink">Copy this style</button> puts it on your DCN template.</p>
           <div class="assign-chips" id="socialChips">
             <button type="button" class="assign-chip" data-social="instagram" data-url="https://www.instagram.com/p/DdwHjcpId9B/">DCN · Instagram</button>
             <button type="button" class="assign-chip" data-social="x">DCN · X</button>
@@ -4979,7 +4979,7 @@
 
   async function doAnalyze(url, opts) {
     const copyStyle = !!(opts && opts.copyStyle);
-    /* Analyze must open Browser on the source page. copyStyle does not hide it. */
+    /* Analyze opens Browser + drafts. copyStyle is optional and separate from the button. */
     const preferBrowser = !(opts && opts.preferBrowser === false);
     const sourceUrl = cleanPastedUrl(url || $("pastePostUrl")?.value || $("headline").value || pendingSourceUrl || "");
     if (!isLiveSourceUrl(sourceUrl)) { setErr("Paste a post URL first."); return; }
@@ -5313,13 +5313,14 @@
     $("toolEditText")?.focus?.();
     $("igHeadlineEdit")?.focus();
   }
-  $("analyzeBtn")?.addEventListener("click", () => doAnalyze(undefined, { copyStyle: true }));
+  /* Analyze = Browser + draft posts (news photo). Copy this style = DCN template only. */
+  $("analyzeBtn")?.addEventListener("click", () => doAnalyze());
   $("copyStyleBtn")?.addEventListener("click", () => runCopyStyleFromPaste());
   $("copyStyleLink")?.addEventListener("click", () => runCopyStyleFromPaste());
   $("pastePostUrl")?.addEventListener("keydown", (e) => {
     if (e.key === "Enter") {
       e.preventDefault();
-      doAnalyze(undefined, { copyStyle: true });
+      doAnalyze();
     }
   });
   document.querySelectorAll("#socialChips [data-social]").forEach((btn) => {
