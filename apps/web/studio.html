@@ -16,6 +16,7 @@
     --card: #FFFEFB;
     --cream-dark: #EDE6D9;
     --ink: #0A0A0A;
+    --on-ink: #FFFEFB;
     --muted: rgba(10,10,10,0.55);
     --dim: rgba(10,10,10,0.38);
     --line: rgba(10,10,10,0.08);
@@ -862,9 +863,9 @@
   .btn:disabled { opacity: .4; cursor: not-allowed; }
   .btn-lime { background: var(--lime); color: var(--lime-ink); }
   .btn-lime:hover:not(:disabled) { filter: brightness(1.04); }
-  .btn-ink { background: var(--ink); color: var(--on-ink); }
+  .btn-ink { background: var(--ink); color: var(--on-ink, #FFFEFB); }
   .btn-ink:hover:not(:disabled) { filter: brightness(1.08); }
-  /* Black: ink is light — don't paint a white brick; outline secondary instead */
+  /* Black: ink is light — outline secondary instead of a white/black brick */
   html[data-theme="black"] .btn-ink {
     background: var(--card);
     color: var(--ink);
@@ -4976,7 +4977,9 @@
     }
   }
 
-  async function doAnalyze(url) {
+  async function doAnalyze(url, opts) {
+    const copyStyle = !!(opts && opts.copyStyle);
+    const preferBrowser = copyStyle ? false : (opts && opts.preferBrowser === false ? false : true);
     const sourceUrl = cleanPastedUrl(url || $("pastePostUrl")?.value || $("headline").value || pendingSourceUrl || "");
     if (!isLiveSourceUrl(sourceUrl)) { setErr("Paste a post URL first."); return; }
     setErr("");
@@ -4987,7 +4990,7 @@
     $("runBtn").disabled = true;
     setStatus("drafting");
     startStillFill();
-    loadBrowserUrl(sourceUrl, { switchTab: true });
+    loadBrowserUrl(sourceUrl, { switchTab: preferBrowser });
     try {
       const res = await fetch("/api/analyze", {
         method: "POST",
@@ -5001,7 +5004,7 @@
           ? stamped
           : postPlatform({ ...data.run, hits: [{ sourceUrl }, ...(data.run.hits || [])] });
         if (data.run.pack) data.run.pack.postPlatform = data.run._postPlatform;
-        applyRun(data.run, { preferBrowser: true });
+        applyRun(data.run, { preferBrowser });
         applyPostAspect(data.run);
         if ($("pastePostUrl")) $("pastePostUrl").value = sourceUrl;
         setStyleUrl(sourceUrl);
@@ -5012,7 +5015,7 @@
       } else {
         setStatus("needs_input");
         $("frame").innerHTML = `<div class="ph">Using sourced photo</div>`;
-        loadBrowserUrl(sourceUrl, { switchTab: true });
+        loadBrowserUrl(sourceUrl, { switchTab: preferBrowser });
       }
     } catch (_) {
       setStatus("needs_input");
@@ -5021,6 +5024,8 @@
       if ($("analyzeBtn")) $("analyzeBtn").disabled = false;
       $("runBtn").disabled = false;
     }
+    /* Paste-URL Analyze = analyze + Copy this style (DCN composite on Post, not Browser photo). */
+    if (copyStyle) await runCopyStyleFromPaste();
   }
 
   function looksLikeStyleMatch(ask) {
@@ -5294,13 +5299,13 @@
     $("toolEditText")?.focus?.();
     $("igHeadlineEdit")?.focus();
   }
-  $("analyzeBtn")?.addEventListener("click", () => doAnalyze());
+  $("analyzeBtn")?.addEventListener("click", () => doAnalyze(undefined, { copyStyle: true }));
   $("copyStyleBtn")?.addEventListener("click", () => runCopyStyleFromPaste());
   $("copyStyleLink")?.addEventListener("click", () => runCopyStyleFromPaste());
   $("pastePostUrl")?.addEventListener("keydown", (e) => {
     if (e.key === "Enter") {
       e.preventDefault();
-      doAnalyze();
+      doAnalyze(undefined, { copyStyle: true });
     }
   });
   document.querySelectorAll("#socialChips [data-social]").forEach((btn) => {
