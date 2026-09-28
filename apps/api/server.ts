@@ -454,7 +454,7 @@ async function handleApi(req: IncomingMessage, res: ServerResponse, url: URL) {
       return json(res, 400, { error: "invalid_json" });
     }
     const sourceUrlEarly = (body.sourceUrl || "").trim();
-    const demoSample = !!(sourceUrlEarly && demoStillFor(sourceUrlEarly, body.beat || body.beatId));
+    const demoSample = !!(sourceUrlEarly && demoStillFor(sourceUrlEarly, body.beat || body.beatId, body.title));
     /* Sample city tips always use non-billable fixtures (DCN cards) — even on a local owner desk. */
     if (!ownerMode(req) || demoSample) {
       if (!ownerMode(req) && demoAiBlocked(requestIp(req))) return json(res, 429, { error: "ai_blocked_demo", mode: "demo" });
@@ -502,7 +502,7 @@ async function handleApi(req: IncomingMessage, res: ServerResponse, url: URL) {
       );
       const run = sanitizeRun(ensureDeskLog(rawRun));
       if (run.status === "failed") run.status = "needs_input";
-      const forced = demoStillFor(body.sourceUrl || "", body.beat || body.beatId);
+      const forced = demoStillFor(body.sourceUrl || "", body.beat || body.beatId, body.title);
       if (forced) {
         const origin = publicOrigin(req, url);
         const absStill = forced.startsWith("http") ? forced : `${origin}${forced}`;
@@ -554,7 +554,7 @@ async function handleApi(req: IncomingMessage, res: ServerResponse, url: URL) {
       } catch {
         /* page photos optional */
       }
-      const demoCard = demoStillFor(sourceUrl, body.beat || body.beatId);
+      const demoCard = demoStillFor(sourceUrl, body.beat || body.beatId, title);
       if (demoCard) {
         const origin = publicOrigin(req, url);
         const absStill = demoCard.startsWith("http") ? demoCard : `${origin}${demoCard}`;

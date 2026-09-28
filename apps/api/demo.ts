@@ -31,7 +31,7 @@ const STORIES: DemoStory[] = [
     title: "Metro Phase 2 stations get weekend trial hours.",
     outlet: "City desk",
     page: "/sample-pune.html",
-    still: "/assets/demo/pune.jpg",
+    still: "/assets/demo/pune-metro.jpg",
     body: "Trial hours start on the new stretch this weekend. Demo fixture so the desk can finish a post without billing AI.",
     caption: "Pune · Metro Phase 2 weekend trials. Demo fixture.",
   },
@@ -49,7 +49,7 @@ const STORIES: DemoStory[] = [
     title: "Marine Drive stretch marked for Sunday cycle hours.",
     outlet: "City desk",
     page: "/sample-mumbai.html",
-    still: "/assets/demo/mumbai.jpg",
+    still: "/assets/demo/mumbai-marine.jpg",
     body: "Sunday cycle hours return on a marked stretch. Demo fixture for the public desk.",
     caption: "Mumbai · Sunday cycle hours on Marine Drive. Demo fixture.",
   },
@@ -92,8 +92,17 @@ const STORIES: DemoStory[] = [
 ];
 
 
-/** Demo Post still: city base photo (chrome + editable text layered in studio). */
-export function demoStillFor(sourceUrl: string, desk?: string): string | null {
+/** Demo Post still: topic-matched photo when title is known; else city base. */
+export function demoStillFor(sourceUrl: string, desk?: string, title?: string): string | null {
+  const t = (title || "").trim().toLowerCase();
+  if (t) {
+    const byTitle = STORIES.find((s) => s.title.toLowerCase() === t);
+    if (byTitle) return byTitle.still;
+    const byPartial = STORIES.find(
+      (s) => t.includes(s.title.toLowerCase().slice(0, 24)) || s.title.toLowerCase().includes(t.slice(0, 24))
+    );
+    if (byPartial) return byPartial.still;
+  }
   const lower = (sourceUrl || "").toLowerCase();
   const map: Record<string, string> = {
     "sample-pune": "/assets/demo/pune.jpg",
@@ -141,11 +150,19 @@ export function demoHits(deskId: string, base: string): { desk: string; label: s
 }
 
 function matchStory(sourceUrl: string, title: string, desk?: string): DemoStory {
+  const t = (title || "").trim().toLowerCase();
+  /* Prefer title so shared sample-*.html pages still resolve distinct tip stills. */
+  if (t) {
+    const exact = STORIES.find((s) => s.title.toLowerCase() === t);
+    if (exact) return exact;
+    const partial = STORIES.find(
+      (s) => t.includes(s.title.toLowerCase().slice(0, 24)) || s.title.toLowerCase().includes(t.slice(0, 24))
+    );
+    if (partial) return partial;
+  }
   const lower = (sourceUrl || "").toLowerCase();
   const byPage = STORIES.find((s) => lower.includes(s.page.replace(".html", "")) || lower.endsWith(s.page));
   if (byPage) return byPage;
-  const byTitle = STORIES.find((s) => title && s.title.toLowerCase() === title.toLowerCase());
-  if (byTitle) return byTitle;
   const byDesk = STORIES.find((s) => s.desk === (desk || "").toLowerCase());
   return byDesk || STORIES[0]!;
 }
