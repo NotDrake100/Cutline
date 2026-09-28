@@ -16,6 +16,7 @@
     --card: #FFFEFB;
     --cream-dark: #EDE6D9;
     --ink: #0A0A0A;
+    --on-ink: #FFFEFB;
     --muted: rgba(10,10,10,0.55);
     --dim: rgba(10,10,10,0.38);
     --line: rgba(10,10,10,0.08);
@@ -862,9 +863,9 @@
   .btn:disabled { opacity: .4; cursor: not-allowed; }
   .btn-lime { background: var(--lime); color: var(--lime-ink); }
   .btn-lime:hover:not(:disabled) { filter: brightness(1.04); }
-  .btn-ink { background: var(--ink); color: var(--on-ink); }
+  .btn-ink { background: var(--ink); color: var(--on-ink, #FFFEFB); }
   .btn-ink:hover:not(:disabled) { filter: brightness(1.08); }
-  /* Black: ink is light — don't paint a white brick; outline secondary instead */
+  /* Black: ink is light — outline secondary instead of a white/black brick */
   html[data-theme="black"] .btn-ink {
     background: var(--card);
     color: var(--ink);
