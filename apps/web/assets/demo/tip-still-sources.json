@@ -2,14 +2,14 @@
   {
     "city": "Pune",
     "tip": "Metro Phase 2 stations get weekend trial hours.",
-    "base": "apps/web/assets/demo/pune-metro.jpg",
+    "base": "apps/web/assets/demo/metro.jpg",
     "note": "Topic still for tip override \u2014 metro/subway station, not bus, not harbour train",
     "source": "/tmp/pexels-dl/metro-blr.jpg"
   },
   {
     "city": "Mumbai",
     "tip": "Marine Drive stretch marked for Sunday cycle hours.",
-    "base": "apps/web/assets/demo/mumbai-marine.jpg",
+    "base": "apps/web/assets/demo/marine-drive.jpg",
     "note": "Topic still for tip override \u2014 Marine Drive coastal road / seafront, not harbour train",
     "source": "/workspace/dcn-mumbai/photos/plan/marine.jpg"
   }
