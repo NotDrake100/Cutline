@@ -30,7 +30,7 @@ const STORIES: DemoStory[] = [
     desk: "pune",
     title: "Metro Phase 2 stations get weekend trial hours.",
     outlet: "City desk",
-    page: "/sample-pune.html",
+    page: "/sample-pune-metro.html",
     still: "/assets/demo/metro.jpg",
     body: "Trial hours start on the new stretch this weekend. Demo fixture so the desk can finish a post without billing AI.",
     caption: "Pune · Metro Phase 2 weekend trials. Demo fixture.",
@@ -48,7 +48,7 @@ const STORIES: DemoStory[] = [
     desk: "mumbai",
     title: "Marine Drive stretch marked for Sunday cycle hours.",
     outlet: "City desk",
-    page: "/sample-mumbai.html",
+    page: "/sample-mumbai-marine.html",
     still: "/assets/demo/marine-drive.jpg",
     body: "Sunday cycle hours return on a marked stretch. Demo fixture for the public desk.",
     caption: "Mumbai · Sunday cycle hours on Marine Drive. Demo fixture.",
@@ -84,7 +84,7 @@ const STORIES: DemoStory[] = [
     desk: "hyderabad",
     title: "Tank Bund stretch marked for Sunday cycle hours.",
     outlet: "City desk",
-    page: "/sample-hyderabad.html",
+    page: "/sample-hyderabad-tank.html",
     still: "/assets/demo/hyderabad.jpg",
     body: "Sunday cycle hours return on a marked Tank Bund stretch. Demo fixture for the public desk.",
     caption: "Hyderabad · Tank Bund Sunday cycle hours. Demo fixture.",
@@ -105,6 +105,9 @@ export function demoStillFor(sourceUrl: string, desk?: string, title?: string): 
   }
   const lower = (sourceUrl || "").toLowerCase();
   const map: Record<string, string> = {
+    "sample-pune-metro": "/assets/demo/metro.jpg",
+    "sample-mumbai-marine": "/assets/demo/marine-drive.jpg",
+    "sample-hyderabad-tank": "/assets/demo/hyderabad.jpg",
     "sample-pune": "/assets/demo/pune.jpg",
     "sample-mumbai": "/assets/demo/mumbai.jpg",
     "sample-bengaluru": "/assets/demo/bengaluru.jpg",
@@ -151,7 +154,7 @@ export function demoHits(deskId: string, base: string): { desk: string; label: s
 
 function matchStory(sourceUrl: string, title: string, desk?: string): DemoStory {
   const t = (title || "").trim().toLowerCase();
-  /* Prefer title so shared sample-*.html pages still resolve distinct tip stills. */
+  /* Prefer title; pages are per-tip now, but title-first stays the durable match. */
   if (t) {
     const exact = STORIES.find((s) => s.title.toLowerCase() === t);
     if (exact) return exact;
@@ -161,7 +164,10 @@ function matchStory(sourceUrl: string, title: string, desk?: string): DemoStory 
     if (partial) return partial;
   }
   const lower = (sourceUrl || "").toLowerCase();
-  const byPage = STORIES.find((s) => lower.includes(s.page.replace(".html", "")) || lower.endsWith(s.page));
+  /* Prefer longest page match so sample-pune-metro does not hit sample-pune. */
+  const byPage = STORIES
+    .filter((s) => lower.includes(s.page) || lower.endsWith(s.page.replace(/^\//, "")))
+    .sort((a, b) => b.page.length - a.page.length)[0];
   if (byPage) return byPage;
   const byDesk = STORIES.find((s) => s.desk === (desk || "").toLowerCase());
   return byDesk || STORIES[0]!;

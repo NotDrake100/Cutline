@@ -4436,6 +4436,9 @@
     if (/instagram\.com|instagr\.am|sample-dcn-ig/i.test(u)) return bustDemoStill("/assets/demo/dcn-ig.jpg");
     if (/(^|\.)x\.com|twitter\.com|sample-dcn-x/i.test(u)) return bustDemoStill("/assets/demo/dcn-x.jpg");
     if (/youtube\.com|youtu\.be|sample-dcn-yt/i.test(u)) return bustDemoStill("/assets/demo/dcn-yt.jpg");
+    if (/sample-pune-metro/i.test(u)) return "/assets/demo/metro.jpg";
+    if (/sample-mumbai-marine/i.test(u)) return "/assets/demo/marine-drive.jpg";
+    if (/sample-hyderabad-tank/i.test(u)) return "/assets/demo/hyderabad.jpg";
     if (/sample-pune/i.test(u)) return "/assets/demo/pune.jpg";
     if (/sample-hyderabad/i.test(u)) return "/assets/demo/source.jpg";
     if (/sample-mumbai/i.test(u)) return "/assets/demo/mumbai.jpg";
@@ -4517,7 +4520,7 @@
     const embed = socialEmbedUrl(url);
     /* Official IG embed is a black full-page widget — never full-bleed it. Honest card instead. */
     const useEmbed = !!embed && kind !== "instagram";
-    const isLocalStyle = /sample-dcn-|sample-(pune|mumbai|delhi|bengaluru|hyderabad|source)\.html/i.test(url);
+    const isLocalStyle = /sample-dcn-|sample-(?:pune|mumbai|delhi|bengaluru|hyderabad|source)(?:-[a-z0-9]+)?\.html/i.test(url);
     const mode = useEmbed ? "embed" : (kind === "instagram" || (!embed && !isLocalStyle && /instagram|x\.com|twitter|facebook|tiktok/i.test(url))) ? "card" : "page";
     const frameUrl = useEmbed ? embed : url;
     const hint = $("browserHint");
@@ -5082,7 +5085,7 @@
     setErr("");
     const pasted = ($("pastePostUrl")?.value || "").trim();
     const headline = $("headline").value.trim();
-    const samplePending = isLiveSourceUrl(pendingSourceUrl) && /sample-(pune|mumbai|bengaluru|delhi|hyderabad|source)\.html/i.test(pendingSourceUrl || "");
+    const samplePending = isLiveSourceUrl(pendingSourceUrl) && /sample-(?:pune|mumbai|bengaluru|delhi|hyderabad|source)(?:-[a-z0-9]+)?\.html/i.test(pendingSourceUrl || "");
     const refUrl = looksLikePostUrl(resolveSourceUrl(currentRun))
       ? resolveSourceUrl(currentRun)
       : (looksLikePostUrl(pasted) ? pasted : (looksLikePostUrl(pendingSourceUrl) ? pendingSourceUrl : ""));
@@ -5606,14 +5609,14 @@
   function newsTips() {
     const origin = location.origin;
     /* Pool rotates so recommendations feel different across sessions — plain news photos, no DCN chrome.
-       Explicit still: per tip so shared sample-*.html pages never reuse the wrong city photo. */
+       Per-tip url + still: each tip has its own sample-*.html so Analyze/Browser/Copy style match the tip. */
     return [
       { desk: "pune", kicker: "Pune", title: "Overnight bus routes go to a vote in Pune.", url: origin + "/sample-pune.html", still: origin + "/assets/demo/pune.jpg" },
-      { desk: "pune", kicker: "Pune", title: "Metro Phase 2 stations get weekend trial hours.", url: origin + "/sample-pune.html", still: origin + "/assets/demo/metro.jpg" },
+      { desk: "pune", kicker: "Pune", title: "Metro Phase 2 stations get weekend trial hours.", url: origin + "/sample-pune-metro.html", still: origin + "/assets/demo/metro.jpg" },
       { desk: "hyderabad", kicker: "Hyderabad", title: "HITEC City feeder buses add late trips.", url: origin + "/sample-hyderabad.html", still: origin + "/assets/demo/hyderabad.jpg" },
-      { desk: "hyderabad", kicker: "Hyderabad", title: "Tank Bund stretch marked for Sunday cycle hours.", url: origin + "/sample-hyderabad.html", still: origin + "/assets/demo/hyderabad.jpg" },
+      { desk: "hyderabad", kicker: "Hyderabad", title: "Tank Bund stretch marked for Sunday cycle hours.", url: origin + "/sample-hyderabad-tank.html", still: origin + "/assets/demo/hyderabad.jpg" },
       { desk: "mumbai", kicker: "Mumbai", title: "Harbour line holds a late-night clearance window.", url: origin + "/sample-mumbai.html", still: origin + "/assets/demo/mumbai.jpg" },
-      { desk: "mumbai", kicker: "Mumbai", title: "Marine Drive stretch marked for Sunday cycle hours.", url: origin + "/sample-mumbai.html", still: origin + "/assets/demo/marine-drive.jpg" },
+      { desk: "mumbai", kicker: "Mumbai", title: "Marine Drive stretch marked for Sunday cycle hours.", url: origin + "/sample-mumbai-marine.html", still: origin + "/assets/demo/marine-drive.jpg" },
       { desk: "bengaluru", kicker: "Bengaluru", title: "Whitefield feeder buses add a late last trip.", url: origin + "/sample-bengaluru.html", still: origin + "/assets/demo/bengaluru.jpg" },
       { desk: "delhi", kicker: "Delhi", title: "Yellow Line weekend work shifts to early Monday.", url: origin + "/sample-delhi.html", still: origin + "/assets/demo/delhi.jpg" },
     ];
@@ -6132,8 +6135,12 @@
     if (/20[-\s]?year[-\s]?old|vignesh|kawade|visarjan|tractor|trolley/.test(t) && /die|dies|died|dead|death|kill|killed|fatal|accident|heartbreaking/.test(t)) {
       return "ig:ddwhjcpid9b";
     }
+    if (/metro phase|sample-pune-metro\.html/i.test(t + " " + s)) return "pune:metro";
     if (/overnight bus/.test(t) || /sample-pune\.html/i.test(s)) return "pune:buses";
+    if (/marine drive|sample-mumbai-marine\.html/i.test(t + " " + s)) return "mumbai:marine";
     if (/harbour line/.test(t) || /sample-mumbai\.html/i.test(s)) return "mumbai:harbour";
+    if (/tank bund|sample-hyderabad-tank\.html/i.test(t + " " + s)) return "hyderabad:tank";
+    if (/hitec|sample-hyderabad\.html/i.test(t + " " + s)) return "hyderabad:hitec";
     return "";
   }
 
