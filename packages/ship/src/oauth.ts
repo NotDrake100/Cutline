@@ -7,7 +7,7 @@ import { mkdir, readFile, rename, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import { dataRoot } from "../../core/src/paths";
 
-/** Server-side token store. Local: data/secrets. Vercel: /tmp/cutline/secrets. Seed Canva from env for HIS deploy. */
+/** Server-side token store. Local: data/secrets. Vercel: /tmp/cutline/secrets. Canva tokens can be seeded from env. */
 const SECRETS = join(dataRoot(), "secrets");
 const ACCOUNTS_PATH = join(SECRETS, "oauth-accounts.json");
 const PENDING_PATH = join(SECRETS, "oauth-pending.json");

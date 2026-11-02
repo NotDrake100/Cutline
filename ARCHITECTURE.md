@@ -1,32 +1,30 @@
-# Cutline — architecture
+# Architecture
 
-**Product:** Your AI desk. Hunt a live page → Gemini rewrite → still + pack → approve → ship.  
-**Engine:** Google Gemini on the API server.  
-**UI:** Ace-grade studio.
+Cutline is a TypeScript news desk: a static front end plus a Node API.
+
+## Layout
+
+| Path | Role |
+|------|------|
+| `apps/web` | Landing page and studio (`index.html`, `studio.html`) |
+| `apps/api` | HTTP server (local port 8787) |
+| `api/index.ts` | Vercel entry; same handler as local |
+| `packages/` | Hunt, rewrite, library, and export |
 
 ## Surfaces
 
 | Route | Job |
 |-------|-----|
-| `/` | Marketing |
-| `/studio` | Desk: Hunt, Browser, Library, Connect |
-| `/api/*` | Cloud Run / local Node |
+| `/` | Landing |
+| `/studio.html` | Desk: Hunt, Browser, Library, Connect |
+| `/api/*` | API |
 
-## Env (server / cloud)
+## Flow
 
-```
-GEMINI_API_KEY=
-GEMINI_IMAGE_MODEL=
-GEMINI_TEXT_MODEL=
-CUTLINE_PUBLIC_URL=
-```
+Hunt opens public news section pages and keeps only items with a live `sourceUrl`. The browser pane shows that URL. Rewrites use Google Gemini on sourced page text. Nothing is exported until a post is approved. Approved posts go to Canva or download as a ZIP.
 
-`.env` on the machine. Never committed.
+Public demo traffic uses fixtures and cached pages, so it does not call Gemini.
 
-## Hunt
+## Data
 
-Each desk lists public section pages. The server opens those pages, extracts article URLs, and keeps only live `sourceUrl`s. Browser shows the URL.
-
-## Library
-
-SQLite at `data/cutline.db`: desk items + media (clip, photo, video, caption).
+SQLite (`better-sqlite3`) stores desk items and media (clips, stills, videos, captions). Locally that is `data/cutline.db`.

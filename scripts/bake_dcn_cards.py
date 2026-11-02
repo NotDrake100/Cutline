@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Bake DCN Hyderabad-style Telegram news cards for Cutline demo tips.
 
-Matches /workspace/dcn-hyd-card-fix/auto_post.py:
+Layout:
   photo cover-crop → dark plate → chroma_key green (0,122,63) on real
   template_post.png → composite → draw ALL CAPS headline + body deck.
 
