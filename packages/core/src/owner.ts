@@ -6,7 +6,7 @@
  *
  * Owner desk (cookie from CUTLINE_OWNER_KEY, or x-cutline-owner header) → real Gemini.
  * On Vercel, a missing owner session is always Demo even if GEMINI_API_KEY is set.
- * Local `npm run studio` without CUTLINE_OWNER_KEY is treated as owner (Archit's machine).
+ * Local `npm run studio` without CUTLINE_OWNER_KEY is treated as owner.
  */
 import { createHmac, timingSafeEqual } from "node:crypto";
 import type { IncomingMessage } from "node:http";
@@ -70,7 +70,7 @@ export function isOwnerRequest(req: IncomingMessage): boolean {
   if (!key) {
     /* Vercel public deploy: no owner key means Demo, even with GEMINI_API_KEY. */
     if (process.env.VERCEL) return false;
-    /* Local studio without an owner key is Archit's machine. */
+    /* Local studio without an owner key is treated as owner. */
     return true;
   }
   const hdr = req.headers[OWNER_HEADER];

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Bake DCN X (4:5) and YouTube (16:9) stills — demo-ready for judges.
+"""Bake DCN X (4:5) and YouTube (16:9) stills for the public demo.
 
 X uses the real DCN template (chroma-key) over a sharp night train photo.
 YouTube is true 16:9 with the same DCN logo chrome, dark plate, and punchy type.

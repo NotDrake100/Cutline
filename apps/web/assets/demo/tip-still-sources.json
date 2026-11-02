@@ -11,6 +11,6 @@
     "tip": "Marine Drive stretch marked for Sunday cycle hours.",
     "base": "apps/web/assets/demo/marine-drive.jpg",
     "note": "Topic still for tip override \u2014 Marine Drive coastal road / seafront, not harbour train",
-    "source": "/workspace/dcn-mumbai/photos/plan/marine.jpg"
+    "source": "apps/web/assets/demo/marine-drive.jpg"
   }
 ]

@@ -10,7 +10,7 @@ import { fetchOgMeta, fetchYoutubeOEmbed, upgradeSocialImage } from "../../packa
 import { parseGeminiJson } from "../../packages/core/src/gemini";
 import { demoRun } from "./demo";
 
-/** Archit's showcase DCN Instagram post. Strip ?stkn= and other query junk. */
+/** Showcase DCN Instagram post used by the public demo. Strip ?stkn= and other query junk. */
 export const DCN_INSTAGRAM_POST = "https://www.instagram.com/p/DdwHjcpId9B/";
 
 export type SocialKind = "instagram" | "x" | "youtube" | "tiktok" | "facebook" | "threads" | "web";
@@ -96,7 +96,7 @@ export interface SocialFixture {
   outlet: string;
 }
 
-/** Cached OG caption for Archit's showcase DCN post — used only when live OG is blocked. */
+/** Cached OG caption for the showcase DCN post — used only when live OG is blocked. */
 const DCN_IG_CAPTION =
   "A heartbreaking incident unfolded on BT Kawade Road, Pune, on September 25 around 4 PM. A 20-year-old youth, Vignesh Santosh Pawar from Ramtekdi, lost his life after losing balance while attempting to board a moving tractor-trolley returning from Ganesh Visarjan near Kalubai Chowk. He fell and was fatally injured when the trolley's rear wheel ran over him. Doctors at Sassoon Hospital declared him dead on arrival, and the body was subsequently sent to Command Hospital for autopsy. Local police have registered the case and are conducting further investigation.\n\n#PuneAccident #GaneshVisarjan #BTKawadeRoad #PuneNews #TragicIncident\n\n(BT Kawade Road, Ganesh Visarjan accident, Ramtekdi youth, Vighnesh Santosh Pawar, Tractor trolley accident, Pune news)\n\nCopyright Disclaimer: This post includes copyrighted material used under Fair Dealing (Section 52, Copyright Act, 1957) for the purpose of news reporting, criticism, review and public awareness. All rights belong to the respective owners.";
 
